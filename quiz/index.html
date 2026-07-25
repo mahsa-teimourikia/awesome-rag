@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="An interactive, multiple-answer quiz for testing practical Retrieval-Augmented Generation knowledge."
+    >
+    <title>RAG Knowledge Check</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#quiz">Skip to quiz</a>
+
+    <header class="hero">
+      <nav class="topbar" aria-label="Primary navigation">
+        <a
+          class="brand"
+          href="https://github.com/mahsa-teimourikia/awsome-rag"
+          aria-label="Back to Awesome RAG"
+        >
+          <span class="brand-mark" aria-hidden="true">R</span>
+          <span>Awesome RAG</span>
+        </a>
+        <a class="repo-link" href="https://github.com/mahsa-teimourikia/awsome-rag">
+          View repository
+        </a>
+      </nav>
+
+      <div class="hero-content">
+        <p class="eyebrow">Interactive learning lab</p>
+        <h1>RAG Knowledge Check</h1>
+        <p class="hero-copy">
+          Test your understanding of retrieval-augmented generation from ingestion
+          through evaluation. Every question may have more than one correct answer.
+        </p>
+
+        <div class="hero-stats" role="group" aria-label="Quiz summary">
+          <div>
+            <strong id="question-count">18</strong>
+            <span>questions</span>
+          </div>
+          <div>
+            <strong>6</strong>
+            <span>technical areas</span>
+          </div>
+          <div>
+            <strong>Exact</strong>
+            <span>multi-answer grading</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="progress-panel" aria-label="Quiz progress">
+        <p class="panel-label">Your progress</p>
+        <div class="progress-copy">
+          <strong><span id="answered-count">0</span>/<span id="progress-total">18</span></strong>
+          <span>answered</span>
+        </div>
+        <progress
+          class="progress-track"
+          id="progress-track"
+          aria-label="Questions answered"
+          max="18"
+          value="0"
+        >
+          0 of 18 answered
+        </progress>
+
+        <nav
+          class="category-list"
+          id="category-list"
+          aria-label="Question categories"
+        ></nav>
+
+        <p class="save-note">
+          Answers are saved automatically in this browser.
+        </p>
+      </aside>
+
+      <section class="quiz-column" id="quiz" aria-labelledby="quiz-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Select all that apply</p>
+            <h2 id="quiz-heading">Technical concepts</h2>
+          </div>
+          <button class="text-button" id="reset-button" type="button">Reset answers</button>
+        </div>
+
+        <form id="quiz-form">
+          <div id="question-list"></div>
+
+          <div class="submit-panel">
+            <div>
+              <h2>Ready to check your understanding?</h2>
+              <p>Unanswered questions count as incorrect. You can revise and grade again.</p>
+            </div>
+            <button class="primary-button" type="submit">Grade my answers</button>
+          </div>
+        </form>
+
+        <section class="results" id="results" hidden aria-live="polite">
+          <div class="score-ring" aria-hidden="true">
+            <strong id="score-percent">0%</strong>
+          </div>
+          <div class="results-copy">
+            <p class="eyebrow">Your result</p>
+            <h2 id="score-heading">Quiz graded</h2>
+            <p id="score-summary"></p>
+            <div class="result-actions">
+              <button class="primary-button" id="review-button" type="button">
+                View correct answers
+              </button>
+              <button class="secondary-button" id="retry-button" type="button">
+                Revise answers
+              </button>
+            </div>
+          </div>
+          <ul
+            class="topic-scores"
+            id="topic-scores"
+            aria-label="Scores by topic"
+          ></ul>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Built from the concepts and cited sources in
+        <a href="https://github.com/mahsa-teimourikia/awsome-rag">Awesome RAG</a>.
+        No answers leave your device.
+      </p>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
