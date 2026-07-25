@@ -1,0 +1,39 @@
+---
+title: Retrieval-Augmented Generation pipeline
+---
+flowchart TB
+    subgraph ingestion["Knowledge ingestion"]
+        direction LR
+        sources["Documents, databases,<br/>APIs, and media"]
+        parse["Parse, clean,<br/>and enrich"]
+        chunk["Structure-aware<br/>chunking"]
+        index[("Lexical + vector<br/>search index")]
+
+        sources --> parse --> chunk --> index
+    end
+
+    subgraph runtime["Query-time RAG"]
+        direction LR
+        question["User question"]
+        transform["Query transform<br/>or decomposition"]
+        retrieve["Candidate<br/>retrieval"]
+        rerank["Reranking"]
+        context["Context assembly<br/>with source metadata"]
+        model["Language model"]
+        answer["Grounded answer<br/>with citations"]
+        evaluate["Evaluate, trace,<br/>and monitor"]
+
+        question --> transform --> retrieve --> rerank --> context --> model --> answer --> evaluate
+    end
+
+    index --> retrieve
+    permissions["Metadata filters<br/>and access control"] --> retrieve
+
+    classDef source fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e,stroke-width:1.5px;
+    classDef process fill:#f8fafc,stroke:#475569,color:#0f172a,stroke-width:1.5px;
+    classDef guard fill:#fef3c7,stroke:#b45309,color:#78350f,stroke-width:1.5px;
+    classDef output fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:1.5px;
+    class sources,index,question source;
+    class parse,chunk,transform,retrieve,rerank,context,model,evaluate process;
+    class permissions guard;
+    class answer output;
