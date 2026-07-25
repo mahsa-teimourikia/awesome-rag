@@ -12,6 +12,7 @@ This collection emphasizes primary sources, maintained open-source projects, and
 
 - [Start here](#start-here)
 - [RAG explained](#rag-explained)
+- [Test your RAG knowledge](#test-your-rag-knowledge)
 - [A practical RAG architecture](#a-practical-rag-architecture)
 - [Learning paths](#learning-paths)
 - [Official educational resources](#official-educational-resources)
@@ -48,6 +49,12 @@ The two quality questions are distinct:
 - **Did the model answer faithfully from that evidence?** (generation quality)
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
+
+## Test your RAG knowledge
+
+Finished the guides? Take the [interactive RAG Knowledge Check](https://mahsa-teimourikia.github.io/awsome-rag/)—18 multiple-answer questions covering foundations, ingestion, retrieval, generation, evaluation, and security. It grades the complete test, gives a topic-by-topic score, and lets you reveal the correct answers with explanations and source links.
+
+The quiz runs entirely in the browser and stores progress only on the learner's device. See the [quiz source](quiz/) or open [`quiz/index.html`](quiz/index.html) locally.
 
 ## A practical RAG architecture
 
