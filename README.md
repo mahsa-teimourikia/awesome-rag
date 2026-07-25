@@ -38,13 +38,9 @@ This collection emphasizes primary sources, maintained open-source projects, and
 
 RAG is a system design, not a single database query. The original paper describes augmenting a parametric generator with non-parametric retrieved memory. In modern applications, the memory is usually a versioned corpus of documents, records, or multimodal assets that is searched at runtime.
 
-```text
-Sources → parse / clean → chunk → embed + index
-                                      ↓
-User question → query transform → retrieve → rerank → assemble context → LLM answer + citations
-                                                        ↑                     ↓
-                                             filters / permissions       evaluate / trace
-```
+![Retrieval-Augmented Generation pipeline showing knowledge ingestion, query-time retrieval, grounded answer generation, and evaluation](assets/rag-pipeline.svg)
+
+<sub>Diagram source: [Mermaid](assets/rag-pipeline.mmd).</sub>
 
 The two quality questions are distinct:
 
