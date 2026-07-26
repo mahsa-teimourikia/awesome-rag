@@ -15,3 +15,5 @@ Use cases are project-based paths that apply the same retrieval foundations to d
 | Advanced | Agentic RAG | Routing, tools, corrective loops, human approval |
 
 Each use case should eventually have a problem statement, architecture diagram, fixture data, threat model, runnable implementation, evaluation set, limitations, and extension exercises.
+
+The first complete project is the [documentation assistant capstone](documentation-assistant/README.md).
