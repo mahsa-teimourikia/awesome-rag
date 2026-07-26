@@ -1,0 +1,14 @@
+[project]
+name = "awesome-rag-learning"
+version = "0.1.0"
+description = "Runnable learning examples for Retrieval-Augmented Generation"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+llamaindex = ["llama-index>=0.12", "llama-index-embeddings-huggingface>=0.5"]
+qdrant = ["qdrant-client>=1.14", "sentence-transformers>=3.4"]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
