@@ -11,3 +11,5 @@
 | 5 | Evaluation lab | Build a golden set and diagnose retrieval versus answer failures |
 
 Prerequisites: complete the beginner path and be comfortable reading basic evaluation metrics.
+
+Begin with [retrieval strategies](01-retrieval-strategies/README.md), then continue with filters, reranking, rewriting, and evaluation.
