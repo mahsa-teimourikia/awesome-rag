@@ -16,6 +16,8 @@ From the repository root:
 python examples/beginner/first_local_rag.py
 ```
 
+Prefer a narrative walkthrough? Open the guided [`first local RAG notebook`](../../../notebooks/beginner/01_first_local_rag.ipynb).
+
 Try:
 
 ```text

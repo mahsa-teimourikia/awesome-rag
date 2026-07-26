@@ -16,6 +16,8 @@ PYTHONPATH=. python -m examples.beginner.chunking_lab
 
 Or import `fixed_size` and `by_heading` from [`chunking_lab.py`](../../../examples/beginner/chunking_lab.py) in a Python shell. The functions return a stable ID, source, text, and optional section for every chunk.
 
+The guided companion notebook is [`02_chunking_lab.ipynb`](../../../notebooks/beginner/02_chunking_lab.ipynb).
+
 ## The trade-off
 
 ```mermaid

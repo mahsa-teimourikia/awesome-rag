@@ -16,6 +16,8 @@ PYTHONPATH=. python -m examples.beginner.citations
 
 Inspect [`citations.py`](../../../examples/beginner/citations.py). `Citation` is data, not formatting: it carries a chunk ID, source, and retrieval score. `CitedAnswer` makes the abstention state and reason explicit. `render_markdown` is only a presentation layer.
 
+The guided companion notebook is [`03_citations_abstention.ipynb`](../../../notebooks/beginner/03_citations_abstention.ipynb).
+
 ## Architecture
 
 ```mermaid
