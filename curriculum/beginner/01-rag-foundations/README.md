@@ -15,6 +15,8 @@ You will be able to:
 
 Read [What is RAG?](../../../docs/what-is-rag.md), then inspect the two files in [`examples/data/beginner-docs`](../../../examples/data/beginner-docs).
 
+The guided companion is [`notebooks/beginner/01_first_local_rag.ipynb`](../../../notebooks/beginner/01_first_local_rag.ipynb).
+
 ## Checkpoint
 
 Before continuing, draw the pipeline from memory and label one failure mode for each stage. Compare your result with the [RAG architecture diagram](../../../assets/rag-pipeline.svg).
