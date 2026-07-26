@@ -11,6 +11,7 @@ This collection emphasizes primary sources, maintained open-source projects, and
 ## Contents
 
 - [Start here](#start-here)
+- [Learning roadmap](#learning-roadmap)
 - [RAG explained](#rag-explained)
 - [Test your RAG knowledge](#test-your-rag-knowledge)
 - [A practical RAG architecture](#a-practical-rag-architecture)
@@ -53,6 +54,16 @@ See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a sour
 ## Test your RAG knowledge
 
 Finished the guides? Take the [interactive RAG Knowledge Check](https://mahsa-teimourikia.github.io/awsome-rag/)—18 multiple-answer questions covering foundations, ingestion, retrieval, generation, evaluation, and security. It grades the complete test, gives a topic-by-topic score, and lets you reveal the correct answers with explanations and source links.
+
+## Learning roadmap
+
+This repository is expanding into a structured, project-based curriculum. Use the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level:
+
+- **Beginner:** build a local, cited RAG assistant from first principles.
+- **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
+- **Advanced:** design corrective, graph, multimodal, agentic, and production RAG systems.
+
+The [use-case catalog](use-cases/README.md) lets you choose a project after learning the underlying pattern. New lessons follow the [tutorial template](docs/tutorial-template.md) so every example includes objectives, setup, experiments, failure modes, evaluation, and exercises.
 
 The quiz runs entirely in the browser and stores progress only on the learner's device. See the [quiz source](quiz/) or open [`quiz/index.html`](quiz/index.html) locally.
 
