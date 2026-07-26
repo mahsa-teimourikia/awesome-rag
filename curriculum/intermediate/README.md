@@ -12,4 +12,4 @@
 
 Prerequisites: complete the beginner path and be comfortable reading basic evaluation metrics.
 
-Begin with [retrieval strategies](01-retrieval-strategies/README.md), then continue with filters, reranking, rewriting, and evaluation.
+Begin with [retrieval strategies](01-retrieval-strategies/README.md), then continue with [metadata permissions](02-metadata-permissions/README.md), reranking, rewriting, and evaluation.
