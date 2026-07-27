@@ -33,6 +33,7 @@ const elements = {
   lessonFilter: document.querySelector("#lesson-filter"),
   clearFilters: document.querySelector("#clear-filters"),
   lessonDetail: document.querySelector("#lesson-detail"),
+  resumeBanner: document.querySelector("#resume-banner"),
 };
 
 let selections = loadSelections();
@@ -103,6 +104,14 @@ function renderLearningPath() {
   `;
   }).join("");
   document.querySelector("#learning-progress").textContent = `${progress.completedLessons?.length ?? 0}/${allLessons.length} lessons complete`;
+  const next = allLessons.find((lesson) => !isLessonComplete(lesson.id));
+  if (next) {
+    elements.resumeBanner.hidden = false;
+    elements.resumeBanner.innerHTML = `<span><strong>${progress.lastVisited ? "Continue your path" : "Start your path"}</strong><small>Recommended next: ${next.title}</small></span><a class="primary-button" href="#lesson-${next.id}">${progress.lastVisited ? "Resume lesson" : "Begin lesson"} →</a>`;
+  } else {
+    elements.resumeBanner.hidden = false;
+    elements.resumeBanner.innerHTML = `<span><strong>Learning path complete</strong><small>Revisit any lesson or retake a checkpoint to reinforce your skills.</small></span><a class="secondary-button" href="#learning-path">Review the path</a>`;
+  }
 }
 
 const progressKey = "awesome-rag-learning-progress-v1";
@@ -123,13 +132,13 @@ function bindLearningActions() {
 
 function refreshLearningPath() { renderLearningPath(); bindLearningActions(); }
 elements.exportProgress.addEventListener("click", () => {
-  const payload = { version: 1, exportedAt: new Date().toISOString(), completedLessons: progress.completedLessons ?? [], lastVisited: progress.lastVisited ?? null };
+  const payload = { version: 2, exportedAt: new Date().toISOString(), completedLessons: progress.completedLessons ?? [], lastVisited: progress.lastVisited ?? null, quizScores: progress.quizScores ?? {} };
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "awesome-rag-progress.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 elements.importProgress.addEventListener("click", () => elements.progressFile.click());
 elements.progressFile.addEventListener("change", async () => {
   const file = elements.progressFile.files?.[0]; if (!file) return;
-  try { const imported = JSON.parse(await file.text()); if (!Array.isArray(imported.completedLessons)) throw new Error("Invalid progress file"); progress = { completedLessons: imported.completedLessons.filter((id) => allLessons.some((lesson) => lesson.id === id)), lastVisited: imported.lastVisited ?? null }; saveProgress(); refreshLearningPath(); } catch { window.alert("That progress file could not be imported."); } finally { elements.progressFile.value = ""; }
+  try { const imported = JSON.parse(await file.text()); if (!Array.isArray(imported.completedLessons)) throw new Error("Invalid progress file"); progress = { completedLessons: imported.completedLessons.filter((id) => allLessons.some((lesson) => lesson.id === id)), lastVisited: allLessons.some((lesson) => lesson.id === imported.lastVisited) ? imported.lastVisited : null, quizScores: Object.fromEntries(Object.entries(imported.quizScores ?? {}).filter(([id, score]) => allLessons.some((lesson) => lesson.id === id) && Number.isFinite(score))) }; saveProgress(); refreshLearningPath(); } catch { window.alert("That progress file could not be imported."); } finally { elements.progressFile.value = ""; }
 });
 elements.resetLearningProgress.addEventListener("click", () => { if (!window.confirm("Reset completed lessons and learning progress?")) return; progress = {}; saveProgress(); refreshLearningPath(); });
 
@@ -146,6 +155,8 @@ function showLessonFromHash() {
   const id = window.location.hash.replace(/^#lesson-/, "");
   const lesson = allLessons.find((item) => item.id === id);
   if (!lesson) { elements.lessonDetail.hidden = true; return; }
+  progress.lastVisited = lesson.id;
+  saveProgress();
   const position = allLessons.findIndex((item) => item.id === id);
   const next = allLessons[position + 1];
   const score = progress.quizScores?.[lesson.id];
