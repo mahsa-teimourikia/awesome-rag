@@ -30,7 +30,7 @@ jobs:
       - name: Validate learning links
         run: npm run check:pages-links
       - name: Build static site
-        run: npm run build:pages
+        run: npm run test:pages
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
