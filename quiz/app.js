@@ -1,5 +1,6 @@
 import { gradeQuiz } from "./grading.js";
 import { questions } from "./questions.js";
+import { learningPath } from "./learning.js";
 
 const storageKey = "awesome-rag-quiz-selections-v1";
 const repositoryContentBase =
@@ -21,6 +22,7 @@ const elements = {
   scorePercent: document.querySelector("#score-percent"),
   scoreSummary: document.querySelector("#score-summary"),
   topicScores: document.querySelector("#topic-scores"),
+  learningPathList: document.querySelector("#learning-path-list"),
 };
 
 let selections = loadSelections();
@@ -65,6 +67,17 @@ function renderCategoryList() {
       `,
     )
     .join("");
+}
+
+function renderLearningPath() {
+  elements.learningPathList.innerHTML = learningPath.map((track) => `
+    <section class="learning-track ${track.tone}">
+      <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${track.modules.length} steps</span></div>
+      <ol class="learning-modules">${track.modules.map(([title, description, material, notebook, category], index) => `
+        <li class="learning-module"><span class="module-number">${index + 1}</span><div><h4>${title}</h4><p>${description}</p><div class="module-links"><a href="${material}">Read lesson</a><a href="${notebook}">Open notebook</a><a href="#category-${categorySlug(category)}">Quiz: ${category}</a></div></div></li>
+      `).join("")}</ol>
+    </section>
+  `).join("");
 }
 
 function renderQuestions() {
@@ -265,5 +278,6 @@ elements.resetButton.addEventListener("click", () => {
 elements.questionCount.textContent = questions.length;
 elements.progressTotal.textContent = questions.length;
 renderCategoryList();
+renderLearningPath();
 renderQuestions();
 updateProgress();

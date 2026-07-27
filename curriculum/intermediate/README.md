@@ -12,4 +12,4 @@
 
 Prerequisites: complete the beginner path and be comfortable reading basic evaluation metrics.
 
-Begin with [retrieval strategies](01-retrieval-strategies/README.md), then continue with [metadata permissions](02-metadata-permissions/README.md), [query rewriting and reranking](03-query-reranking/README.md), the [evaluation lab](04-evaluation/README.md), and [research synthesis](05-research-synthesis/README.md).
+Begin with [retrieval strategies](01-retrieval-strategies/README.md), then continue with [metadata permissions](02-metadata-permissions/README.md), [query rewriting and reranking](03-query-reranking/README.md), the [evaluation lab](04-evaluation/README.md), [research synthesis](05-research-synthesis/README.md), and the optional [local Qdrant lab](06-qdrant-local/README.md).
