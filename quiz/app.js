@@ -6,6 +6,10 @@ const storageKey = "awesome-rag-quiz-selections-v1";
 const repositoryContentBase =
   "https://github.com/mahsa-teimourikia/awsome-rag/blob/main/";
 
+function resourceHref(path) {
+  return `${repositoryContentBase}${path.replace(/^\.\.\//, "")}`;
+}
+
 const elements = {
   answeredCount: document.querySelector("#answered-count"),
   categoryList: document.querySelector("#category-list"),
@@ -105,7 +109,7 @@ function renderLearningPath() {
     <section class="learning-track ${track.tone}" id="${track.id}">
       <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${modules.length} matching steps</span></div>
       <ol class="learning-modules">${modules.map((module, index) => `
-        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}${progress.quizScores?.[module.id] !== undefined ? `<span class="score-badge">Score ${progress.quizScores[module.id]}%</span>` : ""}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
+        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}${progress.quizScores?.[module.id] !== undefined ? `<span class="score-badge">Score ${progress.quizScores[module.id]}%</span>` : ""}</div><div class="module-links"><a href="${resourceHref(module.material)}">Read lesson</a><a href="${resourceHref(module.notebook)}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
       `).join("")}</ol>
     </section>
   `;
@@ -167,7 +171,7 @@ function showLessonFromHash() {
   const position = allLessons.findIndex((item) => item.id === id);
   const next = allLessons[position + 1];
   const score = progress.quizScores?.[lesson.id];
-  elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}${score !== undefined ? `<span class="score-badge">Checkpoint score ${score}%</span>` : ""}</div><div class="lesson-actions"><a class="primary-button" href="${lesson.material}">Read theory and best practices</a><a class="secondary-button" href="${lesson.notebook}">Run guided notebook</a><a class="secondary-button" href="#quiz-${lesson.id}">Take checkpoint quiz</a></div><p class="lesson-tip">Study the theory, run the notebook, complete the exercise, then use the quiz checkpoint to test your understanding.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
+  elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}${score !== undefined ? `<span class="score-badge">Checkpoint score ${score}%</span>` : ""}</div><div class="lesson-actions"><a class="primary-button" href="${resourceHref(lesson.material)}">Read theory and best practices</a><a class="secondary-button" href="${resourceHref(lesson.notebook)}">Run guided notebook</a><a class="secondary-button" href="#quiz-${lesson.id}">Take checkpoint quiz</a></div><p class="lesson-tip">Study the theory, run the notebook, complete the exercise, then use the quiz checkpoint to test your understanding.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
   elements.lessonDetail.hidden = false;
   elements.lessonDetail.scrollIntoView({ behavior: "smooth", block: "start" });
 }

@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="An interactive, multiple-answer quiz for testing practical Retrieval-Augmented Generation knowledge."
+      content="A structured, interactive learning hub for Retrieval-Augmented Generation with guided paths, labs, references, and knowledge checks."
     >
-    <title>RAG Knowledge Check</title>
+    <title>RAG Learning Hub</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
-    <a class="skip-link" href="#quiz">Skip to quiz</a>
+    <a class="skip-link" href="#learning-path">Skip to learning paths</a>
 
     <header class="hero">
       <nav class="topbar" aria-label="Primary navigation">
@@ -29,12 +29,13 @@
       </nav>
 
       <div class="hero-content">
-        <p class="eyebrow">Interactive learning lab</p>
-        <h1>RAG Knowledge Check</h1>
+        <p class="eyebrow">Structured, project-based learning</p>
+        <h1>RAG Learning Hub</h1>
         <p class="hero-copy">
-          Test your understanding of retrieval-augmented generation from ingestion
-          through evaluation. Every question may have more than one correct answer.
+          Learn Retrieval-Augmented Generation from first principles to production.
+          Choose a level, study the theory, run a notebook, and prove your understanding.
         </p>
+        <div class="hero-actions"><a class="primary-button" href="#learning-path">Explore learning paths</a><a class="secondary-button" href="#initial-check">Take the initial knowledge check</a></div>
 
         <div class="hero-stats" role="group" aria-label="Quiz summary">
           <div>
@@ -94,11 +95,11 @@
         </p>
       </aside>
 
-      <section class="quiz-column" id="quiz" aria-labelledby="quiz-heading">
+      <section class="quiz-column" id="initial-check" aria-labelledby="quiz-heading">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Select all that apply</p>
-            <h2 id="quiz-heading">Technical concepts</h2>
+            <p class="eyebrow">Initial knowledge check · select all that apply</p>
+            <h2 id="quiz-heading">Where should you begin?</h2>
           </div>
           <button class="text-button" id="reset-button" type="button">Reset answers</button>
         </div>
