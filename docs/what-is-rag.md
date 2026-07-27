@@ -17,6 +17,39 @@ It does not automatically make a system factual. A RAG system can retrieve the w
 
 ## The lifecycle
 
+The lifecycle has two connected loops: an offline indexing loop that prepares
+evidence, and an online question loop that selects and uses that evidence. The
+same source identifiers and metadata should survive both loops so every answer
+can be traced back to the material that supported it.
+
+```mermaid
+flowchart LR
+  subgraph Offline["Offline: prepare the knowledge base"]
+    S["Sources\nPDFs · Markdown · APIs · DBs"] --> E["Extract + normalize"]
+    E --> C["Chunk\nkeep headings, pages, IDs"]
+    C --> M["Add metadata\npermissions · version · freshness"]
+    M --> I["Index\nBM25 + embeddings + vector store"]
+  end
+
+  subgraph Online["Online: answer a question"]
+    Q["User question"] --> F["Authorize + filter"]
+    F --> R["Retrieve candidates\nlexical, dense, or hybrid"]
+    R --> K["Rerank + select evidence"]
+    K --> G["Generate from bounded context"]
+    G --> V["Validate citations\nand groundedness"]
+    V --> A["Answer or abstain"]
+  end
+
+  I --> R
+  A -. "feedback, traces, eval set" .-> T["Evaluate quality, cost,
+  latency, freshness"]
+  T -. "improve chunking,<br/>retrieval, or policy" .-> E
+```
+
+The diagram is intentionally not a single “embed and prompt” arrow. In a
+production system, authorization happens before retrieved text enters the
+context, and evaluation feeds improvements back into ingestion and retrieval.
+
 1. **Ingest.** Extract text and structure from documents, databases, APIs, or files. Keep immutable source identifiers, permissions, timestamps, and locations (such as page and heading).
 2. **Chunk.** Split content into units that can stand on their own. A good chunk contains enough local context to answer a question, while remaining specific enough to retrieve.
 3. **Index.** Represent chunks for search. Dense embeddings support semantic similarity; lexical indexes such as BM25 preserve exact words, product codes, and names.
@@ -24,6 +57,27 @@ It does not automatically make a system factual. A RAG system can retrieve the w
 5. **Rerank.** Apply a more accurate, usually more expensive, relevance model to a small candidate set.
 6. **Generate.** Give the model a bounded context and instructions to answer from it, cite it, and abstain when evidence is insufficient.
 7. **Evaluate.** Measure both whether the evidence was found and whether the response is supported by it.
+
+### What happens at query time?
+
+At query time, the application should preserve the user’s identity and request
+constraints while it searches. A useful implementation separates these
+responsibilities:
+
+- **Policy layer:** determines which tenants, documents, fields, and tools the
+  caller may access.
+- **Retriever:** returns a broad candidate set and its scores, filters, and
+  source IDs.
+- **Ranker/context builder:** removes duplicates, applies a context budget, and
+  preserves provenance next to each passage.
+- **Generator:** answers only from the supplied evidence, says when evidence is
+  missing, and emits citations that point to retrieved sources.
+- **Evaluator/observer:** records retrieval misses, unsupported claims,
+  latency, cost, and freshness without logging unnecessary sensitive content.
+
+This separation makes failures diagnosable: an incorrect answer may be a
+retrieval miss, an authorization bug, a context-selection problem, or a
+generation/verification failure—not simply a “bad prompt.”
 
 ## RAG versus adjacent approaches
 
