@@ -12,6 +12,7 @@ This collection emphasizes primary sources, maintained open-source projects, and
 
 - [Start here](#start-here)
 - [Learning roadmap](#learning-roadmap)
+- [Technology decisions](#technology-decisions)
 - [RAG explained](#rag-explained)
 - [Test your RAG knowledge](#test-your-rag-knowledge)
 - [A practical RAG architecture](#a-practical-rag-architecture)
@@ -64,6 +65,10 @@ This repository is expanding into a structured, project-based curriculum. Use th
 - **Advanced:** design corrective, graph, multimodal, agentic, and production RAG systems.
 
 The [use-case catalog](use-cases/README.md) lets you choose a project after learning the underlying pattern. New lessons follow the [tutorial template](docs/tutorial-template.md) so every example includes objectives, setup, experiments, failure modes, evaluation, and exercises.
+
+## Technology decisions
+
+The [technology decision guide](docs/technology-decisions.md) explains the default stack, alternatives, and the criteria for choosing a framework or retrieval store.
 
 The quiz runs entirely in the browser and stores progress only on the learner's device. See the [quiz source](quiz/) or open [`quiz/index.html`](quiz/index.html) locally.
 
