@@ -80,7 +80,7 @@ function renderLearningPath() {
     <section class="learning-track ${track.tone}">
       <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${track.modules.length} steps</span></div>
       <ol class="learning-modules">${track.modules.map((module, index) => `
-        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
+        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}${progress.quizScores?.[module.id] !== undefined ? `<span class="score-badge">Score ${progress.quizScores[module.id]}%</span>` : ""}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
       `).join("")}</ol>
     </section>
   `).join("");
@@ -130,7 +130,8 @@ function showLessonFromHash() {
   if (!lesson) { elements.lessonDetail.hidden = true; return; }
   const position = allLessons.findIndex((item) => item.id === id);
   const next = allLessons[position + 1];
-  elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}</div><div class="lesson-actions"><a class="primary-button" href="${lesson.material}">Read theory and best practices</a><a class="secondary-button" href="${lesson.notebook}">Run guided notebook</a><a class="secondary-button" href="#category-${categorySlug(lesson.category)}">Take ${lesson.category} quiz</a></div><p class="lesson-tip">Study the theory, run the notebook, complete the exercise, then use the quiz checkpoint to test your understanding.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
+  const score = progress.quizScores?.[lesson.id];
+  elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}${score !== undefined ? `<span class="score-badge">Checkpoint score ${score}%</span>` : ""}</div><div class="lesson-actions"><a class="primary-button" href="${lesson.material}">Read theory and best practices</a><a class="secondary-button" href="${lesson.notebook}">Run guided notebook</a><a class="secondary-button" href="#quiz-${lesson.id}">Take checkpoint quiz</a></div><p class="lesson-tip">Study the theory, run the notebook, complete the exercise, then use the quiz checkpoint to test your understanding.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
   elements.lessonDetail.hidden = false;
   elements.lessonDetail.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -218,6 +219,8 @@ function clearGradePresentation() {
 
 function renderGrade() {
   latestGrade = gradeQuiz(questions, selections);
+  const checkpointId = window.location.hash.replace(/^#quiz-/, "");
+  if (allLessons.some((lesson) => lesson.id === checkpointId)) { progress.quizScores = { ...(progress.quizScores ?? {}), [checkpointId]: latestGrade.percent }; saveProgress(); }
   showingReview = false;
 
   elements.results.hidden = false;
