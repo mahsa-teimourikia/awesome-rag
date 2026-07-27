@@ -61,7 +61,7 @@ See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a sour
 
 ## RAG Learning Hub details
 
-The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) is the recommended entry point. Its [initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check) is available after the path overview to help you choose where to begin.
+The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) is the recommended entry point. 
 
 The hub follows a simple loop: **Learn** the concept, **Lab** with the linked Python example or notebook, then complete the **Checkpoint**. The visual Field Guide is built for GitHub Pages from `app/page.tsx`; source material remains in the curriculum, `examples/`, and `notebooks/` directories. To preview it locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
 
