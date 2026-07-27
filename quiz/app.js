@@ -78,6 +78,7 @@ function renderLearningPath() {
       `).join("")}</ol>
     </section>
   `).join("");
+  document.querySelector("#learning-progress").textContent = `${progress.completedLessons?.length ?? 0}/${allLessons.length} lessons complete`;
 }
 
 const progressKey = "awesome-rag-learning-progress-v1";
