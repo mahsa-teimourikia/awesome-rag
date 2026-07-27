@@ -11,3 +11,5 @@
 | 5 | Production RAG | Freshness, observability, security, cost, and rollback |
 
 Prerequisites: complete the intermediate path and understand access control, evaluation, and service operations.
+
+Begin with [corrective and adaptive RAG](01-corrective-rag/README.md), then continue with GraphRAG, agentic RAG, multimodal data, and production operations.
