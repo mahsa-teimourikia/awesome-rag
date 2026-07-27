@@ -28,6 +28,7 @@ const elements = {
   resetLearningProgress: document.querySelector("#reset-learning-progress"),
   progressFile: document.querySelector("#progress-file"),
   quizContext: document.querySelector("#quiz-context"),
+  levelProgressGrid: document.querySelector("#level-progress-grid"),
   lessonDetail: document.querySelector("#lesson-detail"),
 };
 
@@ -76,8 +77,15 @@ function renderCategoryList() {
 }
 
 function renderLearningPath() {
+  elements.levelProgressGrid.innerHTML = learningPath.map((track) => {
+    const completed = track.modules.filter((module) => isLessonComplete(module.id)).length;
+    const scores = track.modules.map((module) => progress.quizScores?.[module.id]).filter((score) => typeof score === "number");
+    const average = scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : null;
+    const percent = Math.round((completed / track.modules.length) * 100);
+    return `<a class="level-progress-card ${track.tone}" href="#${track.id}"><div><span class="level-pill">${track.level}</span><strong>${completed}/${track.modules.length}</strong></div><progress max="100" value="${percent}">${percent}%</progress><span>${average === null ? "No checkpoint scores yet" : `Average checkpoint: ${average}%`}</span></a>`;
+  }).join("");
   elements.learningPathList.innerHTML = learningPath.map((track) => `
-    <section class="learning-track ${track.tone}">
+    <section class="learning-track ${track.tone}" id="${track.id}">
       <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${track.modules.length} steps</span></div>
       <ol class="learning-modules">${track.modules.map((module, index) => `
         <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}${progress.quizScores?.[module.id] !== undefined ? `<span class="score-badge">Score ${progress.quizScores[module.id]}%</span>` : ""}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
