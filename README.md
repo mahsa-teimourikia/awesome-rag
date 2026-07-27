@@ -101,6 +101,20 @@ For maintainers, `npm run test:pages` builds the Pages artifact and verifies its
 | Generation | Answer only from supplied context | Hallucinated or unsupported claims | Require citations and an abstention path |
 | Evaluation | Measure change over time | Only testing happy-path demos | Keep a labeled, representative golden set |
 
+## Patterns by use case
+
+| Use case | Starting pattern | Why |
+| --- | --- | --- |
+| Internal documentation assistant | Hybrid retrieval + metadata filters + citations | Documentation includes exact identifiers, versions, and prose |
+| Customer support | Query rewriting + reranking + escalation/abstention | Questions are noisy and the cost of a wrong answer is high |
+| Legal, policy, or compliance research | Section-aware chunks + source links + strict access control | Provenance and permissions matter as much as fluency |
+| Analytics over tables | Text-to-SQL/tool use + schema retrieval | Answers should come from structured data, not only embedded text |
+| Codebase assistant | Symbol-aware chunking + lexical search + file/line citations | Identifiers and dependency structure are essential |
+| Research synthesis | Multi-query retrieval + deduplication + claim-level citations | One query rarely captures every relevant source |
+| Enterprise knowledge graph | GraphRAG / entity retrieval alongside text search | Relationships and global questions exceed isolated-chunk retrieval |
+
+Read [Retrieval patterns](docs/retrieval-patterns.md) for detailed explanations, decision criteria, and sources.
+
 ## Appendix: curated references and resources
 
 The following collections are optional references to deepen the concepts introduced
@@ -179,19 +193,6 @@ in the Learning Hub and practical guides.
 - [Neo4j GraphRAG](https://github.com/neo4j/neo4j-graphrag-python) — Python package for graph-enhanced RAG over Neo4j.
 - [txtai](https://github.com/neuml/txtai) — embeddings database and semantic search workflows with graph support.
 
-## Patterns by use case
-
-| Use case | Starting pattern | Why |
-| --- | --- | --- |
-| Internal documentation assistant | Hybrid retrieval + metadata filters + citations | Documentation includes exact identifiers, versions, and prose |
-| Customer support | Query rewriting + reranking + escalation/abstention | Questions are noisy and the cost of a wrong answer is high |
-| Legal, policy, or compliance research | Section-aware chunks + source links + strict access control | Provenance and permissions matter as much as fluency |
-| Analytics over tables | Text-to-SQL/tool use + schema retrieval | Answers should come from structured data, not only embedded text |
-| Codebase assistant | Symbol-aware chunking + lexical search + file/line citations | Identifiers and dependency structure are essential |
-| Research synthesis | Multi-query retrieval + deduplication + claim-level citations | One query rarely captures every relevant source |
-| Enterprise knowledge graph | GraphRAG / entity retrieval alongside text search | Relationships and global questions exceed isolated-chunk retrieval |
-
-Read [Retrieval patterns](docs/retrieval-patterns.md) for detailed explanations, decision criteria, and sources.
 
 ## Evaluation and observability
 
