@@ -23,6 +23,10 @@ const elements = {
   scoreSummary: document.querySelector("#score-summary"),
   topicScores: document.querySelector("#topic-scores"),
   learningPathList: document.querySelector("#learning-path-list"),
+  exportProgress: document.querySelector("#export-progress"),
+  importProgress: document.querySelector("#import-progress"),
+  resetLearningProgress: document.querySelector("#reset-learning-progress"),
+  progressFile: document.querySelector("#progress-file"),
   lessonDetail: document.querySelector("#lesson-detail"),
 };
 
@@ -97,6 +101,18 @@ function bindLearningActions() {
     button.classList.add("is-complete");
   }));
 }
+
+function refreshLearningPath() { renderLearningPath(); bindLearningActions(); }
+elements.exportProgress.addEventListener("click", () => {
+  const payload = { version: 1, exportedAt: new Date().toISOString(), completedLessons: progress.completedLessons ?? [], lastVisited: progress.lastVisited ?? null };
+  const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "awesome-rag-progress.json"; link.click(); URL.revokeObjectURL(link.href);
+});
+elements.importProgress.addEventListener("click", () => elements.progressFile.click());
+elements.progressFile.addEventListener("change", async () => {
+  const file = elements.progressFile.files?.[0]; if (!file) return;
+  try { const imported = JSON.parse(await file.text()); if (!Array.isArray(imported.completedLessons)) throw new Error("Invalid progress file"); progress = { completedLessons: imported.completedLessons.filter((id) => allLessons.some((lesson) => lesson.id === id)), lastVisited: imported.lastVisited ?? null }; saveProgress(); refreshLearningPath(); } catch { window.alert("That progress file could not be imported."); } finally { elements.progressFile.value = ""; }
+});
+elements.resetLearningProgress.addEventListener("click", () => { if (!window.confirm("Reset completed lessons and learning progress?")) return; progress = {}; saveProgress(); refreshLearningPath(); });
 
 function showLessonFromHash() {
   const id = window.location.hash.replace(/^#lesson-/, "");
