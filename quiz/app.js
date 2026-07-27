@@ -53,8 +53,14 @@ function saveSelections() {
   localStorage.setItem(storageKey, JSON.stringify(selections));
 }
 
+function activeQuestions() {
+  const checkpointId = window.location.hash.replace(/^#quiz-/, "");
+  const lesson = allLessons.find((item) => item.id === checkpointId);
+  return lesson ? questions.filter((question) => question.category === lesson.category) : questions;
+}
+
 function answeredTotal() {
-  return questions.filter((question) => (selections[question.id] ?? []).length > 0)
+  return activeQuestions().filter((question) => (selections[question.id] ?? []).length > 0)
     .length;
 }
 
@@ -63,7 +69,7 @@ function categorySlug(category) {
 }
 
 function renderCategoryList() {
-  const counts = questions.reduce((result, question) => {
+  const counts = activeQuestions().reduce((result, question) => {
     result[question.category] = (result[question.category] ?? 0) + 1;
     return result;
   }, {});
@@ -147,7 +153,7 @@ function showLessonFromHash() {
   const quizLesson = allLessons.find((item) => item.id === quizId);
   if (quizLesson) {
     elements.quizContext.hidden = false;
-    elements.quizContext.innerHTML = `<strong>Checkpoint: ${quizLesson.title}</strong><span>Review the lesson material, then complete the ${quizLesson.category} questions below.</span><a href="#lesson-${quizLesson.id}">Return to lesson</a>`;
+    elements.quizContext.innerHTML = `<strong>Checkpoint: ${quizLesson.title}</strong><span>This checkpoint contains the ${quizLesson.category} questions that match this lesson.</span><a href="#lesson-${quizLesson.id}">Return to lesson</a>`;
     elements.quizContext.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
@@ -167,8 +173,9 @@ function showLessonFromHash() {
 
 function renderQuestions() {
   let previousCategory = null;
+  const visibleQuestions = activeQuestions();
 
-  elements.questionList.innerHTML = questions
+  elements.questionList.innerHTML = visibleQuestions
     .map((question, questionIndex) => {
       const selected = new Set(selections[question.id] ?? []);
       const categoryAnchor =
@@ -224,7 +231,7 @@ function renderQuestions() {
 
 function updateProgress() {
   const answered = answeredTotal();
-  const total = questions.length;
+  const total = activeQuestions().length;
   elements.answeredCount.textContent = answered;
   elements.progressTrack.max = total;
   elements.progressTrack.value = answered;
@@ -247,7 +254,7 @@ function clearGradePresentation() {
 }
 
 function renderGrade() {
-  latestGrade = gradeQuiz(questions, selections);
+  latestGrade = gradeQuiz(activeQuestions(), selections);
   const checkpointId = window.location.hash.replace(/^#quiz-/, "");
   if (allLessons.some((lesson) => lesson.id === checkpointId)) { progress.quizScores = { ...(progress.quizScores ?? {}), [checkpointId]: latestGrade.percent }; saveProgress(); }
   showingReview = false;
@@ -363,7 +370,7 @@ elements.resetButton.addEventListener("click", () => {
 });
 
 elements.questionCount.textContent = questions.length;
-elements.progressTotal.textContent = questions.length;
+elements.progressTotal.textContent = activeQuestions().length;
 renderCategoryList();
 renderLearningPath();
 bindLearningActions();
@@ -372,5 +379,12 @@ elements.lessonFilter.addEventListener("input", () => { renderLearningPath(); bi
 elements.clearFilters.addEventListener("click", () => { elements.levelFilter.value = "all"; elements.lessonFilter.value = ""; renderLearningPath(); bindLearningActions(); });
 renderQuestions();
 updateProgress();
-window.addEventListener("hashchange", showLessonFromHash);
+window.addEventListener("hashchange", () => {
+  renderCategoryList();
+  renderQuestions();
+  updateProgress();
+  elements.questionCount.textContent = activeQuestions().length;
+  elements.progressTotal.textContent = activeQuestions().length;
+  showLessonFromHash();
+});
 showLessonFromHash();
