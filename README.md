@@ -59,6 +59,10 @@ See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a sour
 
 Start with the [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/)—a guided web experience with beginner, intermediate, and advanced paths. Each step includes theory, references, a notebook, practical guidance, and a checkpoint quiz. The [initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check) is available after the path overview to help you choose where to begin.
 
+The hub follows a simple loop: **Learn** the concept, **Lab** with the linked Python example or notebook, then complete the **Checkpoint**. The visual Field Guide is built for GitHub Pages from `app/page.tsx`; source material remains in the curriculum, `examples/`, and `notebooks/` directories. To preview it locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
+
+Every lesson link is checked in CI before deployment, including the advanced Corrective RAG, GraphRAG, Agentic RAG, structured/multimodal, and production-operations notebooks.
+
 ## Learning roadmap
 
 This repository is expanding into a structured, project-based curriculum. Use the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level:

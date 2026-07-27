@@ -27,6 +27,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Validate learning links
+        run: npm run check:pages-links
       - name: Build static site
         run: npm run build:pages
       - name: Configure Pages
