@@ -4,16 +4,6 @@
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## Start learning in the RAG Learning Hub
-
-**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
-
-This is the recommended starting point for a structured learning experience. It
-guides you through beginner, intermediate, and advanced paths with theory,
-references, practical labs, notebooks, and checkpoint quizzes. Start with the
-initial knowledge check, choose your level, and move from **Learn** to **Lab**
-to **Checkpoint** for each lesson.
-
 RAG connects a language model to external knowledge at answer time: retrieve relevant evidence, then generate an answer grounded in that evidence. It is a strong fit when knowledge changes, must be private, needs citations, or is too specialized to assume the model knows it.
 
 This collection emphasizes primary sources, maintained open-source projects, and resources that explain *why* a technique works—not just copy-paste demos.
@@ -22,14 +12,14 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 
 ## Contents
 
+- [RAG Learning Hub](#rag-learning-hub)
 - [Learning roadmap](#learning-roadmap)
-- [Start learning in the RAG Learning Hub](#start-learning-in-the-rag-learning-hub)
 - [Learning guide](#learning-guide)
 - [Technology decisions](#technology-decisions)
 - [RAG explained](#rag-explained)
-- [Open the RAG Learning Hub](#open-the-rag-learning-hub)
+- [Practical material](#practical-material)
 - [A practical RAG architecture](#a-practical-rag-architecture)
-- [Learning paths](#learning-paths)
+- [Appendix: curated references and resources](#appendix-curated-references-and-resources)
 - [Official educational resources](#official-educational-resources)
 - [Open-source frameworks and libraries](#open-source-frameworks-and-libraries)
 - [Retrieval infrastructure](#retrieval-infrastructure)
@@ -59,9 +49,15 @@ The two quality questions are distinct:
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
 
-## RAG Learning Hub details
+## RAG Learning Hub
 
-The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) is the recommended entry point. 
+**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
+
+The hub is the recommended starting point for structured learning. Start with the
+[initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check),
+choose a level, and move through each lesson's **Learn → Lab → Checkpoint** loop.
+Each step combines theory, references, practical guidance, a runnable notebook or
+Python example, and an interactive quiz.
 
 The hub follows a simple loop: **Learn** the concept, **Lab** with the linked Python example or notebook, then complete the **Checkpoint**. The visual Field Guide is built for GitHub Pages from `app/page.tsx`; source material remains in the curriculum, `examples/`, and `notebooks/` directories. To preview it locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
 
@@ -69,13 +65,19 @@ Every lesson link is checked in CI before deployment, including the advanced Cor
 
 ## Learning roadmap
 
-This repository is expanding into a structured, project-based curriculum. New learners should begin with the [RAG Learning Hub](#start-learning-in-the-rag-learning-hub), then use the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level. For retrieval quality, continue with [hybrid search](docs/retrieval-patterns.md#hybrid-retrieval), and for production readiness use [Evaluation](docs/evaluation.md) and the [security checklist](#security-and-production-checklist).
+Follow the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) after
+starting in the hub:
 
 - **Beginner:** build a local, cited RAG assistant from first principles.
 - **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
 - **Advanced:** design corrective, graph, multimodal, agentic, and production RAG systems.
 
-The [use-case catalog](use-cases/README.md) lets you choose a project after learning the underlying pattern. New lessons follow the [tutorial template](docs/tutorial-template.md) so every example includes objectives, setup, experiments, failure modes, evaluation, and exercises.
+The [use-case catalog](use-cases/README.md) helps choose a project, while the
+[tutorial template](docs/tutorial-template.md) keeps new lessons consistent.
+
+## Practical material
+
+These guides complement the hub with deeper design references and production checklists.
 
 ## Learning guide
 
@@ -101,7 +103,10 @@ For maintainers, `npm run test:pages` builds the Pages artifact and verifies its
 | Generation | Answer only from supplied context | Hallucinated or unsupported claims | Require citations and an abstention path |
 | Evaluation | Measure change over time | Only testing happy-path demos | Keep a labeled, representative golden set |
 
-## Learning paths
+## Appendix: curated references and resources
+
+The following collections are optional references to deepen the concepts introduced
+in the Learning Hub and practical guides.
 
 ### Foundations
 
