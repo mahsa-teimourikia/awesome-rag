@@ -12,7 +12,6 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 
 ## Contents
 
-- [Start here](#start-here)
 - [Learning roadmap](#learning-roadmap)
 - [Learning guide](#learning-guide)
 - [Technology decisions](#technology-decisions)
@@ -29,16 +28,6 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 - [Research and benchmarks](#research-and-benchmarks)
 - [Related awesome lists](#related-awesome-lists)
 - [Contributing](#contributing)
-
-## Start here
-
-**New to RAG?** Follow this sequence:
-
-1. Read [What is RAG?](docs/what-is-rag.md) and the original [RAG paper](https://arxiv.org/abs/2005.11401).
-2. Build a minimal, cited question-answering app with the [LangChain retrieval tutorial](https://docs.langchain.com/oss/python/langchain/retrieval) or [LlamaIndex starter tutorial](https://docs.llamaindex.ai/en/stable/getting_started/starter_example/).
-3. Learn retrieval quality with [hybrid search](docs/retrieval-patterns.md#hybrid-retrieval) and reranking.
-4. Establish a representative evaluation set before tuning—see [Evaluation](docs/evaluation.md).
-5. Add access control, observability, and continuous evaluation before calling it production-ready.
 
 ## RAG explained
 
@@ -65,7 +54,7 @@ Every lesson link is checked in CI before deployment, including the advanced Cor
 
 ## Learning roadmap
 
-This repository is expanding into a structured, project-based curriculum. Use the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level:
+This repository is expanding into a structured, project-based curriculum. New learners can begin with [What is RAG?](docs/what-is-rag.md), then follow the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level. For implementation-first learning, use the [RAG Learning Hub](#open-the-rag-learning-hub); for retrieval quality, continue with [hybrid search](docs/retrieval-patterns.md#hybrid-retrieval), and for production readiness use [Evaluation](docs/evaluation.md) and the [security checklist](#security-and-production-checklist).
 
 - **Beginner:** build a local, cited RAG assistant from first principles.
 - **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
