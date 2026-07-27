@@ -174,6 +174,7 @@ function showLessonFromHash() {
   elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}${score !== undefined ? `<span class="score-badge">Checkpoint score ${score}%</span>` : ""}</div><div class="lesson-actions"><a class="primary-button" href="${resourceHref(lesson.material)}">Read theory and best practices</a><a class="secondary-button" href="${resourceHref(lesson.notebook)}">Run guided notebook</a><a class="secondary-button" href="#quiz-${lesson.id}">Take checkpoint quiz</a></div><p class="lesson-tip">Study the theory, run the notebook, complete the exercise, then use the quiz checkpoint to test your understanding.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
   elements.lessonDetail.hidden = false;
   elements.lessonDetail.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.lessonDetail.focus({ preventScroll: true });
 }
 
 function renderQuestions() {
