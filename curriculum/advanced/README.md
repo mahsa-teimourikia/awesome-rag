@@ -12,4 +12,4 @@
 
 Prerequisites: complete the intermediate path and understand access control, evaluation, and service operations.
 
-Begin with [corrective and adaptive RAG](01-corrective-rag/README.md), then continue with [GraphRAG](02-graphrag/README.md), agentic RAG, multimodal data, and production operations.
+Begin with [corrective and adaptive RAG](01-corrective-rag/README.md), then continue with [GraphRAG](02-graphrag/README.md), [agentic RAG](03-agentic-rag/README.md), multimodal data, and production operations.
