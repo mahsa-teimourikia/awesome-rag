@@ -1,0 +1,35 @@
+name: Validate learning materials
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test tools
+        run: python -m pip install --upgrade pip pytest
+      - name: Run Python tests
+        run: pytest -q
+      - name: Parse notebooks
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in Path('.').rglob('*.ipynb'):
+              data = json.loads(path.read_text())
+              assert data['nbformat'] == 4, path
+              assert data['cells'], path
+              print(f'valid notebook: {path}')
+          PY
+      - name: Compile Python examples
+        run: python -m compileall -q examples tests use-cases
