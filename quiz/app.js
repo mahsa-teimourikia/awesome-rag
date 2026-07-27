@@ -21,6 +21,7 @@ const elements = {
   scoreHeading: document.querySelector("#score-heading"),
   scorePercent: document.querySelector("#score-percent"),
   scoreSummary: document.querySelector("#score-summary"),
+  reviewRecommendation: document.querySelector("#review-recommendation"),
   topicScores: document.querySelector("#topic-scores"),
   learningPathList: document.querySelector("#learning-path-list"),
   exportProgress: document.querySelector("#export-progress"),
@@ -274,6 +275,15 @@ function renderGrade() {
   elements.scoreSummary.textContent =
     `You answered ${latestGrade.correctCount} of ${latestGrade.total} questions correctly ` +
     `and completed ${latestGrade.answeredCount} of ${latestGrade.total}.`;
+  const weakest = Object.entries(latestGrade.categories).sort(([, left], [, right]) => (left.correct / left.total) - (right.correct / right.total))[0];
+  const reviewLesson = weakest ? allLessons.find((lesson) => lesson.category === weakest[0]) : null;
+  if (weakest && reviewLesson) {
+    const percent = Math.round((weakest[1].correct / weakest[1].total) * 100);
+    elements.reviewRecommendation.hidden = false;
+    elements.reviewRecommendation.innerHTML = `Focus next on <strong>${weakest[0]}</strong> (${percent}%): <a href="#lesson-${reviewLesson.id}">review ${reviewLesson.title}</a>.`;
+  } else {
+    elements.reviewRecommendation.hidden = true;
+  }
   elements.reviewButton.textContent = "View correct answers";
 
   elements.topicScores.innerHTML = Object.entries(latestGrade.categories)
