@@ -27,6 +27,7 @@ const elements = {
   importProgress: document.querySelector("#import-progress"),
   resetLearningProgress: document.querySelector("#reset-learning-progress"),
   progressFile: document.querySelector("#progress-file"),
+  quizContext: document.querySelector("#quiz-context"),
   lessonDetail: document.querySelector("#lesson-detail"),
 };
 
@@ -79,7 +80,7 @@ function renderLearningPath() {
     <section class="learning-track ${track.tone}">
       <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${track.modules.length} steps</span></div>
       <ol class="learning-modules">${track.modules.map((module, index) => `
-        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#category-${categorySlug(module.category)}">Quiz: ${module.category}</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
+        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
       `).join("")}</ol>
     </section>
   `).join("");
@@ -115,6 +116,15 @@ elements.progressFile.addEventListener("change", async () => {
 elements.resetLearningProgress.addEventListener("click", () => { if (!window.confirm("Reset completed lessons and learning progress?")) return; progress = {}; saveProgress(); refreshLearningPath(); });
 
 function showLessonFromHash() {
+  const quizId = window.location.hash.replace(/^#quiz-/, "");
+  const quizLesson = allLessons.find((item) => item.id === quizId);
+  if (quizLesson) {
+    elements.quizContext.hidden = false;
+    elements.quizContext.innerHTML = `<strong>Checkpoint: ${quizLesson.title}</strong><span>Review the lesson material, then complete the ${quizLesson.category} questions below.</span><a href="#lesson-${quizLesson.id}">Return to lesson</a>`;
+    elements.quizContext.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  elements.quizContext.hidden = true;
   const id = window.location.hash.replace(/^#lesson-/, "");
   const lesson = allLessons.find((item) => item.id === id);
   if (!lesson) { elements.lessonDetail.hidden = true; return; }
