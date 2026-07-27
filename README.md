@@ -31,7 +31,11 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 
 ## RAG explained
 
-RAG is a system design, not a single database query. The original paper describes augmenting a parametric generator with non-parametric retrieved memory. In modern applications, the memory is usually a versioned corpus of documents, records, or multimodal assets that is searched at runtime.
+RAG (Retrieval-Augmented Generation) is a system design, not a single database query. At answer time, an application searches an external knowledge source, selects relevant evidence, and places that evidence in the language model's context. The model's learned **parametric memory** supplies language and general knowledge; the retrieved **non-parametric memory** supplies current, private, or auditable facts.
+
+The original formulation was introduced by Lewis et al. in [*Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks* (2020)](https://arxiv.org/abs/2005.11401). Their work combines a pretrained sequence-to-sequence generator with a dense retriever over Wikipedia. Modern systems extend that idea with lexical or hybrid search, metadata and permission filters, reranking, citations, abstention, and evaluation. RAG can reduce stale-knowledge problems, but it is only as trustworthy as its ingestion, retrieval, authorization, and verification policies.
+
+A typical request follows this loop: ingest and chunk sources, index them for search, retrieve and rerank a small evidence set, generate an answer constrained by that context, and evaluate both retrieval quality and answer groundedness.
 
 ![Retrieval-Augmented Generation pipeline showing knowledge ingestion, query-time retrieval, grounded answer generation, and evaluation](assets/rag-pipeline.svg)
 
