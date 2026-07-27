@@ -17,7 +17,7 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 - [Learning guide](#learning-guide)
 - [Technology decisions](#technology-decisions)
 - [RAG explained](#rag-explained)
-- [Test your RAG knowledge](#test-your-rag-knowledge)
+- [Open the RAG Learning Hub](#open-the-rag-learning-hub)
 - [A practical RAG architecture](#a-practical-rag-architecture)
 - [Learning paths](#learning-paths)
 - [Official educational resources](#official-educational-resources)
@@ -55,9 +55,9 @@ The two quality questions are distinct:
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
 
-## Test your RAG knowledge
+## Open the RAG Learning Hub
 
-Finished the guides? Take the [interactive RAG Knowledge Check](https://mahsa-teimourikia.github.io/awsome-rag/)—18 multiple-answer questions covering foundations, ingestion, retrieval, generation, evaluation, and security. It grades the complete test, gives a topic-by-topic score, and lets you reveal the correct answers with explanations and source links.
+Start with the [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/)—a guided web experience with beginner, intermediate, and advanced paths. Each step includes theory, references, a notebook, practical guidance, and a checkpoint quiz. The [initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check) is available after the path overview to help you choose where to begin.
 
 ## Learning roadmap
 
