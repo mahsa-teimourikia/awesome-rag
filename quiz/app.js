@@ -33,6 +33,7 @@ const elements = {
   lessonFilter: document.querySelector("#lesson-filter"),
   clearFilters: document.querySelector("#clear-filters"),
   lessonDetail: document.querySelector("#lesson-detail"),
+  resumeBanner: document.querySelector("#resume-banner"),
 };
 
 let selections = loadSelections();
@@ -52,8 +53,14 @@ function saveSelections() {
   localStorage.setItem(storageKey, JSON.stringify(selections));
 }
 
+function activeQuestions() {
+  const checkpointId = window.location.hash.replace(/^#quiz-/, "");
+  const lesson = allLessons.find((item) => item.id === checkpointId);
+  return lesson ? questions.filter((question) => question.category === lesson.category) : questions;
+}
+
 function answeredTotal() {
-  return questions.filter((question) => (selections[question.id] ?? []).length > 0)
+  return activeQuestions().filter((question) => (selections[question.id] ?? []).length > 0)
     .length;
 }
 
@@ -62,7 +69,7 @@ function categorySlug(category) {
 }
 
 function renderCategoryList() {
-  const counts = questions.reduce((result, question) => {
+  const counts = activeQuestions().reduce((result, question) => {
     result[question.category] = (result[question.category] ?? 0) + 1;
     return result;
   }, {});
@@ -103,6 +110,14 @@ function renderLearningPath() {
   `;
   }).join("");
   document.querySelector("#learning-progress").textContent = `${progress.completedLessons?.length ?? 0}/${allLessons.length} lessons complete`;
+  const next = allLessons.find((lesson) => !isLessonComplete(lesson.id));
+  if (next) {
+    elements.resumeBanner.hidden = false;
+    elements.resumeBanner.innerHTML = `<span><strong>${progress.lastVisited ? "Continue your path" : "Start your path"}</strong><small>Recommended next: ${next.title}</small></span><a class="primary-button" href="#lesson-${next.id}">${progress.lastVisited ? "Resume lesson" : "Begin lesson"} →</a>`;
+  } else {
+    elements.resumeBanner.hidden = false;
+    elements.resumeBanner.innerHTML = `<span><strong>Learning path complete</strong><small>Revisit any lesson or retake a checkpoint to reinforce your skills.</small></span><a class="secondary-button" href="#learning-path">Review the path</a>`;
+  }
 }
 
 const progressKey = "awesome-rag-learning-progress-v1";
@@ -123,13 +138,13 @@ function bindLearningActions() {
 
 function refreshLearningPath() { renderLearningPath(); bindLearningActions(); }
 elements.exportProgress.addEventListener("click", () => {
-  const payload = { version: 1, exportedAt: new Date().toISOString(), completedLessons: progress.completedLessons ?? [], lastVisited: progress.lastVisited ?? null };
+  const payload = { version: 2, exportedAt: new Date().toISOString(), completedLessons: progress.completedLessons ?? [], lastVisited: progress.lastVisited ?? null, quizScores: progress.quizScores ?? {} };
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "awesome-rag-progress.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 elements.importProgress.addEventListener("click", () => elements.progressFile.click());
 elements.progressFile.addEventListener("change", async () => {
   const file = elements.progressFile.files?.[0]; if (!file) return;
-  try { const imported = JSON.parse(await file.text()); if (!Array.isArray(imported.completedLessons)) throw new Error("Invalid progress file"); progress = { completedLessons: imported.completedLessons.filter((id) => allLessons.some((lesson) => lesson.id === id)), lastVisited: imported.lastVisited ?? null }; saveProgress(); refreshLearningPath(); } catch { window.alert("That progress file could not be imported."); } finally { elements.progressFile.value = ""; }
+  try { const imported = JSON.parse(await file.text()); if (!Array.isArray(imported.completedLessons)) throw new Error("Invalid progress file"); progress = { completedLessons: imported.completedLessons.filter((id) => allLessons.some((lesson) => lesson.id === id)), lastVisited: allLessons.some((lesson) => lesson.id === imported.lastVisited) ? imported.lastVisited : null, quizScores: Object.fromEntries(Object.entries(imported.quizScores ?? {}).filter(([id, score]) => allLessons.some((lesson) => lesson.id === id) && Number.isFinite(score))) }; saveProgress(); refreshLearningPath(); } catch { window.alert("That progress file could not be imported."); } finally { elements.progressFile.value = ""; }
 });
 elements.resetLearningProgress.addEventListener("click", () => { if (!window.confirm("Reset completed lessons and learning progress?")) return; progress = {}; saveProgress(); refreshLearningPath(); });
 
@@ -138,7 +153,7 @@ function showLessonFromHash() {
   const quizLesson = allLessons.find((item) => item.id === quizId);
   if (quizLesson) {
     elements.quizContext.hidden = false;
-    elements.quizContext.innerHTML = `<strong>Checkpoint: ${quizLesson.title}</strong><span>Review the lesson material, then complete the ${quizLesson.category} questions below.</span><a href="#lesson-${quizLesson.id}">Return to lesson</a>`;
+    elements.quizContext.innerHTML = `<strong>Checkpoint: ${quizLesson.title}</strong><span>This checkpoint contains the ${quizLesson.category} questions that match this lesson.</span><a href="#lesson-${quizLesson.id}">Return to lesson</a>`;
     elements.quizContext.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
@@ -146,6 +161,8 @@ function showLessonFromHash() {
   const id = window.location.hash.replace(/^#lesson-/, "");
   const lesson = allLessons.find((item) => item.id === id);
   if (!lesson) { elements.lessonDetail.hidden = true; return; }
+  progress.lastVisited = lesson.id;
+  saveProgress();
   const position = allLessons.findIndex((item) => item.id === id);
   const next = allLessons[position + 1];
   const score = progress.quizScores?.[lesson.id];
@@ -156,8 +173,9 @@ function showLessonFromHash() {
 
 function renderQuestions() {
   let previousCategory = null;
+  const visibleQuestions = activeQuestions();
 
-  elements.questionList.innerHTML = questions
+  elements.questionList.innerHTML = visibleQuestions
     .map((question, questionIndex) => {
       const selected = new Set(selections[question.id] ?? []);
       const categoryAnchor =
@@ -213,7 +231,7 @@ function renderQuestions() {
 
 function updateProgress() {
   const answered = answeredTotal();
-  const total = questions.length;
+  const total = activeQuestions().length;
   elements.answeredCount.textContent = answered;
   elements.progressTrack.max = total;
   elements.progressTrack.value = answered;
@@ -236,7 +254,7 @@ function clearGradePresentation() {
 }
 
 function renderGrade() {
-  latestGrade = gradeQuiz(questions, selections);
+  latestGrade = gradeQuiz(activeQuestions(), selections);
   const checkpointId = window.location.hash.replace(/^#quiz-/, "");
   if (allLessons.some((lesson) => lesson.id === checkpointId)) { progress.quizScores = { ...(progress.quizScores ?? {}), [checkpointId]: latestGrade.percent }; saveProgress(); }
   showingReview = false;
@@ -352,7 +370,7 @@ elements.resetButton.addEventListener("click", () => {
 });
 
 elements.questionCount.textContent = questions.length;
-elements.progressTotal.textContent = questions.length;
+elements.progressTotal.textContent = activeQuestions().length;
 renderCategoryList();
 renderLearningPath();
 bindLearningActions();
@@ -361,5 +379,12 @@ elements.lessonFilter.addEventListener("input", () => { renderLearningPath(); bi
 elements.clearFilters.addEventListener("click", () => { elements.levelFilter.value = "all"; elements.lessonFilter.value = ""; renderLearningPath(); bindLearningActions(); });
 renderQuestions();
 updateProgress();
-window.addEventListener("hashchange", showLessonFromHash);
+window.addEventListener("hashchange", () => {
+  renderCategoryList();
+  renderQuestions();
+  updateProgress();
+  elements.questionCount.textContent = activeQuestions().length;
+  elements.progressTotal.textContent = activeQuestions().length;
+  showLessonFromHash();
+});
 showLessonFromHash();
