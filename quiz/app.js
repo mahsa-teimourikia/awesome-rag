@@ -29,6 +29,9 @@ const elements = {
   progressFile: document.querySelector("#progress-file"),
   quizContext: document.querySelector("#quiz-context"),
   levelProgressGrid: document.querySelector("#level-progress-grid"),
+  levelFilter: document.querySelector("#level-filter"),
+  lessonFilter: document.querySelector("#lesson-filter"),
+  clearFilters: document.querySelector("#clear-filters"),
   lessonDetail: document.querySelector("#lesson-detail"),
 };
 
@@ -77,6 +80,9 @@ function renderCategoryList() {
 }
 
 function renderLearningPath() {
+  const level = elements.levelFilter.value;
+  const query = elements.lessonFilter.value.trim().toLowerCase();
+  const visible = (module, track) => (level === "all" || track.id === level) && (!query || `${module.title} ${module.description} ${module.technologies.join(" ")}`.toLowerCase().includes(query));
   elements.levelProgressGrid.innerHTML = learningPath.map((track) => {
     const completed = track.modules.filter((module) => isLessonComplete(module.id)).length;
     const scores = track.modules.map((module) => progress.quizScores?.[module.id]).filter((score) => typeof score === "number");
@@ -84,14 +90,18 @@ function renderLearningPath() {
     const percent = Math.round((completed / track.modules.length) * 100);
     return `<a class="level-progress-card ${track.tone}" href="#${track.id}"><div><span class="level-pill">${track.level}</span><strong>${completed}/${track.modules.length}</strong></div><progress max="100" value="${percent}">${percent}%</progress><span>${average === null ? "No checkpoint scores yet" : `Average checkpoint: ${average}%`}</span></a>`;
   }).join("");
-  elements.learningPathList.innerHTML = learningPath.map((track) => `
+  elements.learningPathList.innerHTML = learningPath.map((track) => {
+    const modules = track.modules.filter((module) => visible(module, track));
+    if (!modules.length) return "";
+    return `
     <section class="learning-track ${track.tone}" id="${track.id}">
-      <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${track.modules.length} steps</span></div>
-      <ol class="learning-modules">${track.modules.map((module, index) => `
+      <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${modules.length} matching steps</span></div>
+      <ol class="learning-modules">${modules.map((module, index) => `
         <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4><a class="lesson-title" href="#lesson-${module.id}">${module.title}</a></h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}${progress.quizScores?.[module.id] !== undefined ? `<span class="score-badge">Score ${progress.quizScores[module.id]}%</span>` : ""}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#quiz-${module.id}">Quiz checkpoint</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
       `).join("")}</ol>
     </section>
-  `).join("");
+  `;
+  }).join("");
   document.querySelector("#learning-progress").textContent = `${progress.completedLessons?.length ?? 0}/${allLessons.length} lessons complete`;
 }
 
@@ -346,6 +356,9 @@ elements.progressTotal.textContent = questions.length;
 renderCategoryList();
 renderLearningPath();
 bindLearningActions();
+elements.levelFilter.addEventListener("change", () => { renderLearningPath(); bindLearningActions(); });
+elements.lessonFilter.addEventListener("input", () => { renderLearningPath(); bindLearningActions(); });
+elements.clearFilters.addEventListener("click", () => { elements.levelFilter.value = "all"; elements.lessonFilter.value = ""; renderLearningPath(); bindLearningActions(); });
 renderQuestions();
 updateProgress();
 window.addEventListener("hashchange", showLessonFromHash);
