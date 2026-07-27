@@ -81,7 +81,9 @@ Use the concise [learning guide](LEARNING.md) to follow the complete beginner, i
 
 The [technology decision guide](docs/technology-decisions.md) explains the default stack, alternatives, and the criteria for choosing a framework or retrieval store.
 
-The quiz runs entirely in the browser and stores progress only on the learner's device. See the [quiz source](quiz/) or open [`quiz/index.html`](quiz/index.html) locally.
+The hub runs entirely in the browser and stores lesson completion only on the learner's device. The original quiz is no longer the deployed entry point; it remains as a dependency-light reference in [`quiz/README.md`](quiz/README.md).
+
+For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets and Field Guide shell. `npm run check:external-links` performs an opt-in health check for the curated external URLs.
 
 ## A practical RAG architecture
 
