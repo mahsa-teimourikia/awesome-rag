@@ -8,6 +8,8 @@ RAG connects a language model to external knowledge at answer time: retrieve rel
 
 This collection emphasizes primary sources, maintained open-source projects, and resources that explain *why* a technique works—not just copy-paste demos.
 
+Open the repository in GitHub Codespaces or use the included [dev container](.devcontainer/devcontainer.json) for a consistent Python and notebook environment. Optional infrastructure, such as Qdrant, is documented in the intermediate lab that uses it.
+
 ## Contents
 
 - [Start here](#start-here)
