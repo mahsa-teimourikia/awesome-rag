@@ -53,9 +53,7 @@ See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a sour
 
 **[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
 
-The hub is the recommended starting point for structured learning. Start with the
-[initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check),
-choose a level, and move through each lesson's **Learn → Lab → Checkpoint** loop.
+The hub is the recommended starting point for structured learning. Move through each lesson's **Learn → Lab → Checkpoint** loop.
 Each step combines theory, references, practical guidance, a runnable notebook or
 Python example, and an interactive quiz.
 
