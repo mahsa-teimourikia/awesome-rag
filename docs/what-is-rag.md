@@ -82,7 +82,7 @@ generation/verification failure—not simply a “bad prompt.”
 ## RAG versus adjacent approaches
 
 | Approach | Changes model weights? | Uses current external data? | Best for |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | Prompting | No | Only what fits in prompt | Small, static context |
 | RAG | No | Yes, at runtime | Grounded answers over evolving knowledge |
 | Fine-tuning | Yes | Not by itself | Style, behavior, repeated task format |
