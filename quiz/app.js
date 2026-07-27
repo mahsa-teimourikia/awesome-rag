@@ -1,6 +1,7 @@
 import { gradeQuiz } from "./grading.js";
 import { questions } from "./questions.js";
 import { allLessons, learningPath } from "./learning.js";
+import { lessonContent } from "./content.js";
 
 const storageKey = "awesome-rag-quiz-selections-v1";
 const repositoryContentBase =
@@ -171,7 +172,9 @@ function showLessonFromHash() {
   const position = allLessons.findIndex((item) => item.id === id);
   const next = allLessons[position + 1];
   const score = progress.quizScores?.[lesson.id];
-  elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}${score !== undefined ? `<span class="score-badge">Checkpoint score ${score}%</span>` : ""}</div><div class="lesson-actions"><a class="primary-button" href="${resourceHref(lesson.material)}" target="_blank" rel="noreferrer">Read theory and best practices ↗</a><a class="secondary-button" href="${resourceHref(lesson.notebook)}" target="_blank" rel="noreferrer">Run guided notebook ↗</a><a class="secondary-button" href="#quiz-${lesson.id}">Take checkpoint quiz</a></div><p class="lesson-tip">Study the theory, run the notebook, complete the exercise, then use the quiz checkpoint to test your understanding.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
+  const content = lessonContent[lesson.category];
+  const contentMarkup = content ? `<div class="lesson-content"><h3>Concepts you will learn</h3><p>${content.theory}</p><div class="lesson-content-grid"><div><h4>Learning workflow</h4><ol>${content.workflow.map((item) => `<li>${item}</li>`).join("")}</ol></div><div><h4>Best practices</h4><ul>${content.bestPractices.map((item) => `<li>${item}</li>`).join("")}</ul></div></div><div class="lesson-references"><h4>Curated references</h4>${content.references.map((reference) => `<a href="${reference.url}" target="_blank" rel="noreferrer">${reference.label} ↗</a>`).join("")}</div></div>` : "";
+  elements.lessonDetail.innerHTML = `<div class="lesson-detail-top"><span class="level-pill">${lesson.level}</span><a class="text-button" href="#learning-path">Back to path</a></div><h2 id="lesson-detail-heading">${lesson.title}</h2><p class="lesson-outcome">${lesson.description}</p><div class="lesson-facts"><span>${lesson.minutes} minutes</span>${lesson.technologies.map((item) => `<span>${item}</span>`).join("")}${score !== undefined ? `<span class="score-badge">Checkpoint score ${score}%</span>` : ""}</div>${contentMarkup}<div class="lesson-actions"><a class="primary-button" href="${resourceHref(lesson.material)}" target="_blank" rel="noreferrer">Open full lesson ↗</a><a class="secondary-button" href="${resourceHref(lesson.notebook)}" target="_blank" rel="noreferrer">Run guided notebook ↗</a><a class="secondary-button" href="#quiz-${lesson.id}">Take checkpoint quiz</a></div><p class="lesson-tip">The core concepts are included above. Use the linked lesson and notebook for the complete implementation and exercises.</p>${next ? `<a class="next-lesson" href="#lesson-${next.id}">Next: ${next.title} →</a>` : `<p class="next-lesson">You reached the end of the learning path.</p>`}`;
   elements.lessonDetail.hidden = false;
   elements.lessonDetail.scrollIntoView({ behavior: "smooth", block: "start" });
   elements.lessonDetail.focus({ preventScroll: true });

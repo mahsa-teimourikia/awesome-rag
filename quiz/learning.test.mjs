@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { allLessons, learningPath } from "./learning.js";
 import { questions } from "./questions.js";
+import { lessonContent } from "./content.js";
 
 const quizDirectory = dirname(fileURLToPath(import.meta.url));
 
@@ -44,5 +45,16 @@ test("lesson quiz categories map to available questions", () => {
     assert.ok(categories.has(lesson.category), `${lesson.id} uses unknown quiz category: ${lesson.category}`);
     assert.equal(new Set(lesson.questionIds).size, lesson.questionIds.length);
     for (const questionId of lesson.questionIds) assert.ok(questionIds.has(questionId), `${lesson.id} uses unknown question: ${questionId}`);
+  }
+});
+
+test("every lesson category has self-contained hub content and references", () => {
+  for (const lesson of allLessons) {
+    const content = lessonContent[lesson.category];
+    assert.ok(content, `${lesson.id} has no embedded learning content`);
+    assert.ok(content.theory.length > 80);
+    assert.ok(content.workflow.length >= 3 && content.bestPractices.length >= 3);
+    assert.ok(content.references.length >= 2);
+    for (const reference of content.references) assert.match(reference.url, /^https?:\/\//);
   }
 });
