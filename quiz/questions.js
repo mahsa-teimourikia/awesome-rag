@@ -323,4 +323,58 @@ export const questions = [
       url: "README.md#security-and-production-checklist",
     },
   },
+  {
+    id: "operations-1",
+    category: "Operations",
+    prompt: "Which controls make a production RAG rollout safer?",
+    options: [
+      "Trace retrieval, generation, latency, and cost for each request.",
+      "Use a small canary or shadow deployment before broad release.",
+      "Disable regression evaluation once the system is in production.",
+      "Define rollback and model/index versioning procedures.",
+    ],
+    correct: [0, 1, 3],
+    explanation:
+      "Operational safety comes from end-to-end traces, gradual rollout, and reversible versioned changes. Production traffic is where regression checks matter most, not least.",
+    source: {
+      label: "Production operations guide",
+      url: "curriculum/advanced/05-production-operations/README.md",
+    },
+  },
+  {
+    id: "operations-2",
+    category: "Operations",
+    prompt: "What should a RAG freshness policy specify?",
+    options: [
+      "How quickly changed source content must reach the index.",
+      "What happens when ingestion fails or a source is stale.",
+      "Only the embedding model's release date.",
+      "Which owner is alerted when freshness SLOs are missed.",
+    ],
+    correct: [0, 1, 3],
+    explanation:
+      "Freshness is a service-level property: define a target, failure behavior, and ownership. Embedding release dates do not describe whether source content is current.",
+    source: {
+      label: "Freshness and indexing checklist",
+      url: "curriculum/advanced/05-production-operations/README.md",
+    },
+  },
+  {
+    id: "operations-3",
+    category: "Operations",
+    prompt: "Which signals help diagnose a sudden increase in RAG cost?",
+    options: [
+      "Token usage and retrieved context size by route.",
+      "Cache hit rate and repeated-query volume.",
+      "Only the number of Git commits in the repository.",
+      "Model, retrieval, and tool latency broken down by request.",
+    ],
+    correct: [0, 1, 3],
+    explanation:
+      "Cost investigations need request-level attribution: context and token volume, caching, and latency across model and retrieval steps. Repository activity is not a runtime cost signal.",
+    source: {
+      label: "Budgets and observability",
+      url: "curriculum/advanced/05-production-operations/README.md",
+    },
+  },
 ];
