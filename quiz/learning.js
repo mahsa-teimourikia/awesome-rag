@@ -24,4 +24,14 @@ export const learningPath = [
   ]},
 ];
 
-export const allLessons = learningPath.flatMap((track) => track.modules.map((module) => ({ ...module, level: track.level, tone: track.tone, trackId: track.id })));
+const questionIdsByCategory = {
+  Foundations: ["foundations-1", "foundations-2", "foundations-3"],
+  Ingestion: ["ingestion-1", "ingestion-2", "ingestion-3"],
+  Retrieval: ["retrieval-1", "retrieval-2", "retrieval-3"],
+  Generation: ["generation-1", "generation-2", "generation-3"],
+  Security: ["security-1", "security-2", "security-3"],
+  Evaluation: ["evaluation-1", "evaluation-2", "evaluation-3"],
+  Operations: ["operations-1", "operations-2", "operations-3"],
+};
+
+export const allLessons = learningPath.flatMap((track) => track.modules.map((module) => ({ ...module, level: track.level, tone: track.tone, trackId: track.id, questionIds: questionIdsByCategory[module.category] ?? [] })));
