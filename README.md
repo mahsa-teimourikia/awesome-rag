@@ -4,6 +4,16 @@
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+## Start learning in the RAG Learning Hub
+
+**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
+
+This is the recommended starting point for a structured learning experience. It
+guides you through beginner, intermediate, and advanced paths with theory,
+references, practical labs, notebooks, and checkpoint quizzes. Start with the
+initial knowledge check, choose your level, and move from **Learn** to **Lab**
+to **Checkpoint** for each lesson.
+
 RAG connects a language model to external knowledge at answer time: retrieve relevant evidence, then generate an answer grounded in that evidence. It is a strong fit when knowledge changes, must be private, needs citations, or is too specialized to assume the model knows it.
 
 This collection emphasizes primary sources, maintained open-source projects, and resources that explain *why* a technique works—not just copy-paste demos.
@@ -13,6 +23,7 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 ## Contents
 
 - [Learning roadmap](#learning-roadmap)
+- [Start learning in the RAG Learning Hub](#start-learning-in-the-rag-learning-hub)
 - [Learning guide](#learning-guide)
 - [Technology decisions](#technology-decisions)
 - [RAG explained](#rag-explained)
@@ -48,9 +59,9 @@ The two quality questions are distinct:
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
 
-## Open the RAG Learning Hub
+## RAG Learning Hub details
 
-Start with the [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/)—a guided web experience with beginner, intermediate, and advanced paths. Each step includes theory, references, a notebook, practical guidance, and a checkpoint quiz. The [initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check) is available after the path overview to help you choose where to begin.
+The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) is the recommended entry point. Its [initial knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/#initial-check) is available after the path overview to help you choose where to begin.
 
 The hub follows a simple loop: **Learn** the concept, **Lab** with the linked Python example or notebook, then complete the **Checkpoint**. The visual Field Guide is built for GitHub Pages from `app/page.tsx`; source material remains in the curriculum, `examples/`, and `notebooks/` directories. To preview it locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
 
@@ -58,7 +69,7 @@ Every lesson link is checked in CI before deployment, including the advanced Cor
 
 ## Learning roadmap
 
-This repository is expanding into a structured, project-based curriculum. New learners can begin with [What is RAG?](docs/what-is-rag.md), then follow the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level. For implementation-first learning, use the [RAG Learning Hub](#open-the-rag-learning-hub); for retrieval quality, continue with [hybrid search](docs/retrieval-patterns.md#hybrid-retrieval), and for production readiness use [Evaluation](docs/evaluation.md) and the [security checklist](#security-and-production-checklist).
+This repository is expanding into a structured, project-based curriculum. New learners should begin with the [RAG Learning Hub](#start-learning-in-the-rag-learning-hub), then use the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) to choose a level. For retrieval quality, continue with [hybrid search](docs/retrieval-patterns.md#hybrid-retrieval), and for production readiness use [Evaluation](docs/evaluation.md) and the [security checklist](#security-and-production-checklist).
 
 - **Beginner:** build a local, cited RAG assistant from first principles.
 - **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
