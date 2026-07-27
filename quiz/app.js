@@ -1,6 +1,6 @@
 import { gradeQuiz } from "./grading.js";
 import { questions } from "./questions.js";
-import { learningPath } from "./learning.js";
+import { allLessons, learningPath } from "./learning.js";
 
 const storageKey = "awesome-rag-quiz-selections-v1";
 const repositoryContentBase =
@@ -73,11 +73,27 @@ function renderLearningPath() {
   elements.learningPathList.innerHTML = learningPath.map((track) => `
     <section class="learning-track ${track.tone}">
       <div class="track-heading"><div><span class="level-pill">${track.level}</span><h3>${track.outcome}</h3></div><span class="track-count">${track.modules.length} steps</span></div>
-      <ol class="learning-modules">${track.modules.map(([title, description, material, notebook, category], index) => `
-        <li class="learning-module"><span class="module-number">${index + 1}</span><div><h4>${title}</h4><p>${description}</p><div class="module-links"><a href="${material}">Read lesson</a><a href="${notebook}">Open notebook</a><a href="#category-${categorySlug(category)}">Quiz: ${category}</a></div></div></li>
+      <ol class="learning-modules">${track.modules.map((module, index) => `
+        <li class="learning-module" id="lesson-${module.id}"><span class="module-number">${index + 1}</span><div><h4>${module.title}</h4><p>${module.description}</p><div class="module-meta"><span>${module.minutes} min</span>${module.technologies.map((technology) => `<span>${technology}</span>`).join("")}</div><div class="module-links"><a href="${module.material}">Read lesson</a><a href="${module.notebook}">Open notebook</a><a href="#category-${categorySlug(module.category)}">Quiz: ${module.category}</a><button class="complete-button" data-lesson-id="${module.id}" type="button">${isLessonComplete(module.id) ? "Completed" : "Mark complete"}</button></div></div></li>
       `).join("")}</ol>
     </section>
   `).join("");
+}
+
+const progressKey = "awesome-rag-learning-progress-v1";
+function loadProgress() { try { return JSON.parse(localStorage.getItem(progressKey) ?? "{}"); } catch { return {}; } }
+let progress = loadProgress();
+function isLessonComplete(id) { return progress.completedLessons?.includes(id); }
+function saveProgress() { localStorage.setItem(progressKey, JSON.stringify(progress)); }
+function bindLearningActions() {
+  document.querySelectorAll(".complete-button").forEach((button) => button.addEventListener("click", () => {
+    const id = button.dataset.lessonId;
+    progress.completedLessons = [...new Set([...(progress.completedLessons ?? []), id])];
+    progress.lastVisited = id;
+    saveProgress();
+    button.textContent = "Completed";
+    button.classList.add("is-complete");
+  }));
 }
 
 function renderQuestions() {
@@ -279,5 +295,6 @@ elements.questionCount.textContent = questions.length;
 elements.progressTotal.textContent = questions.length;
 renderCategoryList();
 renderLearningPath();
+bindLearningActions();
 renderQuestions();
 updateProgress();
