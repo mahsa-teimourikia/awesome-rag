@@ -61,7 +61,7 @@ function saveSelections() {
 function activeQuestions() {
   const checkpointId = window.location.hash.replace(/^#quiz-/, "");
   const lesson = allLessons.find((item) => item.id === checkpointId);
-  return lesson ? questions.filter((question) => question.category === lesson.category) : questions;
+  return lesson ? questions.filter((question) => lesson.questionIds.includes(question.id)) : questions;
 }
 
 function answeredTotal() {

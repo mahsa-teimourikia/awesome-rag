@@ -14,6 +14,7 @@ test("learning registry has three levels and complete lesson metadata", () => {
   for (const lesson of allLessons) {
     assert.ok(lesson.id && lesson.material && lesson.notebook && lesson.category);
     assert.ok(lesson.minutes > 0 && lesson.technologies.length > 0);
+    assert.ok(lesson.questionIds.length > 0, `${lesson.id} should define checkpoint questions`);
   }
 });
 
@@ -38,7 +39,10 @@ test("every lesson points to a readable material file and notebook", async () =>
 
 test("lesson quiz categories map to available questions", () => {
   const categories = new Set(questions.map((question) => question.category));
+  const questionIds = new Set(questions.map((question) => question.id));
   for (const lesson of allLessons) {
     assert.ok(categories.has(lesson.category), `${lesson.id} uses unknown quiz category: ${lesson.category}`);
+    assert.equal(new Set(lesson.questionIds).size, lesson.questionIds.length);
+    for (const questionId of lesson.questionIds) assert.ok(questionIds.has(questionId), `${lesson.id} uses unknown question: ${questionId}`);
   }
 });
