@@ -25,6 +25,7 @@ Every lesson follows the same loop: **Learn** the concept and trade-offs → **L
 | Focused beginner labs | [`notebooks/beginner/`](notebooks/beginner/) | Small companions for local RAG, chunking, and citations |
 | Reusable implementations | [`examples/`](examples/) | Credential-free Python modules used by curriculum lessons |
 | Enterprise lab library | [`src/enterprise_rag/`](src/enterprise_rag/) | Shared corpus, retrieval, evaluation, and production helpers |
+| Evaluation investigation track | [`notebooks/evaluation/`](notebooks/evaluation/) | Twelve Northstar Insurance notebooks that evaluate PolicyAssist from data to production release |
 | Design references | [`docs/`](docs/) | What RAG is, technology choices, patterns, evaluation, and templates |
 | Interactive assessment | [`quiz/`](quiz/) | Full browser-based knowledge check, published under `/quiz/` |
 | Scenario data | [`data/`](data/) and [`datasets/`](datasets/) | Small deterministic fixtures and evaluation questions |
@@ -74,6 +75,10 @@ Use the Enterprise track when you want one business problem to evolve across all
 | [07](notebooks/enterprise/07_rag_evaluation.ipynb) | Retrieval, grounding, and regression metrics | `src/enterprise_rag/evaluation.py` |
 | [08](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Bounded recovery and abstention | `src/enterprise_rag/advanced.py` |
 | [09](notebooks/enterprise/09_production_capstone.ipynb) | Freshness, authorization, observability, cost, rollback | `src/enterprise_rag/lab_experiments.py` |
+
+## Production RAG Evaluation Lab
+
+The [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) is a second scenario-first track for learners who want to specialize in evaluation. Start with the [evaluation theory guide](docs/evaluation.md), then investigate one intentionally flawed insurance-policy assistant across dataset design, retrieval, reranking/context, grounded generation, citations, judge calibration, robustness, security, architecture comparison, production tracing, and a release-review capstone.
 
 ## Local workflow
 
