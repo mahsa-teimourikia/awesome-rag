@@ -1,0 +1,4 @@
+code,service,meaning,severity
+AX-774-B,checkout,Payment authorization timeout in EU region,ERROR
+BX-120-A,catalog,Image rendering cache miss,WARN
+HR-PAR-042,hr,Parental leave policy identifier,INFO

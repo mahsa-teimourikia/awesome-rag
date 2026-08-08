@@ -1,6 +1,22 @@
 # RAG notebooks
 
-The notebooks are guided companions to the reusable Python examples. Read the Markdown cells first, run the code cells in order, and complete the exercises at the end.
+The notebooks are now organized around two learning modes. Start with the scenario-based Enterprise Knowledge Assistant track if you want the most complete theory + practice path. Use the beginner notebooks as small focused companions to the existing curriculum lessons.
+
+## Enterprise Knowledge Assistant track
+
+| Notebook | Topic |
+| --- | --- |
+| [01 RAG from scratch](enterprise/01_rag_from_scratch.ipynb) | Manual RAG loop, citations, failure-first baseline |
+| [02 Parsing and chunking](enterprise/02_parsing_chunking_context.ipynb) | Structure-aware chunks and context engineering |
+| [03 Dense, sparse, hybrid](enterprise/03_dense_sparse_hybrid.ipynb) | BM25, semantic search, exact identifiers, RRF |
+| [04 Reranking](enterprise/04_reranking_evidence_selection.ipynb) | Evidence selection after noisy retrieval |
+| [05 Query transformation](enterprise/05_query_transformation.ipynb) | Rewriting, multi-query, decomposition, HyDE |
+| [06 GraphRAG](enterprise/06_graphrag_multihop.ipynb) | Multi-hop relationship questions |
+| [07 RAG evaluation](enterprise/07_rag_evaluation.ipynb) | Retrieval and answer-quality diagnostics |
+| [08 Adaptive and agentic RAG](enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Routing, corrective loops, bounded agentic retrieval |
+| [09 Production capstone](enterprise/09_production_capstone.ipynb) | Production architecture, operations, cost, and reliability |
+
+## Focused beginner companions
 
 | Notebook | Companion implementation |
 | --- | --- |
