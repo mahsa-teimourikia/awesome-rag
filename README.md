@@ -60,6 +60,7 @@ Use these entry points depending on your goal:
 | Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
 | Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Nine NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
 | Evaluate a production-like system | [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) | Twelve Northstar Insurance investigation notebooks: retrieval, context, grounding, citations, judges, safety, operations, and release review |
+| Learn adaptive retrieval | [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Six scenario notebooks on retrieval gates, strategy routing, adaptive depth, corrective loops, and production trade-offs |
 | Test broad understanding | [Full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) | One larger interactive quiz across foundations, ingestion, retrieval, generation, security, evaluation, and operations |
 | Browse concise docs | [Learning guide](LEARNING.md) and [curriculum map](curriculum/README.md) | Markdown path for readers who prefer repository navigation |
 
@@ -104,6 +105,7 @@ These guides complement the hub with deeper design references and production che
 - [Retrieval patterns](docs/retrieval-patterns.md) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
 - [Evaluation guide](docs/evaluation.md) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
 - [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) — a notebook-first course that turns the evaluation guide into an end-to-end production-readiness investigation.
+- [Adaptive RAG guide](docs/adaptive-rag.md) and [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) — move from fixed retrieval to safe, measurable policy selection.
 - [Learning guide](LEARNING.md) — concise beginner/intermediate/advanced sequence for repository readers.
 
 The hub and quiz run entirely in the browser and store completion only on the learner's device. For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets, Field Guide shell, and quiz page. `npm run check:external-links` performs an opt-in health check for curated external URLs.

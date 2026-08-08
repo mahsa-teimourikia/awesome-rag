@@ -26,6 +26,7 @@ Every lesson follows the same loop: **Learn** the concept and trade-offs → **L
 | Reusable implementations | [`examples/`](examples/) | Credential-free Python modules used by curriculum lessons |
 | Enterprise lab library | [`src/enterprise_rag/`](src/enterprise_rag/) | Shared corpus, retrieval, evaluation, and production helpers |
 | Evaluation investigation track | [`notebooks/evaluation/`](notebooks/evaluation/) | Twelve Northstar Insurance notebooks that evaluate PolicyAssist from data to production release |
+| Adaptive retrieval track | [`notebooks/adaptive-rag/`](notebooks/adaptive-rag/) | Six Northstar Insurance notebooks from retrieval gates to corrective, production-ready routing |
 | Design references | [`docs/`](docs/) | What RAG is, technology choices, patterns, evaluation, and templates |
 | Interactive assessment | [`quiz/`](quiz/) | Full browser-based knowledge check, published under `/quiz/` |
 | Scenario data | [`data/`](data/) and [`datasets/`](datasets/) | Small deterministic fixtures and evaluation questions |
@@ -79,6 +80,10 @@ Use the Enterprise track when you want one business problem to evolve across all
 ## Production RAG Evaluation Lab
 
 The [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) is a second scenario-first track for learners who want to specialize in evaluation. Start with the [evaluation theory guide](docs/evaluation.md), then investigate one intentionally flawed insurance-policy assistant across dataset design, retrieval, reranking/context, grounded generation, citations, judge calibration, robustness, security, architecture comparison, production tracing, and a release-review capstone.
+
+## Adaptive RAG Lab
+
+The [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) is the bridge from advanced retrieval to agentic RAG. Read the [Adaptive RAG guide](docs/adaptive-rag.md), then build and evaluate retrieval gates, routing, transformations, source selection, adaptive depth, corrective loops, and the production policy boundary using transparent deterministic Python.
 
 ## Local workflow
 
