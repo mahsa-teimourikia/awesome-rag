@@ -24,7 +24,7 @@ The notebooks are now organized around two learning modes. Start with the scenar
 | [Chunking lab](beginner/02_chunking_lab.ipynb) | [`examples/beginner/chunking_lab.py`](../examples/beginner/chunking_lab.py) |
 | [Citations and abstention](beginner/03_citations_abstention.ipynb) | [`examples/beginner/citations.py`](../examples/beginner/citations.py) |
 
-Run locally with Jupyter or open the files in GitHub. Notebook code uses repository-relative paths; launch Jupyter from the repository root.
+Run locally with Jupyter or open the files in GitHub. Notebook code uses repository-relative paths; launch Jupyter from the repository root. Architecture diagrams in notebooks use readable ASCII flowcharts so the learning sequence remains legible in GitHub previews, Jupyter, and light or dark themes without a Mermaid renderer.
 
 ## PolicyAssist RAG Evaluation Lab
 
