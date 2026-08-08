@@ -25,3 +25,11 @@ The notebooks are now organized around two learning modes. Start with the scenar
 | [Citations and abstention](beginner/03_citations_abstention.ipynb) | [`examples/beginner/citations.py`](../examples/beginner/citations.py) |
 
 Run locally with Jupyter or open the files in GitHub. Notebook code uses repository-relative paths; launch Jupyter from the repository root.
+
+## PolicyAssist RAG Evaluation Lab
+
+For a dedicated evaluation specialization, follow the [12-notebook PolicyAssist RAG Evaluation Lab](evaluation/README.md). It uses one Northstar Insurance scenario to teach dataset design, retrieval and context metrics, grounding, claims/citations, LLM-judge calibration, robustness, security, production monitoring, and release decisions.
+
+## Adaptive RAG Lab
+
+Follow the [six-notebook Adaptive RAG Lab](adaptive-rag/README.md) when you want to understand the transition from fixed retrieval to bounded retrieval/reasoning policies. It covers retrieval necessity, complexity routing, source and query routing, adaptive context depth, corrective loops, and the agentic-RAG boundary.

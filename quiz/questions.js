@@ -377,4 +377,39 @@ export const questions = [
       url: "curriculum/advanced/05-production-operations/README.md",
     },
   },
+  {
+    id: "adaptive-rag-1",
+    category: "Adaptive RAG",
+    prompt: "Which decisions can a bounded Adaptive RAG controller make for an incoming query?",
+    options: [
+      "Whether retrieval is needed at all.",
+      "Which source, retrieval method, or query transformation fits the information need.",
+      "How much evidence to retrieve and whether it is sufficient to continue.",
+      "Whether to bypass authorization when a query is complex.",
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "Adaptive RAG selects a retrieval/reasoning policy by query need and execution evidence. Authorization is a non-negotiable boundary that must be enforced before retrieval and context construction.",
+    source: {
+      label: "Adaptive RAG guide",
+      url: "docs/adaptive-rag.md",
+    },
+  },
+  {
+    id: "adaptive-rag-2",
+    category: "Adaptive RAG",
+    prompt: "Why should an adaptive system compare its routes with a simple fixed-RAG baseline?",
+    options: [
+      "More autonomy can add tool calls, noisy evidence, latency, cost, and loop risk.",
+      "A route is valuable only when it improves a measured quality or risk outcome enough to justify its operational cost.",
+      "Any agentic route is automatically more accurate than a single retrieval call.",
+    ],
+    correct: [0, 1],
+    explanation:
+      "Adaptive and agentic behavior introduces additional decisions that can fail. Evaluate routing accuracy, evidence quality, cost, latency, and termination behavior against a simpler baseline before keeping the extra complexity.",
+    source: {
+      label: "Adaptive RAG Lab",
+      url: "notebooks/adaptive-rag/README.md",
+    },
+  },
 ];

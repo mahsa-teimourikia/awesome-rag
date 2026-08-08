@@ -1,47 +1,66 @@
-# Evaluating a RAG system
+# Evaluating RAG systems: a diagnostic discipline
 
-Evaluation is the feedback loop that turns a demo into an engineering system. A fluent answer is not proof of a correct answer, and a correct answer can conceal unreliable retrieval that will fail on the next query.
+RAG evaluation is not one final-answer score. A fluent answer can hide a retriever that missed the authoritative source, a context builder that removed the needed passage, a citation that does not support its claim, an authorization leak, or latency that makes the product impractical. This guide follows One+i’s [Evaluating RAG systems beyond the demo](https://oneplusi.io/blog/article/evaluating-rag-systems/) and the linked **PolicyAssist RAG Evaluation Lab**.
 
-## Build a useful test set
+## Evaluate the whole system
 
-Start with 50–100 representative questions, then grow it continuously from real traffic and incidents. For each question, record:
+```mermaid
+flowchart LR
+  I[Ingestion and governance] --> R[Candidate retrieval]
+  R --> K[Reranking]
+  K --> C[Context construction]
+  C --> G[Generation]
+  G --> Cit[Claims and citations]
+  Cit --> S[Safety and authorization]
+  S --> O[Operations and monitoring]
+```
 
-- expected answer or answer criteria;
-- source documents/passages that should support it;
-- query category (fact lookup, comparison, multi-hop, no-answer, etc.);
-- tenant/permission context where relevant; and
-- freshness or document version constraints.
+The six promises are separate: **answer** (useful and correct), **evidence** (grounded), **retrieval** (finds relevant material), **citation** (verifiable), **safety** (bounded and permission-aware), and **operations** (fresh, observable, fast, and affordable). A change can improve one promise while harming another, so report a metric vector and failure slices rather than a single “RAG score.”
 
-Include adversarial and “answer should not be given” cases. A production RAG system should be able to say it lacks sufficient evidence.
+## A representative dataset is the first control
 
-## Measure retrieval separately
+Each evaluation record should carry a question, reference answer or acceptance criteria, relevant documents and passages, expected citations, question type, difficulty, freshness requirements, authorization constraints, business severity, and expected behavior (`answer`, `abstain`, or `escalate`). Include factual, synthesis, multi-hop, temporal, conflicting, unanswerable, permission-boundary, and adversarial questions. Add **impossible-without-corpus** cases so the foundation model cannot mask a broken retriever with general knowledge.
 
-Given known relevant passages, measure whether they appear among the retrieved candidates:
+## Metrics by failure boundary
 
-- **Recall@k** — whether the needed evidence appears in the first *k* results.
-- **MRR** — rewards putting the first relevant result near the top.
-- **nDCG** — supports graded relevance and ranking quality.
+| Boundary | Measure | Diagnostic question |
+| --- | --- | --- |
+| Candidate retrieval | Recall@K, Precision@K, hit rate, MRR | Did the correct evidence appear and how early? |
+| Reranking | nDCG@K, reranked recall | Did the strongest evidence move into the usable range? |
+| Context | Context recall, precision, freshness, ordering | Did the model actually see sufficient, authorized evidence? |
+| Generation | Correctness, relevance, completeness, faithfulness | Is the answer right, useful, complete, and supported? |
+| Citations | Validity, correctness, completeness, precision | Does each factual claim map to supporting evidence? |
+| Safety | Refusal/abstention accuracy, leak rate, attack success rate | Does the system remain inside evidence and policy boundaries? |
+| Operations | P50/P95 latency, cost/query, no-result rate, drift | Can the system sustain the workflow after release? |
 
-The [BEIR benchmark](https://github.com/beir-cellar/beir) and [Stanford IR book](https://nlp.stanford.edu/IR-book/) are strong references for retrieval evaluation.
+**Retrieval is not ranking, and ranking is not context.** Measure candidate recall, reranked top-K quality, and useful evidence in the final context separately. A relevant chunk can be retrieved at rank 37, promoted by a reranker, then dropped by a context budget or metadata filter.
 
-## Measure answer quality separately
+## Correctness and grounding can disagree
 
-Useful dimensions include:
+| | Grounded | Ungrounded |
+| --- | --- | --- |
+| Correct | Ideal RAG behavior | Lucky answer from parametric knowledge |
+| Incorrect | Faithful use of stale or low-authority evidence | Hallucination or unsupported assertion |
 
-- **Faithfulness / groundedness:** are response claims supported by the retrieved context?
-- **Answer relevance:** does the response address the question?
-- **Context precision:** are retrieved chunks relevant rather than distracting?
-- **Context recall:** did the context contain what was needed for the answer?
-- **Citation correctness:** do cited sources entail the linked claim?
+For high-impact answers, move from answer-level review to claim-level review: extract material claims, resolve citations, test support/entailment, label severity, and aggregate citation completeness. A mostly supported answer can still contain one critical unsupported policy claim.
 
-[Ragas](https://docs.ragas.io/en/stable/concepts/metrics/) documents common RAG metrics and their assumptions. Automated LLM-as-a-judge metrics are helpful for iteration, but calibrate them with human review—especially in high-stakes domains.
+## LLM judges are instruments, not truth
 
-## An iteration loop
+LLM-as-a-judge can scale nuanced assessments, but evaluate the judge itself against expert labels. Test verbosity bias, position bias, reference bias, prompt sensitivity, and domain weakness. Version prompts and rubrics; use agreement, confusion matrices, correlations, and Cohen’s kappa; send high-severity or uncertain disagreements to human review. Deterministic checks should remain deterministic where possible: source IDs, authorization filters, exact policy versions, schema validity, and latency budgets do not need an LLM judge.
 
-1. Run the same dataset against the current pipeline and capture traces: query, candidates, scores, chosen context, response, citations, latency, and cost.
-2. Label the failure stage: extraction, chunking, retrieval, ranking, prompt/context assembly, or generation.
-3. Make one focused change and compare it with the baseline on the full set—not only the examples that motivated the change.
-4. Review aggregate metrics *and* the changed failures manually.
-5. Promote the change only if it improves the intended metric without unacceptable regressions.
+## Stress testing and release gates
 
-Open-source tools such as [Phoenix](https://github.com/Arize-ai/phoenix), [Langfuse](https://github.com/langfuse/langfuse), [TruLens](https://github.com/truera/trulens), and [DeepEval](https://github.com/confident-ai/deepeval) can help capture traces and run experiments.
+Deliberately inject noise, bury evidence, add conflicting versions, remove required evidence, paraphrase queries, and embed malicious instructions in retrieved documents. Treat retrieved text as **data**, never as instructions. Enforce authorization before retrieval and context construction, then measure unauthorized-retrieval rate, sensitive-context exposure, refusal correctness, unsupported-answer rate, and attack success rate.
+
+Offline evaluation is a release gate; online evaluation is the operating layer. Traces should connect query, rewrites, retrieved chunks, reranker scores, final context, model calls, citations, judge scores, latency, tokens, cost, user feedback, and escalation. Gate releases on high-severity slices and critical constraints—not an average score.
+
+## Learn by investigating PolicyAssist
+
+The [RAG Evaluation Lab](../notebooks/evaluation/README.md) uses an evolving Northstar Insurance scenario to make each metric necessary. Learners inherit a system that looks good in a demo and must decide whether it is ready for production. The notebooks cover the broken baseline, dataset design, retrieval, context, generation, claims/citations, judges, robustness/abstention, security/permissions, architecture comparison, production tracing, and a release-review capstone.
+
+## References
+
+- [One+i: Evaluating RAG systems beyond the demo](https://oneplusi.io/blog/article/evaluating-rag-systems/) — course conceptual framework and practical evaluation playbook.
+- [RAGAS](https://arxiv.org/abs/2309.15217) — automated RAG metrics including faithfulness, answer relevance, and context metrics.
+- [RAGBench](https://arxiv.org/abs/2407.11005) and [RAGChecker](https://arxiv.org/abs/2408.08067) — component-level and explainable RAG evaluation research.
+- [Ragas metrics documentation](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/), [DeepEval metrics](https://deepeval.com/docs/metrics-introduction), and [TruLens RAG Triad](https://www.trulens.org/getting_started/core_concepts/rag_triad/) — maintained implementation references.
