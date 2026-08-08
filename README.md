@@ -86,6 +86,7 @@ The most complete hands-on path is the [Enterprise Knowledge Assistant notebook 
 | Adaptive systems | [08 Adaptive and agentic RAG](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Routing, corrective retrieval, bounded recovery, and abstention |
 | Production | [09 Production capstone](notebooks/enterprise/09_production_capstone.ipynb) | Offline/online pipelines, traces, cost, freshness, and reliability |
 | Multimodal evidence | [10 Tables, images, and OCR](notebooks/enterprise/10_multimodal_evidence.ipynb) | Typed calculations, OCR confidence, visual-region citations, and evidence-policy failures |
+| Secure RAG | [11 Tenant isolation and prompt injection](notebooks/enterprise/11_security_authorization.ipynb) | Authorization before retrieval, quarantined untrusted documents, traceable no-answer decisions |
 
 The notebooks import reusable deterministic modules from [`src/enterprise_rag`](src/enterprise_rag/) and sample data from [`data/enterprise`](data/enterprise/), so they run without API keys. Optional extensions map the same engineering decisions to Sentence Transformers, Chroma/FAISS, Qdrant, OpenSearch, Haystack, LangChain, LlamaIndex, LangGraph, Neo4j, and Ragas.
 

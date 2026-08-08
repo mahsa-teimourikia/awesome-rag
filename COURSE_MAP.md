@@ -79,6 +79,7 @@ Use the Enterprise track when you want one business problem to evolve across all
 | [08](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Bounded recovery and abstention | `src/enterprise_rag/advanced.py` |
 | [09](notebooks/enterprise/09_production_capstone.ipynb) | Freshness, authorization, observability, cost, rollback | `src/enterprise_rag/lab_experiments.py` |
 | [10](notebooks/enterprise/10_multimodal_evidence.ipynb) | Typed table aggregates, OCR confidence, visual locators, modality-specific citations | `examples/advanced/structured_rag.py` |
+| [11](notebooks/enterprise/11_security_authorization.ipynb) | Pre-retrieval tenant isolation, prompt-injection quarantine, untrusted context, safe abstention | `examples/advanced/security_rag.py` |
 
 ## Production RAG Evaluation Lab
 
