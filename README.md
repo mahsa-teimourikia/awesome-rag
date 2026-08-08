@@ -59,6 +59,8 @@ Use these entry points depending on your goal:
 | --- | --- | --- |
 | Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
 | Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Nine NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
+| Evaluate a production-like system | [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) | Twelve Northstar Insurance investigation notebooks: retrieval, context, grounding, citations, judges, safety, operations, and release review |
+| Learn adaptive retrieval | [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Six scenario notebooks on retrieval gates, strategy routing, adaptive depth, corrective loops, and production trade-offs |
 | Test broad understanding | [Full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) | One larger interactive quiz across foundations, ingestion, retrieval, generation, security, evaluation, and operations |
 | Browse concise docs | [Learning guide](LEARNING.md) and [curriculum map](curriculum/README.md) | Markdown path for readers who prefer repository navigation |
 
@@ -69,7 +71,7 @@ Every lesson link is checked in CI before deployment, and the Pages smoke test v
 
 ## Enterprise notebook track
 
-The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). It uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
+The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). These notebooks are the lab reference for theory and practice: each one explains the concept, diagrams the architecture, runs deterministic Python, breaks the system deliberately, evaluates the result, and asks production-design questions. The track uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
 
 | Stage | Notebook | What learners build |
 | --- | --- | --- |
@@ -87,15 +89,13 @@ The notebooks import reusable deterministic modules from [`src/enterprise_rag`](
 
 ## Learning roadmap
 
-Follow the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) after
-starting in the hub:
+Follow the [canonical course map](COURSE_MAP.md) after starting in the Hub. It is the single page that connects each level to its module README, notebook, reusable code, data, tests, and references:
 
 - **Beginner:** build a local, cited RAG assistant from first principles.
 - **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
 - **Advanced:** design corrective, graph, multimodal, agentic, and production RAG systems.
 
-The [use-case catalog](use-cases/README.md) helps choose a project, while the
-[tutorial template](docs/tutorial-template.md) keeps new lessons consistent.
+The [use-case catalog](use-cases/README.md) helps choose a project, while the [tutorial template](docs/tutorial-template.md) keeps new lessons consistent. `LEARNING.md` remains a compact redirect for GitHub readers; it intentionally does not duplicate the full map.
 
 ## Practical design guides
 
@@ -104,6 +104,8 @@ These guides complement the hub with deeper design references and production che
 - [Technology decisions](docs/technology-decisions.md) — default stack, alternatives, and framework/retrieval-store criteria.
 - [Retrieval patterns](docs/retrieval-patterns.md) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
 - [Evaluation guide](docs/evaluation.md) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
+- [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) — a notebook-first course that turns the evaluation guide into an end-to-end production-readiness investigation.
+- [Adaptive RAG guide](docs/adaptive-rag.md) and [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) — move from fixed retrieval to safe, measurable policy selection.
 - [Learning guide](LEARNING.md) — concise beginner/intermediate/advanced sequence for repository readers.
 
 The hub and quiz run entirely in the browser and store completion only on the learner's device. For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets, Field Guide shell, and quiz page. `npm run check:external-links` performs an opt-in health check for curated external URLs.
