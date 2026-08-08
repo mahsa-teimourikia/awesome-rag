@@ -14,4 +14,13 @@ Continue with [`intermediate/README.md`](intermediate/README.md). Treat retrieva
 
 Finish with [`advanced/README.md`](advanced/README.md). Design systems that route, recover, protect permissions, handle multiple modalities, and operate with measurable quality and cost.
 
-Every module will include a runnable example, an experiment, an evaluation check, and a practical exercise.
+## Notebook-first lesson format
+
+The notebooks are the primary learning artifacts, not just launchers for code. Open the notebook linked from each module and work through it in order:
+
+1. Read the scenario, concept explanation, trade-offs, and Mermaid architecture map.
+2. Run the deterministic implementation and inspect the evidence, trace, or evaluation output.
+3. Compare at least two examples, change one variable, and observe the failure or quality trade-off.
+4. Complete the production checklist and reflection questions before moving to the next lesson.
+
+Each notebook keeps the theory and implementation together, while larger reusable modules remain in `examples/` or `src/`. The split makes the lesson readable in GitHub and executable locally without hiding the engineering decisions behind a framework.
