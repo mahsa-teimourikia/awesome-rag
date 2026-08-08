@@ -58,6 +58,7 @@ Use these entry points depending on your goal:
 | Goal | Start here | Why |
 | --- | --- | --- |
 | Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
+| Learn RAG from first principles | [Harborline Support beginner notebooks](notebooks/README.md#harborline-support--beginner-notebook-track) | Three connected, credential-free notebooks: inspect a baseline, evaluate chunking, then audit citations and abstention |
 | Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Nine NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
 | Evaluate a production-like system | [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) | Twelve Northstar Insurance investigation notebooks: retrieval, context, grounding, citations, judges, safety, operations, and release review |
 | Learn adaptive retrieval | [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Six scenario notebooks on retrieval gates, strategy routing, adaptive depth, corrective loops, and production trade-offs |

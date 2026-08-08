@@ -22,7 +22,7 @@ Every lesson follows the same loop: **Learn** the concept and trade-offs → **L
 | Structured lesson map | [`LEARNING.md`](LEARNING.md) | Short GitHub-native sequence through all levels |
 | Module theory and exercises | [`curriculum/`](curriculum/) | One README per lesson, linked to its notebook and implementation |
 | Scenario-first labs | [`notebooks/enterprise/`](notebooks/enterprise/) | Nine connected NovaTech labs from retrieval to production |
-| Focused beginner labs | [`notebooks/beginner/`](notebooks/beginner/) | Small companions for local RAG, chunking, and citations |
+| Harborline Support beginner labs | [`notebooks/beginner/`](notebooks/beginner/) | Three connected, self-contained labs for inspectable retrieval, chunking decisions, citations, and abstention |
 | Reusable implementations | [`examples/`](examples/) | Credential-free Python modules used by curriculum lessons |
 | Enterprise lab library | [`src/enterprise_rag/`](src/enterprise_rag/) | Shared corpus, retrieval, evaluation, and production helpers |
 | Evaluation investigation track | [`notebooks/evaluation/`](notebooks/evaluation/) | Twelve Northstar Insurance notebooks that evaluate PolicyAssist from data to production release |
@@ -42,6 +42,8 @@ The Hub registry in [`app/page.tsx`](app/page.tsx) is a navigation index, not a 
 3. [Chunking lab](curriculum/beginner/03-chunking-lab/README.md)
 4. [Citations and abstention](curriculum/beginner/04-citations-abstention/README.md)
 5. [Documentation assistant capstone](use-cases/documentation-assistant/README.md)
+
+Start the practical sequence with the [Harborline Support beginner notebook track](notebooks/README.md#harborline-support--beginner-notebook-track). The three notebooks share a corpus and move from transparent retrieval to chunk-boundary experiments to evidence policy; the documentation assistant is the follow-on capstone.
 
 ### Intermediate — improve and measure retrieval
 
