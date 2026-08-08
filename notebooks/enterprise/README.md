@@ -13,6 +13,7 @@ This is the canonical scenario-based practical track for the RAG Learning Hub. T
 | 07 | [Evaluation](07_rag_evaluation.ipynb) | Recall@K, precision, MRR, faithfulness diagnostics | Ragas-style metrics |
 | 08 | [Adaptive and agentic RAG](08_adaptive_corrective_agentic_rag.ipynb) | Routing and corrective loops | LangGraph concepts |
 | 09 | [Production capstone](09_production_capstone.ipynb) | Offline/online pipeline, operations, cost, citations | Framework-independent architecture |
+| 10 | [Multimodal evidence](10_multimodal_evidence.ipynb) | Tables, dashboard images, OCR confidence, and reviewable citations | Typed Python contracts; maps to OCR/Document AI adapters |
 
 Run from the repository root so imports and data paths resolve:
 

@@ -12,6 +12,8 @@ Route table questions to typed filtering and aggregation, preserve row-level pro
 
 Open [`structured_multimodal.ipynb`](structured_multimodal.ipynb). The reusable implementation is [`structured_rag.py`](../../../examples/advanced/structured_rag.py).
 
+For the full scenario-based lab, continue to [NovaTech Multimodal Evidence](../../../notebooks/enterprise/10_multimodal_evidence.ipynb). It combines a typed renewal-risk CSV with a dashboard SVG/OCR fixture, keeps row and visual-region citations separate, gates low-confidence extraction, and includes schema-drift failures.
+
 ```mermaid
 flowchart LR
   Q[Question] --> R{Data type}
