@@ -65,7 +65,7 @@ Every lesson link is checked in CI before deployment, including the advanced Cor
 
 ## Enterprise notebook track
 
-The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). It uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
+The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). These notebooks are the lab reference for theory and practice: each one explains the concept, diagrams the architecture, runs deterministic Python, breaks the system deliberately, evaluates the result, and asks production-design questions. The track uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
 
 | Stage | Notebook | What learners build |
 | --- | --- | --- |
