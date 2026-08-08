@@ -12,13 +12,10 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 
 ## Contents
 
-- [RAG Learning Hub](#rag-learning-hub)
-- [Enterprise notebook track](#enterprise-notebook-track)
-- [Learning roadmap](#learning-roadmap)
-- [Learning guide](#learning-guide)
-- [Technology decisions](#technology-decisions)
 - [RAG explained](#rag-explained)
-- [Practical material](#practical-material)
+- [Start learning: Hub, notebooks, and quiz](#start-learning-hub-notebooks-and-quiz)
+- [Learning roadmap](#learning-roadmap)
+- [Practical design guides](#practical-design-guides)
 - [A practical RAG architecture](#a-practical-rag-architecture)
 - [Appendix: curated references and resources](#appendix-curated-references-and-resources)
 - [Official educational resources](#official-educational-resources)
@@ -50,22 +47,29 @@ The two quality questions are distinct:
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
 
-## RAG Learning Hub
+## Start learning: Hub, notebooks, and quiz
 
-**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
+**Start here:** [Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)
 
-The hub is the recommended starting point for structured learning. Move through each lesson's **Learn → Lab → Checkpoint** loop.
-Each step combines theory, references, practical guidance, a runnable notebook or
-Python example, and an interactive quiz.
+The hub is the recommended entry point for structured learning. It puts the scenario notebooks first, then provides the broader beginner/intermediate/advanced curriculum with a **Learn → Lab → Checkpoint** loop. Each lesson includes a concept summary, source references, a runnable notebook or Python example, and focused checkpoint questions.
 
-The hub follows a simple loop: **Learn** the concept, **Lab** with the linked Python example or notebook, then complete the **Checkpoint**. The visual Field Guide is built for GitHub Pages from `app/page.tsx`; source material remains in the curriculum, `examples/`, and `notebooks/` directories. To preview it locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
+Use these entry points depending on your goal:
 
-Every lesson link is checked in CI before deployment, including the advanced Corrective RAG, GraphRAG, Agentic RAG, structured/multimodal, and production-operations notebooks.
+| Goal | Start here | Why |
+| --- | --- | --- |
+| Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
+| Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Nine NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
+| Test broad understanding | [Full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) | One larger interactive quiz across foundations, ingestion, retrieval, generation, security, evaluation, and operations |
+| Browse concise docs | [Learning guide](LEARNING.md) and [curriculum map](curriculum/README.md) | Markdown path for readers who prefer repository navigation |
+
+The visual Field Guide is built for GitHub Pages from `app/page.tsx`; the full quiz is copied from `quiz/` into the Pages artifact. Source material remains in the curriculum, `examples/`, `notebooks/`, and `src/enterprise_rag/` directories. To preview locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
+
+Every lesson link is checked in CI before deployment, and the Pages smoke test verifies both the hub and `/quiz/` page are present.
 
 
 ## Enterprise notebook track
 
-The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). It uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
+The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). These notebooks are the lab reference for theory and practice: each one explains the concept, diagrams the architecture, runs deterministic Python, breaks the system deliberately, evaluates the result, and asks production-design questions. The track uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
 
 | Stage | Notebook | What learners build |
 | --- | --- | --- |
@@ -93,21 +97,16 @@ starting in the hub:
 The [use-case catalog](use-cases/README.md) helps choose a project, while the
 [tutorial template](docs/tutorial-template.md) keeps new lessons consistent.
 
-## Practical material
+## Practical design guides
 
-These guides complement the hub with deeper design references and production checklists.
+These guides complement the hub with deeper design references and production checklists:
 
-## Learning guide
+- [Technology decisions](docs/technology-decisions.md) — default stack, alternatives, and framework/retrieval-store criteria.
+- [Retrieval patterns](docs/retrieval-patterns.md) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
+- [Evaluation guide](docs/evaluation.md) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
+- [Learning guide](LEARNING.md) — concise beginner/intermediate/advanced sequence for repository readers.
 
-Use the concise [learning guide](LEARNING.md) to follow the complete beginner, intermediate, or advanced sequence.
-
-## Technology decisions
-
-The [technology decision guide](docs/technology-decisions.md) explains the default stack, alternatives, and the criteria for choosing a framework or retrieval store.
-
-The hub runs entirely in the browser and stores lesson completion only on the learner's device. The original quiz is no longer the deployed entry point; it remains as a dependency-light reference in [`quiz/README.md`](quiz/README.md).
-
-For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets and Field Guide shell. `npm run check:external-links` performs an opt-in health check for the curated external URLs.
+The hub and quiz run entirely in the browser and store completion only on the learner's device. For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets, Field Guide shell, and quiz page. `npm run check:external-links` performs an opt-in health check for curated external URLs.
 
 ## A practical RAG architecture
 

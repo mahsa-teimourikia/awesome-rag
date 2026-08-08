@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
-    "build:pages": "vite build --config vite.pages.config.ts",
+    "build:pages": "vite build --config vite.pages.config.ts && node scripts/copy-quiz-to-pages.mjs",
     "check:pages-links": "node scripts/validate-learning-links.mjs",
     "check:external-links": "node scripts/check-external-links.mjs",
     "test:pages": "npm run build:pages && node tests/pages-smoke.mjs",
