@@ -13,6 +13,7 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 ## Contents
 
 - [RAG Learning Hub](#rag-learning-hub)
+- [Enterprise notebook track](#enterprise-notebook-track)
 - [Learning roadmap](#learning-roadmap)
 - [Learning guide](#learning-guide)
 - [Technology decisions](#technology-decisions)
@@ -60,6 +61,25 @@ Python example, and an interactive quiz.
 The hub follows a simple loop: **Learn** the concept, **Lab** with the linked Python example or notebook, then complete the **Checkpoint**. The visual Field Guide is built for GitHub Pages from `app/page.tsx`; source material remains in the curriculum, `examples/`, and `notebooks/` directories. To preview it locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
 
 Every lesson link is checked in CI before deployment, including the advanced Corrective RAG, GraphRAG, Agentic RAG, structured/multimodal, and production-operations notebooks.
+
+
+## Enterprise notebook track
+
+The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). It uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
+
+| Stage | Notebook | What learners build |
+| --- | --- | --- |
+| Foundations | [01 RAG from scratch](notebooks/enterprise/01_rag_from_scratch.ipynb) | A manual RAG loop with retrieval, citations, and abstention |
+| Context engineering | [02 Parsing and chunking](notebooks/enterprise/02_parsing_chunking_context.ipynb) | Fixed vs. structure-aware chunks and failure analysis |
+| Retrieval engineering | [03 Dense, sparse, hybrid](notebooks/enterprise/03_dense_sparse_hybrid.ipynb) | Exact-term, semantic, and hybrid retrieval with RRF |
+| Evidence quality | [04 Reranking](notebooks/enterprise/04_reranking_evidence_selection.ipynb) | Noisy candidate retrieval followed by evidence selection |
+| Query strategy | [05 Query transformation](notebooks/enterprise/05_query_transformation.ipynb) | Rewrites, multi-query retrieval, decomposition, and HyDE |
+| Advanced retrieval | [06 GraphRAG](notebooks/enterprise/06_graphrag_multihop.ipynb) | Multi-hop evidence over project, vendor, and regulation facts |
+| Evaluation | [07 RAG evaluation](notebooks/enterprise/07_rag_evaluation.ipynb) | Recall@K, precision@K, MRR, and diagnosis loops |
+| Adaptive systems | [08 Adaptive and agentic RAG](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Routing, corrective retrieval, bounded recovery, and abstention |
+| Production | [09 Production capstone](notebooks/enterprise/09_production_capstone.ipynb) | Offline/online pipelines, traces, cost, freshness, and reliability |
+
+The notebooks import reusable deterministic modules from [`src/enterprise_rag`](src/enterprise_rag/) and sample data from [`data/enterprise`](data/enterprise/), so they run without API keys. Optional extensions map the same engineering decisions to Sentence Transformers, Chroma/FAISS, Qdrant, OpenSearch, Haystack, LangChain, LlamaIndex, LangGraph, Neo4j, and Ragas.
 
 ## Learning roadmap
 
