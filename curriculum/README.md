@@ -1,6 +1,6 @@
-# Curriculum map
+# Curriculum modules
 
-The curriculum is organized by learner outcome rather than by vendor. Complete the levels in order unless you already meet the stated outcome.
+The curriculum is organized by learner outcome rather than by vendor. Use the repository’s [canonical course map](../COURSE_MAP.md) for the complete flow and asset map; this page stays focused on the module-level prerequisites and outcomes.
 
 ## Beginner
 

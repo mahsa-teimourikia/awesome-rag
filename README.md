@@ -87,15 +87,13 @@ The notebooks import reusable deterministic modules from [`src/enterprise_rag`](
 
 ## Learning roadmap
 
-Follow the [roadmap](ROADMAP.md) and [curriculum map](curriculum/README.md) after
-starting in the hub:
+Follow the [canonical course map](COURSE_MAP.md) after starting in the Hub. It is the single page that connects each level to its module README, notebook, reusable code, data, tests, and references:
 
 - **Beginner:** build a local, cited RAG assistant from first principles.
 - **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
 - **Advanced:** design corrective, graph, multimodal, agentic, and production RAG systems.
 
-The [use-case catalog](use-cases/README.md) helps choose a project, while the
-[tutorial template](docs/tutorial-template.md) keeps new lessons consistent.
+The [use-case catalog](use-cases/README.md) helps choose a project, while the [tutorial template](docs/tutorial-template.md) keeps new lessons consistent. `LEARNING.md` remains a compact redirect for GitHub readers; it intentionally does not duplicate the full map.
 
 ## Practical design guides
 
