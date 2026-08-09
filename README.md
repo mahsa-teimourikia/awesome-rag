@@ -67,6 +67,14 @@ Use these entry points depending on your goal:
 
 The visual Field Guide is built for GitHub Pages from `app/page.tsx`; the full quiz is copied from `quiz/` into the Pages artifact. Source material remains in the curriculum, `examples/`, `notebooks/`, and `src/enterprise_rag/` directories. To preview locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
 
+CI parses every notebook and executes the deterministic scenario-first tracks in a real Jupyter kernel. Run the same contract locally after `pip install -e '.[dev]'` with:
+
+```bash
+PYTHONPATH=. python scripts/execute-notebooks.py --timeout 90
+```
+
+Optional-infrastructure notebooks remain syntax/compile checked so contributors do not need API keys, model downloads, or a running vector database for every pull request.
+
 Every lesson link is checked in CI before deployment, and the Pages smoke test verifies both the hub and `/quiz/` page are present.
 
 

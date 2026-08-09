@@ -8,7 +8,7 @@ dependencies = []
 [project.optional-dependencies]
 llamaindex = ["llama-index>=0.12", "llama-index-embeddings-huggingface>=0.5"]
 qdrant = ["qdrant-client>=1.14", "sentence-transformers>=3.4"]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "nbclient>=0.10", "nbformat>=5.10", "ipykernel>=6.29"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

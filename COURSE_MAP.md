@@ -110,4 +110,4 @@ For the Hub and quiz, run `npm ci && npm run check:pages-links && npm run test:p
 2. Keep theory, diagrams, runnable code, a deliberate failure, an experiment, references, and checkpoint tasks in the notebook.
 3. Put reusable code in `examples/` or `src/enterprise_rag/`; do not hide the only implementation in a notebook cell.
 4. Add tests for the deterministic behavior and register the lesson in `app/page.tsx`.
-5. Run the Python, notebook JSON, link, quiz, and Pages smoke checks before opening a PR.
+5. Run the Python, kernel-based deterministic-notebook execution, notebook JSON, link, quiz, and Pages smoke checks before opening a PR. CI executes the scenario-first tracks with `scripts/execute-notebooks.py`; optional-infrastructure notebooks remain covered by JSON and compile validation.
