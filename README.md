@@ -10,9 +10,12 @@ This collection emphasizes primary sources, maintained open-source projects, and
 
 Open the repository in GitHub Codespaces or use the included [dev container](.devcontainer/devcontainer.json) for a consistent Python and notebook environment. Optional infrastructure, such as Qdrant, is documented in the intermediate lab that uses it.
 
+**Run locally:** follow the [installation and development guide](docs/local-development.md), or run `make setup`, `make test`, and `make notebook-check` on macOS/Linux.
+
 ## Contents
 
 - [RAG explained](#rag-explained)
+- [Run locally](#run-locally)
 - [Start learning: Hub, notebooks, and quiz](#start-learning-hub-notebooks-and-quiz)
 - [Learning roadmap](#learning-roadmap)
 - [Practical design guides](#practical-design-guides)
@@ -47,6 +50,18 @@ The two quality questions are distinct:
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
 
+## Run locally
+
+The guided setup is in [local installation and development](docs/local-development.md). On macOS/Linux, the shortest deterministic path is:
+
+```bash
+make setup
+make test
+make notebook-check
+```
+
+Use `make notebooks` to open the course in JupyterLab, `make pages` to build and smoke-test the Learning Hub plus quiz, and `make help` to list every target. Windows and no-Make instructions are included in the guide.
+
 ## Start learning: Hub, notebooks, and quiz
 
 **Start here:** [Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)
@@ -59,7 +74,7 @@ Use these entry points depending on your goal:
 | --- | --- | --- |
 | Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
 | Learn RAG from first principles | [Harborline Support beginner notebooks](notebooks/README.md#harborline-support--beginner-notebook-track) | Three connected, credential-free notebooks: inspect a baseline, evaluate chunking, then audit citations and abstention |
-| Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Nine NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
+| Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Eleven NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
 | Evaluate a production-like system | [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) | Twelve Northstar Insurance investigation notebooks: retrieval, context, grounding, citations, judges, safety, operations, and release review |
 | Learn adaptive retrieval | [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Six scenario notebooks on retrieval gates, strategy routing, adaptive depth, corrective loops, and production trade-offs |
 | Test broad understanding | [Full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) | One larger interactive quiz across foundations, ingestion, retrieval, generation, security, evaluation, and operations |
@@ -80,7 +95,7 @@ Every lesson link is checked in CI before deployment, and the Pages smoke test v
 
 ## Enterprise notebook track
 
-The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). These notebooks are the lab reference for theory and practice: each one explains the concept, diagrams the architecture, runs deterministic Python, breaks the system deliberately, evaluates the result, and asks production-design questions. The track uses one realistic NovaTech scenario across nine labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, and production-ready architecture.
+The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). These notebooks are the lab reference for theory and practice: each one explains the concept, diagrams the architecture, runs deterministic Python, breaks the system deliberately, evaluates the result, and asks production-design questions. The track uses one realistic NovaTech scenario across eleven labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, multimodal, secure, and production-ready architecture.
 
 | Stage | Notebook | What learners build |
 | --- | --- | --- |
