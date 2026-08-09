@@ -21,7 +21,7 @@ Every lesson follows the same loop: **Learn** the concept and trade-offs → **L
 | --- | --- | --- |
 | Structured lesson map | [`LEARNING.md`](LEARNING.md) | Short GitHub-native sequence through all levels |
 | Module theory and exercises | [`curriculum/`](curriculum/) | One README per lesson, linked to its notebook and implementation |
-| Scenario-first labs | [`notebooks/enterprise/`](notebooks/enterprise/) | Nine connected NovaTech labs from retrieval to production |
+| Scenario-first labs | [`notebooks/enterprise/`](notebooks/enterprise/) | Eleven connected NovaTech labs from retrieval to multimodal, secure, production-ready RAG |
 | Harborline Support beginner labs | [`notebooks/beginner/`](notebooks/beginner/) | Three connected, self-contained labs for inspectable retrieval, chunking decisions, citations, and abstention |
 | Reusable implementations | [`examples/`](examples/) | Credential-free Python modules used by curriculum lessons |
 | Enterprise lab library | [`src/enterprise_rag/`](src/enterprise_rag/) | Shared corpus, retrieval, evaluation, and production helpers |
@@ -103,6 +103,8 @@ jupyter lab
 Open notebooks from the repository root so relative data paths work. The examples are deterministic and do not require API keys. Optional provider integrations belong behind adapters and should document credentials, budgets, and side-effect boundaries.
 
 For the Hub and quiz, run `npm ci && npm run check:pages-links && npm run test:pages`. The deployment workflow publishes the Vite Hub and copies `quiz/` into the `/quiz/` artifact.
+
+For a complete local setup, including `make` targets, Jupyter, Windows commands, optional infrastructure, and the CI-equivalent notebook check, read [local installation and development](docs/local-development.md).
 
 ## How to contribute a lesson
 
