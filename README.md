@@ -58,6 +58,7 @@ Use these entry points depending on your goal:
 | Goal | Start here | Why |
 | --- | --- | --- |
 | Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
+| Learn RAG from first principles | [Harborline Support beginner notebooks](notebooks/README.md#harborline-support--beginner-notebook-track) | Three connected, credential-free notebooks: inspect a baseline, evaluate chunking, then audit citations and abstention |
 | Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Nine NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
 | Evaluate a production-like system | [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) | Twelve Northstar Insurance investigation notebooks: retrieval, context, grounding, citations, judges, safety, operations, and release review |
 | Learn adaptive retrieval | [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Six scenario notebooks on retrieval gates, strategy routing, adaptive depth, corrective loops, and production trade-offs |
@@ -65,6 +66,14 @@ Use these entry points depending on your goal:
 | Browse concise docs | [Learning guide](LEARNING.md) and [curriculum map](curriculum/README.md) | Markdown path for readers who prefer repository navigation |
 
 The visual Field Guide is built for GitHub Pages from `app/page.tsx`; the full quiz is copied from `quiz/` into the Pages artifact. Source material remains in the curriculum, `examples/`, `notebooks/`, and `src/enterprise_rag/` directories. To preview locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
+
+CI parses every notebook and executes the deterministic scenario-first tracks in a real Jupyter kernel. Run the same contract locally after `pip install -e '.[dev]'` with:
+
+```bash
+PYTHONPATH=. python scripts/execute-notebooks.py --timeout 90
+```
+
+Optional-infrastructure notebooks remain syntax/compile checked so contributors do not need API keys, model downloads, or a running vector database for every pull request.
 
 Every lesson link is checked in CI before deployment, and the Pages smoke test verifies both the hub and `/quiz/` page are present.
 
@@ -84,6 +93,8 @@ The most complete hands-on path is the [Enterprise Knowledge Assistant notebook 
 | Evaluation | [07 RAG evaluation](notebooks/enterprise/07_rag_evaluation.ipynb) | Recall@K, precision@K, MRR, and diagnosis loops |
 | Adaptive systems | [08 Adaptive and agentic RAG](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Routing, corrective retrieval, bounded recovery, and abstention |
 | Production | [09 Production capstone](notebooks/enterprise/09_production_capstone.ipynb) | Offline/online pipelines, traces, cost, freshness, and reliability |
+| Multimodal evidence | [10 Tables, images, and OCR](notebooks/enterprise/10_multimodal_evidence.ipynb) | Typed calculations, OCR confidence, visual-region citations, and evidence-policy failures |
+| Secure RAG | [11 Tenant isolation and prompt injection](notebooks/enterprise/11_security_authorization.ipynb) | Authorization before retrieval, quarantined untrusted documents, traceable no-answer decisions |
 
 The notebooks import reusable deterministic modules from [`src/enterprise_rag`](src/enterprise_rag/) and sample data from [`data/enterprise`](data/enterprise/), so they run without API keys. Optional extensions map the same engineering decisions to Sentence Transformers, Chroma/FAISS, Qdrant, OpenSearch, Haystack, LangChain, LlamaIndex, LangGraph, Neo4j, and Ragas.
 

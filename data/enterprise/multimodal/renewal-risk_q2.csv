@@ -1,0 +1,4 @@
+customer,region,renewal_value_usd,risk_level,source_version
+Northwind,Europe,240000,high,2025-Q2
+Contoso,Europe,125000,medium,2025-Q2
+Fabrikam,North America,180000,low,2025-Q2

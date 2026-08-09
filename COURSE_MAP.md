@@ -22,7 +22,7 @@ Every lesson follows the same loop: **Learn** the concept and trade-offs → **L
 | Structured lesson map | [`LEARNING.md`](LEARNING.md) | Short GitHub-native sequence through all levels |
 | Module theory and exercises | [`curriculum/`](curriculum/) | One README per lesson, linked to its notebook and implementation |
 | Scenario-first labs | [`notebooks/enterprise/`](notebooks/enterprise/) | Nine connected NovaTech labs from retrieval to production |
-| Focused beginner labs | [`notebooks/beginner/`](notebooks/beginner/) | Small companions for local RAG, chunking, and citations |
+| Harborline Support beginner labs | [`notebooks/beginner/`](notebooks/beginner/) | Three connected, self-contained labs for inspectable retrieval, chunking decisions, citations, and abstention |
 | Reusable implementations | [`examples/`](examples/) | Credential-free Python modules used by curriculum lessons |
 | Enterprise lab library | [`src/enterprise_rag/`](src/enterprise_rag/) | Shared corpus, retrieval, evaluation, and production helpers |
 | Evaluation investigation track | [`notebooks/evaluation/`](notebooks/evaluation/) | Twelve Northstar Insurance notebooks that evaluate PolicyAssist from data to production release |
@@ -42,6 +42,8 @@ The Hub registry in [`app/page.tsx`](app/page.tsx) is a navigation index, not a 
 3. [Chunking lab](curriculum/beginner/03-chunking-lab/README.md)
 4. [Citations and abstention](curriculum/beginner/04-citations-abstention/README.md)
 5. [Documentation assistant capstone](use-cases/documentation-assistant/README.md)
+
+Start the practical sequence with the [Harborline Support beginner notebook track](notebooks/README.md#harborline-support--beginner-notebook-track). The three notebooks share a corpus and move from transparent retrieval to chunk-boundary experiments to evidence policy; the documentation assistant is the follow-on capstone.
 
 ### Intermediate — improve and measure retrieval
 
@@ -76,6 +78,8 @@ Use the Enterprise track when you want one business problem to evolve across all
 | [07](notebooks/enterprise/07_rag_evaluation.ipynb) | Retrieval, grounding, and regression metrics | `src/enterprise_rag/evaluation.py` |
 | [08](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Bounded recovery and abstention | `src/enterprise_rag/advanced.py` |
 | [09](notebooks/enterprise/09_production_capstone.ipynb) | Freshness, authorization, observability, cost, rollback | `src/enterprise_rag/lab_experiments.py` |
+| [10](notebooks/enterprise/10_multimodal_evidence.ipynb) | Typed table aggregates, OCR confidence, visual locators, modality-specific citations | `examples/advanced/structured_rag.py` |
+| [11](notebooks/enterprise/11_security_authorization.ipynb) | Pre-retrieval tenant isolation, prompt-injection quarantine, untrusted context, safe abstention | `examples/advanced/security_rag.py` |
 
 ## Production RAG Evaluation Lab
 
@@ -106,4 +110,4 @@ For the Hub and quiz, run `npm ci && npm run check:pages-links && npm run test:p
 2. Keep theory, diagrams, runnable code, a deliberate failure, an experiment, references, and checkpoint tasks in the notebook.
 3. Put reusable code in `examples/` or `src/enterprise_rag/`; do not hide the only implementation in a notebook cell.
 4. Add tests for the deterministic behavior and register the lesson in `app/page.tsx`.
-5. Run the Python, notebook JSON, link, quiz, and Pages smoke checks before opening a PR.
+5. Run the Python, kernel-based deterministic-notebook execution, notebook JSON, link, quiz, and Pages smoke checks before opening a PR. CI executes the scenario-first tracks with `scripts/execute-notebooks.py`; optional-infrastructure notebooks remain covered by JSON and compile validation.

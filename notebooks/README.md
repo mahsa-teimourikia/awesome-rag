@@ -1,6 +1,6 @@
 # RAG notebooks
 
-The notebooks are now organized around two learning modes. Start with the scenario-based Enterprise Knowledge Assistant track if you want the most complete theory + practice path. Use the beginner notebooks as small focused companions to the existing curriculum lessons.
+The notebooks are organized around scenario-first learning modes. Start with the **Harborline Support beginner track** when you are new to RAG; it is a self-contained theory + practice sequence, not a set of API snippets. Continue to the Enterprise Knowledge Assistant track when you want the broader production scenario.
 
 ## Enterprise Knowledge Assistant track
 
@@ -16,15 +16,17 @@ The notebooks are now organized around two learning modes. Start with the scenar
 | [08 Adaptive and agentic RAG](enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Routing, corrective loops, bounded agentic retrieval |
 | [09 Production capstone](enterprise/09_production_capstone.ipynb) | Production architecture, operations, cost, and reliability |
 
-## Focused beginner companions
+## Harborline Support — beginner notebook track
 
-| Notebook | Companion implementation |
-| --- | --- |
-| [First local RAG](beginner/01_first_local_rag.ipynb) | [`examples/beginner/first_local_rag.py`](../examples/beginner/first_local_rag.py) |
-| [Chunking lab](beginner/02_chunking_lab.ipynb) | [`examples/beginner/chunking_lab.py`](../examples/beginner/chunking_lab.py) |
-| [Citations and abstention](beginner/03_citations_abstention.ipynb) | [`examples/beginner/citations.py`](../examples/beginner/citations.py) |
+Harborline’s support team needs evidence-backed answers about incident communication and production escalation. Each notebook carries the same small corpus forward, explains the theory before the code, includes an ASCII flow, exposes a deliberate failure, and ends with an experiment and checkpoint.
 
-Run locally with Jupyter or open the files in GitHub. Notebook code uses repository-relative paths; launch Jupyter from the repository root. Architecture diagrams in notebooks use readable ASCII flowcharts so the learning sequence remains legible in GitHub previews, Jupyter, and light or dark themes without a Mermaid renderer.
+| Notebook | Decision learners make | Companion implementation |
+| --- | --- | --- |
+| [01 — Inspectable local RAG](beginner/01_first_local_rag.ipynb) | Establish a lexical baseline, context budget, golden set, and abstention threshold | [`examples/beginner/first_local_rag.py`](../examples/beginner/first_local_rag.py) |
+| [02 — Chunking boundaries](beginner/02_chunking_lab.ipynb) | Compare fixed, heading-aware, and sentence-window units against evidence coverage | [`examples/beginner/chunking_lab.py`](../examples/beginner/chunking_lab.py) |
+| [03 — Citations and abstention](beginner/03_citations_abstention.ipynb) | Model provenance, audit citations, and distinguish weak from ambiguous evidence | [`examples/beginner/citations.py`](../examples/beginner/citations.py) |
+
+Run locally with Jupyter or open the files in GitHub. Notebook code resolves paths from either the repository root or the notebook directory. Architecture diagrams use readable ASCII flowcharts so the learning sequence remains legible in GitHub previews, Jupyter, and light or dark themes without a Mermaid renderer.
 
 ## PolicyAssist RAG Evaluation Lab
 

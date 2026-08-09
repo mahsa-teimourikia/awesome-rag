@@ -1,4 +1,4 @@
-from examples.beginner.chunking_lab import by_heading, fixed_size
+from examples.beginner.chunking_lab import answer_coverage, by_heading, by_sentence_window, describe_chunks, fixed_size
 
 
 def test_fixed_size_has_overlap_and_stable_metadata():
@@ -22,3 +22,15 @@ def test_invalid_fixed_size_configuration_is_rejected():
         assert "size" in str(error)
     else:
         raise AssertionError("invalid size should fail")
+
+
+def test_sentence_windows_and_diagnostics_are_inspectable():
+    chunks = by_sentence_window("One fact. Two facts. Three facts.", "guide", sentences_per_chunk=2, overlap_sentences=1)
+    assert len(chunks) == 2
+    assert chunks[0].text.endswith("Two facts.")
+    assert describe_chunks(chunks)["chunks_with_sections"] == 2
+
+
+def test_answer_coverage_reveals_when_terms_are_split():
+    chunks = fixed_size("restart production services requires approval", "guide", size=18, overlap=0)
+    assert answer_coverage(chunks, {"restart", "approval"}) == []
