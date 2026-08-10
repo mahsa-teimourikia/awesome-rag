@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .retrieval_strategies import BM25, Document, reciprocal_rank_fusion, terms
+from src.rag_core.retrieval import BM25, Document, reciprocal_rank_fusion, terms
 
 
 SYNONYMS = {

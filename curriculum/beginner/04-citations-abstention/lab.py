@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import re
 
-from .first_local_rag import Chunk, retrieve
+from examples.beginner.first_local_rag import Chunk, retrieve
 
 
 @dataclass(frozen=True)

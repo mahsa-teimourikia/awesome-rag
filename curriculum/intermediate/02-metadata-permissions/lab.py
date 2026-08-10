@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 
-from .retrieval_strategies import BM25, Document
+from src.rag_core.retrieval import BM25, Document
 
 
 @dataclass(frozen=True)
