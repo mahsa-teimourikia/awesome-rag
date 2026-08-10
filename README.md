@@ -15,9 +15,10 @@ Open the repository in GitHub Codespaces or use the included [dev container](.de
 ## Contents
 
 - [RAG explained](#rag-explained)
+- [Start here](#start-here)
+- [Curriculum roadmap](#curriculum-roadmap)
+- [Guided lab tracks](#guided-lab-tracks)
 - [Run locally](#run-locally)
-- [Start learning: Hub, notebooks, and quiz](#start-learning-hub-notebooks-and-quiz)
-- [Learning roadmap](#learning-roadmap)
 - [Practical design guides](#practical-design-guides)
 - [A practical RAG architecture](#a-practical-rag-architecture)
 - [Appendix: curated references and resources](#appendix-curated-references-and-resources)
@@ -50,9 +51,54 @@ The two quality questions are distinct:
 
 See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
 
+## Start here
+
+**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
+
+The Hub is the recommended starting point. Choose a level, select a lesson, and work through its **Learn → Lab → Checkpoint** tabs. Each lesson pairs a concise theory summary and primary references with a notebook, reusable implementation, practical exercises, and an interactive knowledge check.
+
+If you prefer GitHub navigation, use the [curriculum index](curriculum/README.md) or the complete [course map](COURSE_MAP.md). Take the [full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) before or after the course to measure broad understanding.
+
+## Curriculum roadmap
+
+Follow the levels in order. A lesson README explains the outcome and theory; its notebook is the primary hands-on learning artifact; `lab.py` holds the reusable, credential-free implementation used by the notebook.
+
+| Level | Topic | Learn | Practice |
+| --- | --- | --- | --- |
+| Beginner | RAG foundations | [Lesson](curriculum/beginner/01-rag-foundations/README.md) | [Notebook](curriculum/beginner/01-rag-foundations/rag_foundations.ipynb) |
+| Beginner | First local RAG | [Lesson](curriculum/beginner/02-first-local-rag/README.md) | [Notebook](notebooks/beginner/01_first_local_rag.ipynb) · [Lab](curriculum/beginner/02-first-local-rag/lab.py) |
+| Beginner | Chunking decisions | [Lesson](curriculum/beginner/03-chunking-lab/README.md) | [Notebook](notebooks/beginner/02_chunking_lab.ipynb) · [Lab](curriculum/beginner/03-chunking-lab/lab.py) |
+| Beginner | Citations and abstention | [Lesson](curriculum/beginner/04-citations-abstention/README.md) | [Notebook](notebooks/beginner/03_citations_abstention.ipynb) · [Lab](curriculum/beginner/04-citations-abstention/lab.py) |
+| Intermediate | Retrieval strategies | [Lesson](curriculum/intermediate/01-retrieval-strategies/README.md) | [Notebook](curriculum/intermediate/01-retrieval-strategies/retrieval_strategies.ipynb) · [Shared core](src/rag_core/retrieval.py) |
+| Intermediate | Metadata and permissions | [Lesson](curriculum/intermediate/02-metadata-permissions/README.md) | [Notebook](curriculum/intermediate/02-metadata-permissions/metadata_permissions.ipynb) · [Lab](curriculum/intermediate/02-metadata-permissions/lab.py) |
+| Intermediate | Query planning and reranking | [Lesson](curriculum/intermediate/03-query-reranking/README.md) | [Notebook](curriculum/intermediate/03-query-reranking/query_reranking.ipynb) · [Lab](curriculum/intermediate/03-query-reranking/lab.py) |
+| Intermediate | Evaluation and release gates | [Lesson](curriculum/intermediate/04-evaluation/README.md) | [Notebook](curriculum/intermediate/04-evaluation/evaluation.ipynb) · [Lab](curriculum/intermediate/04-evaluation/lab.py) |
+| Intermediate | Research synthesis | [Lesson](curriculum/intermediate/05-research-synthesis/README.md) | [Notebook](curriculum/intermediate/05-research-synthesis/research_synthesis.ipynb) · [Lab](curriculum/intermediate/05-research-synthesis/lab.py) |
+| Intermediate | Local Qdrant | [Lesson](curriculum/intermediate/06-qdrant-local/README.md) | [Notebook](curriculum/intermediate/06-qdrant-local/qdrant_local.ipynb) · [Lab](curriculum/intermediate/06-qdrant-local/lab.py) |
+| Advanced | Corrective RAG | [Lesson](curriculum/advanced/01-corrective-rag/README.md) | [Notebook](curriculum/advanced/01-corrective-rag/corrective_rag.ipynb) · [Lab](curriculum/advanced/01-corrective-rag/lab.py) |
+| Advanced | GraphRAG | [Lesson](curriculum/advanced/02-graphrag/README.md) | [Notebook](curriculum/advanced/02-graphrag/graph_rag.ipynb) · [Lab](curriculum/advanced/02-graphrag/lab.py) |
+| Advanced | Agentic RAG | [Lesson](curriculum/advanced/03-agentic-rag/README.md) | [Notebook](curriculum/advanced/03-agentic-rag/agentic_rag.ipynb) · [Lab](curriculum/advanced/03-agentic-rag/lab.py) |
+| Advanced | Structured and multimodal RAG | [Lesson](curriculum/advanced/04-structured-multimodal/README.md) | [Notebook](curriculum/advanced/04-structured-multimodal/structured_multimodal.ipynb) · [Lab](curriculum/advanced/04-structured-multimodal/lab.py) |
+| Advanced | Production operations | [Lesson](curriculum/advanced/05-production-operations/README.md) | [Notebook](curriculum/advanced/05-production-operations/production_operations.ipynb) · [Lab](curriculum/advanced/05-production-operations/lab.py) |
+
+After each level, apply the skills in a realistic capstone: the [documentation assistant](use-cases/documentation-assistant/README.md) after Beginner and the [customer-support assistant](use-cases/customer-support/README.md) after Intermediate. The [use-case catalog](use-cases/README.md) helps select a starting architecture for other projects.
+
+## Guided lab tracks
+
+Use a specialist notebook track when you want a longer, connected business scenario in addition to the level roadmap.
+
+| Track | Best after | What it covers |
+| --- | --- | --- |
+| [Harborline Support](notebooks/README.md#harborline-support--beginner-notebook-track) | Foundations | Transparent retrieval, chunking choices, citations, and safe abstention |
+| [NovaTech Enterprise Knowledge Assistant](notebooks/enterprise/README.md) | Intermediate | Eleven labs from retrieval and hybrid search through evaluation, adaptive systems, multimodal evidence, security, and production operations |
+| [PolicyAssist Evaluation Lab](notebooks/evaluation/README.md) | Evaluation | Twelve notebooks on datasets, retrieval, context, grounded generation, citation checks, judges, robustness, security, observability, and release review |
+| [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Advanced retrieval | Six notebooks on complexity gates, source routing, adaptive depth, corrective loops, and production policy selection |
+
+The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) links these tracks alongside the level roadmap, while the [course map](COURSE_MAP.md) is the repository-wide source of truth for every lesson, notebook, lab, test, and data fixture.
+
 ## Run locally
 
-The guided setup is in [local installation and development](docs/local-development.md). On macOS/Linux, the shortest deterministic path is:
+The guided setup is in [local installation and development](docs/local-development.md). On macOS/Linux:
 
 ```bash
 make setup
@@ -60,68 +106,7 @@ make test
 make notebook-check
 ```
 
-Use `make notebooks` to open the course in JupyterLab, `make pages` to build and smoke-test the Learning Hub plus quiz, and `make help` to list every target. Windows and no-Make instructions are included in the guide.
-
-## Start learning: Hub, notebooks, and quiz
-
-**Start here:** [Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)
-
-The hub is the recommended entry point for structured learning. It puts the scenario notebooks first, then provides the broader beginner/intermediate/advanced curriculum with a **Learn → Lab → Checkpoint** loop. Each lesson includes a concept summary, source references, a runnable notebook or Python example, and focused checkpoint questions.
-
-Use these entry points depending on your goal:
-
-| Goal | Start here | Why |
-| --- | --- | --- |
-| Follow the structured course | [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) | Guided notebook-first path, curriculum cards, checkpoints, and references |
-| Learn RAG from first principles | [Harborline Support beginner notebooks](notebooks/README.md#harborline-support--beginner-notebook-track) | Three connected, credential-free notebooks: inspect a baseline, evaluate chunking, then audit citations and abstention |
-| Practice hands-on theory + code | [Enterprise notebook track](notebooks/enterprise/README.md) | Eleven NovaTech scenario notebooks with diagrams, deterministic Python, failure cases, and evaluation |
-| Evaluate a production-like system | [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) | Twelve Northstar Insurance investigation notebooks: retrieval, context, grounding, citations, judges, safety, operations, and release review |
-| Learn adaptive retrieval | [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Six scenario notebooks on retrieval gates, strategy routing, adaptive depth, corrective loops, and production trade-offs |
-| Test broad understanding | [Full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) | One larger interactive quiz across foundations, ingestion, retrieval, generation, security, evaluation, and operations |
-| Browse concise docs | [Learning guide](LEARNING.md) and [curriculum map](curriculum/README.md) | Markdown path for readers who prefer repository navigation |
-
-The visual Field Guide is built for GitHub Pages from `app/page.tsx`; the full quiz is copied from `quiz/` into the Pages artifact. Source material remains in the curriculum, `examples/`, `notebooks/`, and `src/enterprise_rag/` directories. To preview locally, run `npm ci`, `npm run check:pages-links`, and `npm run build:pages`; the generated static site is written to `out/`.
-
-CI parses every notebook and executes the deterministic scenario-first tracks in a real Jupyter kernel. Run the same contract locally after `pip install -e '.[dev]'` with:
-
-```bash
-PYTHONPATH=. python scripts/execute-notebooks.py --timeout 90
-```
-
-Optional-infrastructure notebooks remain syntax/compile checked so contributors do not need API keys, model downloads, or a running vector database for every pull request.
-
-Every lesson link is checked in CI before deployment, and the Pages smoke test verifies both the hub and `/quiz/` page are present.
-
-
-## Enterprise notebook track
-
-The most complete hands-on path is the [Enterprise Knowledge Assistant notebook track](notebooks/enterprise/README.md). These notebooks are the lab reference for theory and practice: each one explains the concept, diagrams the architecture, runs deterministic Python, breaks the system deliberately, evaluates the result, and asks production-design questions. The track uses one realistic NovaTech scenario across eleven labs so learners can see why RAG systems evolve from a simple retrieval loop into evaluated, adaptive, graph-enhanced, multimodal, secure, and production-ready architecture.
-
-| Stage | Notebook | What learners build |
-| --- | --- | --- |
-| Foundations | [01 RAG from scratch](notebooks/enterprise/01_rag_from_scratch.ipynb) | A manual RAG loop with retrieval, citations, and abstention |
-| Context engineering | [02 Parsing and chunking](notebooks/enterprise/02_parsing_chunking_context.ipynb) | Fixed vs. structure-aware chunks and failure analysis |
-| Retrieval engineering | [03 Dense, sparse, hybrid](notebooks/enterprise/03_dense_sparse_hybrid.ipynb) | Exact-term, semantic, and hybrid retrieval with RRF |
-| Evidence quality | [04 Reranking](notebooks/enterprise/04_reranking_evidence_selection.ipynb) | Noisy candidate retrieval followed by evidence selection |
-| Query strategy | [05 Query transformation](notebooks/enterprise/05_query_transformation.ipynb) | Rewrites, multi-query retrieval, decomposition, and HyDE |
-| Advanced retrieval | [06 GraphRAG](notebooks/enterprise/06_graphrag_multihop.ipynb) | Multi-hop evidence over project, vendor, and regulation facts |
-| Evaluation | [07 RAG evaluation](notebooks/enterprise/07_rag_evaluation.ipynb) | Recall@K, precision@K, MRR, and diagnosis loops |
-| Adaptive systems | [08 Adaptive and agentic RAG](notebooks/enterprise/08_adaptive_corrective_agentic_rag.ipynb) | Routing, corrective retrieval, bounded recovery, and abstention |
-| Production | [09 Production capstone](notebooks/enterprise/09_production_capstone.ipynb) | Offline/online pipelines, traces, cost, freshness, and reliability |
-| Multimodal evidence | [10 Tables, images, and OCR](notebooks/enterprise/10_multimodal_evidence.ipynb) | Typed calculations, OCR confidence, visual-region citations, and evidence-policy failures |
-| Secure RAG | [11 Tenant isolation and prompt injection](notebooks/enterprise/11_security_authorization.ipynb) | Authorization before retrieval, quarantined untrusted documents, traceable no-answer decisions |
-
-The notebooks import reusable deterministic modules from [`src/enterprise_rag`](src/enterprise_rag/) and sample data from [`data/enterprise`](data/enterprise/), so they run without API keys. Optional extensions map the same engineering decisions to Sentence Transformers, Chroma/FAISS, Qdrant, OpenSearch, Haystack, LangChain, LlamaIndex, LangGraph, Neo4j, and Ragas.
-
-## Learning roadmap
-
-Follow the [canonical course map](COURSE_MAP.md) after starting in the Hub. It is the single page that connects each level to its module README, notebook, reusable code, data, tests, and references:
-
-- **Beginner:** build a local, cited RAG assistant from first principles.
-- **Intermediate:** improve retrieval with hybrid search, filters, rewriting, reranking, and evaluation.
-- **Advanced:** design corrective, graph, multimodal, agentic, and production RAG systems.
-
-The [use-case catalog](use-cases/README.md) helps choose a project, while the [tutorial template](docs/tutorial-template.md) keeps new lessons consistent. `LEARNING.md` remains a compact redirect for GitHub readers; it intentionally does not duplicate the full map.
+Use `make notebooks` to open JupyterLab, `make pages` to build and smoke-test the Learning Hub plus quiz, and `make help` to list every target. The notebook check executes all credential-free scenario, curriculum, and use-case notebooks; optional integrations remain clearly marked in their lessons.
 
 ## Practical design guides
 
