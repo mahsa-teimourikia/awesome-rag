@@ -12,7 +12,7 @@ labelled evaluation set rather than intuition.
 
 ## Guided notebook
 
-Open [`retrieval_strategies.ipynb`](retrieval_strategies.ipynb). The reusable implementation is [`examples/intermediate/retrieval_strategies.py`](../../../examples/intermediate/retrieval_strategies.py).
+Open [`retrieval_strategies.ipynb`](retrieval_strategies.ipynb). The reusable shared implementation is [`src/rag_core/retrieval.py`](../../../src/rag_core/retrieval.py), because several intermediate labs use the same retrieval contracts.
 
 ## Concepts
 

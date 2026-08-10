@@ -51,7 +51,7 @@ Open `notebooks/beginner/01_first_local_rag.ipynb` in JupyterLab. For a command
 line experience, run:
 
 ```bash
-python examples/beginner/first_local_rag.py
+python curriculum/beginner/02-first-local-rag/lab.py
 ```
 
 Try these three requests in order:
@@ -87,7 +87,7 @@ flowchart LR
 ```
 
 The implementation lives in
-[`examples/beginner/first_local_rag.py`](../../../examples/beginner/first_local_rag.py).
+[`lab.py`](lab.py).
 It separates four concerns that should not be hidden in a single `ask()` call:
 
 | Component | Responsibility | What to inspect |

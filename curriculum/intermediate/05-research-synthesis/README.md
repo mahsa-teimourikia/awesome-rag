@@ -13,7 +13,7 @@ limitations, represents uncertainty, and produces a reviewable cited synthesis.
 ## Guided notebook
 
 Open [`research_synthesis.ipynb`](research_synthesis.ipynb). The reusable,
-credential-free implementation is [`research_synthesis.py`](../../../examples/intermediate/research_synthesis.py).
+credential-free implementation is [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR

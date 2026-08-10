@@ -13,10 +13,10 @@ policy threshold.
 ## Run it
 
 ```bash
-PYTHONPATH=. python -m examples.beginner.citations
+PYTHONPATH=. python curriculum/beginner/04-citations-abstention/lab.py
 ```
 
-Inspect [`citations.py`](../../../examples/beginner/citations.py). `Citation` is data, not formatting: it carries a chunk ID, source, and retrieval score. `CitedAnswer` makes the abstention state and reason explicit. `render_markdown` is only a presentation layer.
+Inspect [`lab.py`](lab.py). `Citation` is data, not formatting: it carries a chunk ID, source, and retrieval score. `CitedAnswer` makes the abstention state and reason explicit. `render_markdown` is only a presentation layer.
 
 The guided companion notebook is [`03_citations_abstention.ipynb`](../../../notebooks/beginner/03_citations_abstention.ipynb).
 

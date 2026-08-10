@@ -13,7 +13,7 @@ inspect failure slices, and make an explicit ship/no-ship decision.
 ## Guided notebook
 
 Open [`evaluation.ipynb`](evaluation.ipynb). The reusable, credential-free
-implementation is [`evaluation.py`](../../../examples/intermediate/evaluation.py).
+implementation is [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR

@@ -18,7 +18,7 @@ Northstar Cloud’s incident assistant receives: **“European checkout conversi
 
 By the end, you can build an evidence-first agent loop with explicit state, tool schemas, permissions, approval, receipts, budgets, trace evaluation, and safe terminal states.
 
-Open [`agentic_rag.ipynb`](agentic_rag.ipynb). It contains the full runnable walkthrough; reusable primitives are in [`agentic_rag.py`](../../../examples/advanced/agentic_rag.py).
+Open [`agentic_rag.ipynb`](agentic_rag.ipynb). It contains the full runnable walkthrough; reusable primitives are in [`lab.py`](lab.py).
 
 ```mermaid
 flowchart TD

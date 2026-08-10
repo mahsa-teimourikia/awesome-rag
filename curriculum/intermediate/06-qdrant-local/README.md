@@ -14,7 +14,7 @@ retrieval and operational change.
 ## Guided notebook
 
 Open [`qdrant_local.ipynb`](qdrant_local.ipynb). The optional adapter is
-[`qdrant_local.py`](../../../examples/intermediate/qdrant_local.py). The core
+[`lab.py`](lab.py). The core
 notebook runs without Docker; the final section gives an optional local Qdrant
 and Sentence Transformers path.
 

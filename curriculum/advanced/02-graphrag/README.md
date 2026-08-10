@@ -27,7 +27,7 @@ You will be able to:
 
 ## Start with the notebook
 
-[`graph_rag.ipynb`](graph_rag.ipynb) is the practical training artifact. It contains the scenario, diagrams, a deterministic graph implementation, local retrieval, path finding, tenant isolation, failure fixtures, evaluation, and production exercises. Reusable code is in [`graph_rag.py`](../../../examples/advanced/graph_rag.py).
+[`graph_rag.ipynb`](graph_rag.ipynb) is the practical training artifact. It contains the scenario, diagrams, a deterministic graph implementation, local retrieval, path finding, tenant isolation, failure fixtures, evaluation, and production exercises. Reusable code is in [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR

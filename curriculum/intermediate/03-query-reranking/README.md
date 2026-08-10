@@ -12,7 +12,7 @@ reranks a small authorized set, and makes a latency/cost decision from evidence.
 
 ## Guided notebook
 
-Open [`query_reranking.ipynb`](query_reranking.ipynb). The reusable implementation is [`query_reranking.py`](../../../examples/intermediate/query_reranking.py).
+Open [`query_reranking.ipynb`](query_reranking.ipynb). The reusable implementation is [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR

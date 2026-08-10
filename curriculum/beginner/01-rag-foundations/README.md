@@ -62,7 +62,7 @@ make notebook NOTEBOOK=notebooks/beginner/01_first_local_rag.ipynb
 ```
 
 The reusable implementation is
-[`examples/beginner/first_local_rag.py`](../../../examples/beginner/first_local_rag.py).
+[`lab.py`](../02-first-local-rag/lab.py).
 It needs no API key, model download, or network access. Its deliberately simple
 lexical scorer is a teaching baseline—not a recommended production ranker.
 
