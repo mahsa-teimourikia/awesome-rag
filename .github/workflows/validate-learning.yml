@@ -36,9 +36,9 @@ jobs:
               assert data['cells'], path
               print(f'valid notebook: {path}')
           PY
-      - name: Compile Python examples
-        run: python -m compileall -q examples tests use-cases
-      - name: Execute deterministic course notebooks
+      - name: Compile Python course modules
+        run: python -m compileall -q curriculum examples src tests use-cases
+      - name: Execute credential-free course notebooks
         env:
           PYTHONPATH: .
         run: python scripts/execute-notebooks.py --timeout 90
