@@ -52,13 +52,15 @@ def rewrite_query(query: str, *, max_variants: int = 4) -> list[str]:
     normalized = re.sub(r"\s+", " ", query.strip())
     if not normalized:
         return []
-    variants = [normalized]
+    # Keep the two baseline variants used by earlier course examples.  They are
+    # intentionally simple and make recovery paths reproducible; synonym views
+    # are additive rather than silently replacing them.
+    variants = [normalized, f"key concepts: {normalized}", f"specific evidence for: {normalized}"]
     lowered = normalized.lower()
     for term, replacements in SYNONYMS.items():
         if term in lowered:
             for replacement in replacements:
                 variants.append(re.sub(rf"\b{re.escape(term)}\b", replacement, normalized, flags=re.IGNORECASE))
-    variants.append(f"specific evidence for: {normalized}")
     return list(dict.fromkeys(variants))[:max_variants]
 
 
@@ -111,7 +113,11 @@ def _cross_encoder_proxy(query: str, document: Document) -> float:
     query_terms = set(terms(query))
     document_terms = set(terms(document.text))
     coverage = len(query_terms & document_terms) / max(len(query_terms), 1)
-    phrase_bonus = 0.25 if " ".join(terms(query)) in " ".join(terms(document.text)) else 0.0
+    query_tokens = terms(query)
+    document_text = " ".join(terms(document.text))
+    # A matching identifier or short phrase is strong evidence even when a
+    # conversational query contains many stop words the document does not.
+    phrase_bonus = 0.20 if any(" ".join(query_tokens[i : i + 2]) in document_text for i in range(len(query_tokens) - 1)) else 0.0
     return min(1.0, coverage + phrase_bonus)
 
 
