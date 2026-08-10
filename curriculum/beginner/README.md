@@ -10,6 +10,6 @@
 | 4 | Citations and abstention | Preserve provenance and decline unsupported questions |
 | 5 | Beginner capstone | Ship a documentation or notes assistant — start with the [documentation assistant](../../use-cases/documentation-assistant/README.md) |
 
-Prerequisites: basic Python and command-line usage. Start with [What is RAG?](../../docs/what-is-rag.md), then complete [RAG foundations](01-rag-foundations/README.md), [the first local baseline](02-first-local-rag/README.md), [the chunking lab](03-chunking-lab/README.md), and [citations and abstention](04-citations-abstention/README.md).
+Prerequisites: basic Python and command-line usage. Start with [What is RAG?](../../docs/what-is-rag.md), then complete [RAG foundations](01-rag-foundations/README.md), [the first local baseline](02-first-local-rag/README.md), [the chunking lab](03-chunking-lab/README.md), and [citations and abstention](04-citations-abstention/README.md). Refer to [technology decisions](../../docs/technology-decisions.md) only after you can explain the dependency-free baseline.
 
 For the notebook-first route, complete the connected [Harborline Support beginner track](../../notebooks/README.md#harborline-support--beginner-notebook-track). It uses one realistic support-policy corpus to turn each concept into a measurable design decision: inspect retrieval traces, compare boundaries, then audit citations and abstention policy.

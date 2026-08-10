@@ -13,3 +13,9 @@
 Prerequisites: complete the intermediate path and understand access control, evaluation, and service operations.
 
 Begin with [corrective and adaptive RAG](01-corrective-rag/README.md), then continue with [GraphRAG](02-graphrag/README.md), [agentic RAG](03-agentic-rag/README.md), [structured and multimodal RAG](04-structured-multimodal/README.md), and [production operations](05-production-operations/README.md).
+
+Use the [Adaptive RAG guide](../../docs/adaptive-rag.md) alongside corrective
+and agentic lessons, the [evaluation guide](../../docs/evaluation.md) for
+release decisions, and [technology decisions](../../docs/technology-decisions.md)
+when selecting a production stack. Every advanced lesson links to an adjacent,
+runnable notebook.
