@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="510" viewBox="0 0 980 510" role="img" aria-labelledby="title desc">
+  <title id="title">Northstar GraphRAG incident topology</title>
+  <desc id="desc">A deployment changed payments-api, which depends on token-service, serves Europe, and is owned by Payments Team. Token-service has a rotation-latency incident.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0b5d86"/></marker></defs>
+  <rect width="980" height="510" rx="22" fill="#f5f7f5"/>
+  <text x="55" y="58" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#09233c">Northstar incident graph — every edge has a source and revision</text>
+  <g stroke="#0b5d86" stroke-width="3" fill="none" marker-end="url(#arrow)">
+    <path d="M255 215 C330 215 340 215 405 215"/>
+    <path d="M575 205 C650 155 660 130 740 120"/>
+    <path d="M570 235 C650 275 660 305 740 320"/>
+    <path d="M570 245 C650 345 670 395 740 405"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#b95719">
+    <text x="305" y="195">changed</text><text x="640" y="145">depends_on</text><text x="650" y="275">serves</text><text x="640" y="370">owned_by</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="17" fill="#09233c">
+    <rect x="55" y="170" width="200" height="90" rx="14" fill="#d9edf2" stroke="#0b5d86"/><text x="92" y="210" font-weight="700">deploy-842</text><text x="82" y="238">deployments/842.json</text>
+    <rect x="405" y="170" width="170" height="90" rx="14" fill="#d9edf2" stroke="#0b5d86"/><text x="433" y="210" font-weight="700">payments-api</text><text x="435" y="238">service node</text>
+    <rect x="740" y="72" width="185" height="90" rx="14" fill="#fff4ec" stroke="#b95719"/><text x="765" y="112" font-weight="700">token-service</text><text x="760" y="140">rotation-latency</text>
+    <rect x="740" y="275" width="185" height="90" rx="14" fill="#d9edf2" stroke="#0b5d86"/><text x="802" y="317" font-weight="700">Europe</text><text x="772" y="344">region node</text>
+    <rect x="740" y="370" width="185" height="90" rx="14" fill="#d9edf2" stroke="#0b5d86"/><text x="767" y="410" font-weight="700">Payments Team</text><text x="775" y="438">owner node</text>
+  </g>
+  <text x="55" y="475" font-family="Arial, sans-serif" font-size="14" fill="#5f6f70">Retrieve only the authorized, bounded subgraph needed to answer the question; pass fact IDs and source revisions to generation.</text>
+</svg>
