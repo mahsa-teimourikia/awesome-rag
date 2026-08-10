@@ -10,7 +10,7 @@ Apply tenant and tag authorization before retrieval so unauthorized documents ne
 
 ## Guided notebook
 
-Open [`metadata_permissions.ipynb`](metadata_permissions.ipynb). The implementation is [`permission_filter.py`](../../../examples/intermediate/permission_filter.py).
+Open [`metadata_permissions.ipynb`](metadata_permissions.ipynb). The implementation is [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR

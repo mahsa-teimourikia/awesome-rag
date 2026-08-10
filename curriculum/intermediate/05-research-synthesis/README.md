@@ -10,7 +10,7 @@ Use multiple focused queries, deduplicate evidence, and preserve claim-level cit
 
 ## Guided notebook
 
-Open [`research_synthesis.ipynb`](research_synthesis.ipynb). The reusable implementation is [`research_synthesis.py`](../../../examples/intermediate/research_synthesis.py).
+Open [`research_synthesis.ipynb`](research_synthesis.ipynb). The reusable implementation is [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR

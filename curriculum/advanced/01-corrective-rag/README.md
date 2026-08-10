@@ -26,7 +26,7 @@ By the end, you can design and implement a bounded corrective retrieval controll
 
 ## Start with the notebook
 
-Open [`corrective_rag.ipynb`](corrective_rag.ipynb). It is the main practical training artifact: concept explanations, diagrams, deterministic implementation, failure fixtures, experiments, and exercises are together in one place. Reusable code lives in [`corrective_rag.py`](../../../examples/advanced/corrective_rag.py).
+Open [`corrective_rag.ipynb`](corrective_rag.ipynb). It is the main practical training artifact: concept explanations, diagrams, deterministic implementation, failure fixtures, experiments, and exercises are together in one place. Reusable code lives in [`lab.py`](lab.py).
 
 ```mermaid
 flowchart TD

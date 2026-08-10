@@ -13,7 +13,7 @@ Run a dependency-free retrieval baseline that loads local Markdown documents, cr
 From the repository root:
 
 ```bash
-python examples/beginner/first_local_rag.py
+python curriculum/beginner/02-first-local-rag/lab.py
 ```
 
 Prefer a narrative walkthrough? Open the guided [`first local RAG notebook`](../../../notebooks/beginner/01_first_local_rag.ipynb).
@@ -42,7 +42,7 @@ flowchart LR
 
 ## What to inspect
 
-Open [`first_local_rag.py`](../../../examples/beginner/first_local_rag.py). The `Chunk` object keeps a stable ID and source filename. `retrieve` is deliberately simple: it makes ranking behavior visible before introducing embeddings. `answer` separates retrieval from the abstention policy.
+Open [`lab.py`](lab.py). The `Chunk` object keeps a stable ID and source filename. `retrieve` is deliberately simple: it makes ranking behavior visible before introducing embeddings. `answer` separates retrieval from the abstention policy.
 
 ## Experiment
 

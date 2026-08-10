@@ -16,7 +16,7 @@ This module follows a Northstar Cloud release: a new chunking/reranking configur
 
 Build an operational contract that instruments a request, separates service readiness from corpus freshness, enforces budgets, gates releases on evaluation, detects degradation, supports circuit breaking and kill switches, and preserves redacted traces for incident response.
 
-Open [`production_operations.ipynb`](production_operations.ipynb). Its deterministic examples run without infrastructure. Reusable primitives are in [`operations.py`](../../../examples/advanced/operations.py).
+Open [`production_operations.ipynb`](production_operations.ipynb). Its deterministic examples run without infrastructure. Reusable primitives are in [`lab.py`](lab.py).
 
 ```mermaid
 flowchart TD

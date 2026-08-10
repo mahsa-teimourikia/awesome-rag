@@ -16,7 +16,7 @@ This module uses the **NovaTech renewal-risk investigation**: identify high-risk
 
 You will be able to route evidence by modality; validate schemas, units, and permissions; calculate on typed data; preserve row/cell and visual-region provenance; gate uncertain OCR; combine evidence without double-counting; and evaluate multimodal answers for numeric correctness, grounding, citations, and safety.
 
-Open [`structured_multimodal.ipynb`](structured_multimodal.ipynb). It is the complete guided lab. The deterministic reusable functions are in [`structured_rag.py`](../../../examples/advanced/structured_rag.py). For a larger scenario, see [NovaTech Multimodal Evidence](../../../notebooks/enterprise/10_multimodal_evidence.ipynb).
+Open [`structured_multimodal.ipynb`](structured_multimodal.ipynb). It is the complete guided lab. The deterministic reusable functions are in [`lab.py`](lab.py). For a larger scenario, see [NovaTech Multimodal Evidence](../../../notebooks/enterprise/10_multimodal_evidence.ipynb).
 
 ```mermaid
 flowchart TD

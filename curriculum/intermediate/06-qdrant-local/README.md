@@ -15,6 +15,6 @@ pip install -e '.[qdrant]'
 docker compose up -d qdrant
 ```
 
-Open [`qdrant_local.ipynb`](qdrant_local.ipynb). The reusable functions are [`qdrant_local.py`](../../../examples/intermediate/qdrant_local.py).
+Open [`qdrant_local.ipynb`](qdrant_local.ipynb). The reusable functions are [`lab.py`](lab.py).
 
 The example is optional: the conceptual and dependency-free labs remain runnable without Docker or a model download.

@@ -23,4 +23,4 @@ The notebooks are the primary learning artifacts, not just launchers for code. O
 3. Compare at least two examples, change one variable, and observe the failure or quality trade-off.
 4. Complete the production checklist and reflection questions before moving to the next lesson.
 
-Each notebook keeps the theory and implementation together, while larger reusable modules remain in `examples/` or `src/`. The split makes the lesson readable in GitHub and executable locally without hiding the engineering decisions behind a framework.
+Each notebook keeps theory and implementation together. Topic-specific modules live beside their lesson as `lab.py`; genuinely shared retrieval primitives live in `src/rag_core/`. The legacy `examples/` modules are compatibility imports so existing notebooks and use cases remain runnable while learners use the colocated lesson code.

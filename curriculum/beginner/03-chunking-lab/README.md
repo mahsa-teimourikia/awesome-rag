@@ -11,10 +11,10 @@ Compare fixed-size and structure-aware chunks, inspect their metadata, and choos
 ## Run the experiment
 
 ```bash
-PYTHONPATH=. python -m examples.beginner.chunking_lab
+PYTHONPATH=. python curriculum/beginner/03-chunking-lab/lab.py
 ```
 
-Or import `fixed_size` and `by_heading` from [`chunking_lab.py`](../../../examples/beginner/chunking_lab.py) in a Python shell. The functions return a stable ID, source, text, and optional section for every chunk.
+Or import `fixed_size` and `by_heading` from [`lab.py`](lab.py) in a Python shell. The functions return a stable ID, source, text, and optional section for every chunk.
 
 The guided companion notebook is [`02_chunking_lab.ipynb`](../../../notebooks/beginner/02_chunking_lab.ipynb).
 

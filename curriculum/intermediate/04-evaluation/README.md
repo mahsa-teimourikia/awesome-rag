@@ -10,7 +10,7 @@ Create a small golden dataset, calculate retrieval metrics, and use thresholds t
 
 ## Guided notebook
 
-Open [`evaluation.ipynb`](evaluation.ipynb). The reusable metric functions are [`evaluation.py`](../../../examples/intermediate/evaluation.py).
+Open [`evaluation.ipynb`](evaluation.ipynb). The reusable metric functions are [`lab.py`](lab.py).
 
 ```mermaid
 flowchart LR
