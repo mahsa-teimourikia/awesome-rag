@@ -14,6 +14,7 @@ class Trace:
     events: list[str] = field(default_factory=list)
     latency_ms: float | None = None
     cost_usd: float | None = None
+    trace_id: str = "local-trace"
 
     def record(self, event: str) -> None:
         self.events.append(event)
@@ -36,3 +37,21 @@ def freshness_status(last_indexed: datetime, now: datetime, max_age_hours: float
 
 def health_status(*, index_ready: bool, evaluator_ready: bool, corpus_fresh: bool) -> dict[str, str]:
     return {"ready": "ok" if index_ready and evaluator_ready else "not-ready", "corpus": "fresh" if corpus_fresh else "stale"}
+
+
+def release_gate(*, quality_score: float, min_quality: float, readiness: dict[str, str], error_rate: float, max_error_rate: float) -> dict[str, str]:
+    """Return a human-readable, deterministic deployment decision."""
+    reasons = []
+    if quality_score < min_quality:
+        reasons.append("golden-set-quality-below-threshold")
+    if readiness.get("ready") != "ok":
+        reasons.append("service-not-ready")
+    if readiness.get("corpus") != "fresh":
+        reasons.append("corpus-stale")
+    if error_rate > max_error_rate:
+        reasons.append("error-rate-above-threshold")
+    return {"decision": "promote" if not reasons else "hold", "reasons": ",".join(reasons) or "all-gates-passed"}
+
+
+def circuit_breaker(*, consecutive_failures: int, threshold: int) -> str:
+    return "open" if consecutive_failures >= threshold else "closed"
