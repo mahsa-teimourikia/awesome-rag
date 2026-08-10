@@ -5,7 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 import re
 
-from examples.beginner.first_local_rag import Chunk, retrieve
+from src.rag_core.lesson_loader import load_lesson_module
+
+
+_first_local_rag = load_lesson_module("curriculum/beginner/02-first-local-rag/lab.py")
+Chunk = _first_local_rag.Chunk
+retrieve = _first_local_rag.retrieve
 
 
 @dataclass(frozen=True)

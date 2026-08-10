@@ -11,7 +11,7 @@ help:
 	@echo "make setup          Create the virtual environment and install developer tools"
 	@echo "make test           Run the deterministic Python test suite"
 	@echo "make notebooks      Start Jupyter Lab for the course notebooks"
-	@echo "make notebook-check Execute the 32 deterministic notebooks in Jupyter kernels"
+	@echo "make notebook-check Execute all credential-free notebooks in Jupyter kernels"
 	@echo "make links          Validate Learning Hub resource paths"
 	@echo "make pages          Build and smoke-test the GitHub Pages Hub and quiz"
 	@echo "make external-links Check curated external links (network required)"

@@ -12,8 +12,14 @@ from enum import Enum
 from time import perf_counter
 from typing import Callable, Iterable
 
-from examples.intermediate.query_reranking import RankedDocument, retrieve_candidates, rewrite_query
-from examples.intermediate.retrieval_strategies import Document, terms
+from src.rag_core.lesson_loader import load_lesson_module
+from src.rag_core.retrieval import Document, terms
+
+
+_query_reranking = load_lesson_module("curriculum/intermediate/03-query-reranking/lab.py")
+RankedDocument = _query_reranking.RankedDocument
+retrieve_candidates = _query_reranking.retrieve_candidates
+rewrite_query = _query_reranking.rewrite_query
 
 
 STOPWORDS = {"a", "an", "and", "do", "how", "i", "is", "of", "the", "to", "what", "with"}
