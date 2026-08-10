@@ -29,7 +29,7 @@ Every lesson follows the same loop: **Learn** the concept and trade-offs → **L
 | Adaptive retrieval track | [`notebooks/adaptive-rag/`](notebooks/adaptive-rag/) | Six Northstar Insurance notebooks from retrieval gates to corrective, production-ready routing |
 | Design references | [`docs/`](docs/) | What RAG is, technology choices, patterns, evaluation, and templates |
 | Interactive assessment | [`quiz/`](quiz/) | Full browser-based knowledge check, published under `/quiz/` |
-| Scenario data | [`data/`](data/) and [`datasets/`](datasets/) | Small deterministic fixtures and evaluation questions |
+| Scenario data | [`data/`](data/) | Small deterministic corpus fixtures and labeled evaluation questions |
 
 The Hub registry in [`app/page.tsx`](app/page.tsx) is a navigation index, not a second copy of the curriculum. When adding a lesson, update its module README first, then add the same links and short summary to the registry.
 
