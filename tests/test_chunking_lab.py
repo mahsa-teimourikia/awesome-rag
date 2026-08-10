@@ -1,4 +1,13 @@
-from examples.beginner.chunking_lab import answer_coverage, by_heading, by_sentence_window, describe_chunks, fixed_size
+from examples.beginner.chunking_lab import (
+    answer_coverage,
+    by_heading,
+    by_heading_bounded,
+    by_sentence_window,
+    coverage_result,
+    describe_chunks,
+    fixed_size,
+    scorecard,
+)
 
 
 def test_fixed_size_has_overlap_and_stable_metadata():
@@ -34,3 +43,22 @@ def test_sentence_windows_and_diagnostics_are_inspectable():
 def test_answer_coverage_reveals_when_terms_are_split():
     chunks = fixed_size("restart production services requires approval", "guide", size=18, overlap=0)
     assert answer_coverage(chunks, {"restart", "approval"}) == []
+
+
+def test_bounded_heading_children_keep_source_section_and_parent_identity():
+    markdown = "# Policy\n\n" + "restart requires approval. " * 12
+    chunks = by_heading_bounded(markdown, "guide", max_characters=60, overlap=10)
+    assert len(chunks) > 1
+    assert all(chunk.section == "Policy" for chunk in chunks)
+    assert all(chunk.parent_id == "guide-section-1" for chunk in chunks)
+    assert describe_chunks(chunks)["chunks_with_parent_ids"] == len(chunks)
+
+
+def test_scorecard_makes_boundary_coverage_and_overlap_visible():
+    chunks = fixed_size("restart requires approval. " * 5, "guide", size=30, overlap=8)
+    report = scorecard(chunks, {"approval": {"restart", "approval"}})
+    coverage = coverage_result(chunks, {"restart", "approval"})
+    assert report["count"] == len(chunks)
+    assert report["question_count"] == 1
+    assert report["adjacent_overlap_characters"] > 0
+    assert coverage.covered

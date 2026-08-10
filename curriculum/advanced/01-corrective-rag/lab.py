@@ -130,7 +130,8 @@ def authorized(documents: list[Document], policy: CorrectionPolicy) -> list[Docu
 
 
 def lexical_retriever(query: str, documents: list[Document]) -> list[RankedDocument]:
-    return retrieve_candidates(query, documents, top_k=4)
+    candidates, _ = retrieve_candidates(query, documents, top_k_per_variant=4)
+    return candidates
 
 
 def _attempt(stage: str, query: str, retriever: Retriever, documents: list[Document], policy: CorrectionPolicy) -> tuple[Attempt, list[RankedDocument]]:

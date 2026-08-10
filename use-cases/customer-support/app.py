@@ -27,7 +27,7 @@ def support_answer(tenant_id: str, query: str) -> str:
         return "This request needs a support specialist. I have not taken any account action.\n\nReason: `human-review-required`"
     user = User(f"support-{tenant_id}", tenant_id, frozenset({"support"}))
     allowed = authorized_documents(user, DOCS) + [doc for doc in DOCS if doc.tenant_id == "public"]
-    candidates = retrieve_candidates(query, [Document(doc.doc_id, doc.text) for doc in allowed])
+    candidates, _ = retrieve_candidates(query, [Document(doc.doc_id, doc.text) for doc in allowed])
     ranked = rerank(query, candidates, top_k=3)
     query_terms = set(re.findall(r"[a-z0-9]+", query.lower())) - STOPWORDS
     evidence_terms = set(re.findall(r"[a-z0-9]+", ranked[0].document.text.lower())) if ranked else set()

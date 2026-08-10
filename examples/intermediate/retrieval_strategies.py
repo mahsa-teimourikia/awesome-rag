@@ -1,2 +1,3 @@
-"""Compatibility import; shared primitive lives in src.rag_core.retrieval."""
-from src.rag_core.retrieval import *
+"""Compatibility import; shared retrieval primitives live in ``src.rag_core``."""
+
+from src.rag_core.retrieval import *  # noqa: F403
