@@ -12,6 +12,7 @@ import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 
 TOKEN = re.compile(r"[a-z0-9]+")
@@ -49,6 +50,35 @@ class EvaluationCase:
 
 
 @dataclass(frozen=True)
+class CorpusAudit:
+    """A minimal ingestion-quality report for a local document collection."""
+
+    document_count: int
+    chunk_count: int
+    duplicate_chunk_ids: tuple[str, ...]
+    empty_chunk_ids: tuple[str, ...]
+    sources_without_sections: tuple[str, ...]
+
+    @property
+    def ready(self) -> bool:
+        return not (self.duplicate_chunk_ids or self.empty_chunk_ids)
+
+
+@dataclass(frozen=True)
+class LocalRAGResult:
+    """The end-to-end, auditable result of a deterministic local RAG run."""
+
+    decision: Literal["answer", "abstain"]
+    answer: str
+    query: str
+    hits: tuple[RetrievalHit, ...]
+    context: str
+    citations: tuple[str, ...]
+    retrieval_threshold: float
+    context_budget: int
+
+
+@dataclass(frozen=True)
 class ContextPack:
     """A bounded, auditable evidence package sent to an answer component.
 
@@ -72,8 +102,6 @@ class RetrievalMetrics:
     precision_at_k: float
     mean_reciprocal_rank: float
     abstention_accuracy: float
-
-
 def tokenize(text: str) -> set[str]:
     return set(TOKEN.findall(text.lower())) - STOPWORDS
 
@@ -88,6 +116,25 @@ def load_chunks(directory: Path) -> list[Chunk]:
                 section = paragraph.lstrip("#").strip()
             chunks.append(Chunk(f"{path.stem}-{index}", paragraph, path.name, section, index))
     return chunks
+
+
+def audit_corpus(chunks: list[Chunk]) -> CorpusAudit:
+    """Make basic ingestion defects visible before retrieval is trusted."""
+
+    identifiers = [chunk.chunk_id for chunk in chunks]
+    duplicate_ids = tuple(sorted({identifier for identifier in identifiers if identifiers.count(identifier) > 1}))
+    empty_ids = tuple(chunk.chunk_id for chunk in chunks if not tokenize(chunk.text))
+    source_sections: dict[str, set[str | None]] = {}
+    for chunk in chunks:
+        source_sections.setdefault(chunk.source, set()).add(chunk.section)
+    missing_sections = tuple(sorted(source for source, sections in source_sections.items() if not any(sections)))
+    return CorpusAudit(
+        document_count=len(source_sections),
+        chunk_count=len(chunks),
+        duplicate_chunk_ids=duplicate_ids,
+        empty_chunk_ids=empty_ids,
+        sources_without_sections=missing_sections,
+    )
 
 
 def retrieve(query: str, chunks: list[Chunk], top_k: int = 3) -> list[tuple[Chunk, float]]:
@@ -169,8 +216,6 @@ def retrieve_authorized(
 
     visible = [chunk for chunk in chunks if chunk.source in allowed_sources]
     return retrieve_with_trace(query, visible, top_k=top_k)
-
-
 def build_context(hits: list[RetrievalHit], *, max_characters: int = 900) -> str:
     """Build a bounded, labelled context window for a generator or template."""
 
@@ -211,6 +256,50 @@ def answer(query: str, chunks: list[Chunk], min_score: float = 0.2) -> str:
     evidence = " ".join(chunk.text for chunk, _ in results)
     citations = ", ".join(f"[{chunk.chunk_id}]({chunk.source})" for chunk, _ in results)
     return f"Evidence found: {evidence}\n\nSources: {citations}"
+
+
+def run_local_rag(
+    query: str,
+    chunks: list[Chunk],
+    *,
+    top_k: int = 3,
+    min_score: float = 0.2,
+    max_characters: int = 900,
+) -> LocalRAGResult:
+    """Run the beginner pipeline with an explicit evidence/decision contract.
+
+    This function does not pretend to be an LLM. It demonstrates the hand-off a
+    real generator should receive: a bounded, cited evidence package and a
+    policy decision. A provider-backed generator can later replace the template
+    while retaining retrieval traces and the abstention boundary.
+    """
+
+    hits = retrieve_with_trace(query, chunks, top_k=top_k)
+    pack = build_context_pack(hits, max_characters=max_characters)
+    context = pack.text
+    citations = tuple(f"[{hit.chunk.chunk_id}]({hit.chunk.source})" for hit in hits if hit.chunk.chunk_id in pack.retained_ids)
+    if not hits or hits[0].score < min_score:
+        return LocalRAGResult(
+            decision="abstain",
+            answer="I don't have enough evidence in the indexed documents to answer that. Verify the source set or ask a more specific question.",
+            query=query,
+            hits=tuple(hits),
+            context=context,
+            citations=(),
+            retrieval_threshold=min_score,
+            context_budget=max_characters,
+        )
+    evidence = " ".join(hit.chunk.text for hit in hits if hit.chunk.chunk_id in pack.retained_ids)
+    return LocalRAGResult(
+        decision="answer",
+        answer=f"Evidence found: {evidence}\n\nSources: {', '.join(citations)}",
+        query=query,
+        hits=tuple(hits),
+        context=context,
+        citations=citations,
+        retrieval_threshold=min_score,
+        context_budget=max_characters,
+    )
 
 
 def evaluate_baseline(cases: list[EvaluationCase], chunks: list[Chunk], *, top_k: int = 3, min_score: float = 0.2) -> list[dict[str, object]]:
@@ -269,7 +358,8 @@ def main() -> None:
     print("Indexed", len(chunks), "chunks. Ask about the documents; Ctrl-D to exit.")
     try:
         while query := input("\nQuestion> ").strip():
-            print(answer(query, chunks))
+            result = run_local_rag(query, chunks)
+            print(result.answer)
     except EOFError:
         print()
 
