@@ -17,6 +17,14 @@ require the answer to stay within that set. Read Lewis et al.'s
 [foundational paper](https://arxiv.org/abs/2005.11401) after this lesson—the
 notebook deliberately turns the abstract architecture into observable behavior.
 
+## Start with the notebook
+
+Open [`rag_foundations.ipynb`](rag_foundations.ipynb) before building the local
+assistant. It pairs the lifecycle mental model with a deterministic evidence
+selection experiment. For a deeper conceptual reference, read
+[What is RAG?](../../../docs/what-is-rag.md); use the notebook to test the
+distinction between retrieval quality, groundedness, citations, and abstention.
+
 You are building an internal assistant for **Harborline**, a fictional SaaS
 company. Support staff need grounded answers about production escalation and
 customer communication. The corpus is intentionally small; that makes every
