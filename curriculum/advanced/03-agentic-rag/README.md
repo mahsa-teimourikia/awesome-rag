@@ -20,19 +20,20 @@ By the end, you can build an evidence-first agent loop with explicit state, tool
 
 Open [`agentic_rag.ipynb`](agentic_rag.ipynb). It contains the full runnable walkthrough; reusable primitives are in [`agentic_rag.py`](../../../examples/advanced/agentic_rag.py).
 
-```text
-[Question + identity]
-          |
-          v
-[Classify: known workflow, investigation, action, or unclear]
-   | known                  | investigation                 | action
-   v                        v                               v
-[Deterministic RAG] --> [Bounded evidence agent] --> [Permission + approval gate]
-                               |                               |
-                               v                               v
-                        [Cited recommendation]          [Receipt + verification]
-                               |                               |
-                               +----------> [Answer / abstain / human escalation]
+```mermaid
+flowchart TD
+  Q["Question + identity"] --> C{"Classify task"}
+  C -->|Known sequence| W["Deterministic RAG workflow"]
+  C -->|Dynamic evidence investigation| A["Bounded evidence agent"]
+  C -->|Action request| P["Permission + approval gate"]
+  C -->|Unclear / unsupported| H["Clarify, abstain, or human escalation"]
+  W --> R["Cited recommendation"]
+  A --> R
+  P -->|Approved| T["Typed tool boundary"]
+  P -->|Denied| H
+  T --> V["Receipt + state verification"]
+  V --> R
+  R --> O["Answer with evidence trace"]
 ```
 
 ## 1. Architecture choice before framework choice
