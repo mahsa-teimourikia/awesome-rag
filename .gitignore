@@ -4,3 +4,12 @@ __pycache__/
 .pytest_cache/
 .venv/
 .env
+.env.*
+.env.local
+node_modules/
+out/
+dist/
+.next/
+.wrangler/
+.DS_Store
+.ipynb_checkpoints/

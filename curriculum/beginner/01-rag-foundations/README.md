@@ -3,19 +3,63 @@
 **Level:** Beginner · **Time:** 2–3 hours · **Scenario:** Harborline Support  
 **Prerequisites:** basic Python, a terminal, and comfort reading JSON-like data
 
+## What is Retrieval-Augmented Generation?
+
+Retrieval-Augmented Generation (RAG) is a pattern where an application searches an external knowledge source at runtime and gives the selected evidence to a language model as context for its answer. The model is not retrained for each document update; the application changes the evidence it supplies.
+
+The name comes from Lewis et al.'s 2020 paper, [*Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*](https://arxiv.org/abs/2005.11401). It distinguishes the model's learned, **parametric** knowledge (baked into its weights during training) from retrieved, **non-parametric** memory (fetched at runtime). 
+
+RAG is useful when an answer should be based on information that is:
+- private, permissioned, or organization-specific;
+- recent or frequently changing;
+- too long to include in every prompt; or
+- auditable with links, pages, sections, or records.
+
+It does not automatically make a system factual. A RAG system can retrieve the wrong text, omit the relevant passage, misread a table, or generate a claim that the evidence does not support. Retrieval and generation must be designed and evaluated as separate components.
+
+## The lifecycle mental model
+
+The lifecycle has two connected loops: an offline indexing loop that prepares evidence, and an online question loop that selects and uses that evidence. The same source identifiers and metadata should survive both loops so every answer can be traced back to the material that supported it.
+
+```mermaid
+flowchart LR
+  subgraph Offline["Offline: prepare the knowledge base"]
+    S["Sources\nPDFs · Markdown · APIs · DBs"] --> E["Extract + normalize"]
+    E --> C["Chunk\nkeep headings, pages, IDs"]
+    C --> M["Add metadata\npermissions · version · freshness"]
+    M --> I["Index\nBM25 + embeddings + vector store"]
+  end
+
+  subgraph Online["Online: answer a question"]
+    Q["User question"] --> F["Authorize + filter"]
+    F --> R["Retrieve candidates\nlexical, dense, or hybrid"]
+    R --> K["Rerank + select evidence"]
+    K --> G["Generate from bounded context"]
+    G --> V["Validate citations\nand groundedness"]
+    V --> A["Answer or abstain"]
+  end
+
+  I --> R
+  A -. "feedback, traces, eval set" .-> T["Evaluate quality, cost,
+  latency, freshness"]
+  T -. "improve chunking,<br/>retrieval, or policy" .-> E
+```
+
+### What happens at query time?
+
+At query time, the application should preserve the user’s identity and request constraints while it searches. Three planes must remain separate:
+
+| Plane | Responsibility | A common mistake |
+|---|---|---|
+| **Evidence** | What documents are present, current, allowed, and retrieved? | Treating retrieved text as automatically trustworthy or complete. |
+| **Generation** | How is evidence transformed into an answer? | Asking a model to compensate for missing evidence. |
+| **Policy** | Who may see what, when to abstain, how much context to use? | Implementing access control or approvals only in a prompt. |
+
+This separation makes failures diagnosable: an incorrect answer may be a retrieval miss, an authorization bug, a context-selection problem, or a generation/verification failure—not simply a “bad prompt.”
+
 ## Why this lesson exists
 
-Retrieval-augmented generation (RAG) lets an application retrieve external
-evidence at answer time and give that evidence to a language model. It is not
-"a model that knows your documents," and it is not a promise that every answer
-is true. It is an information-retrieval system with a generation step attached.
-
-The original RAG paper combined a parametric language model with a retriever for
-knowledge-intensive NLP tasks. Modern production systems generalize that idea:
-they ingest changing, permissioned sources; retrieve a small evidence set; and
-require the answer to stay within that set. Read Lewis et al.'s
-[foundational paper](https://arxiv.org/abs/2005.11401) after this lesson—the
-notebook deliberately turns the abstract architecture into observable behavior.
+RAG is an information-retrieval system with a generation step attached. It is not "a model that knows your documents." The original RAG paper combined a parametric language model with a retriever for knowledge-intensive NLP tasks. Modern production systems generalize that idea: they ingest changing, permissioned sources; retrieve a small evidence set; and require the answer to stay within that set.
 
 ## Learning objectives
 
@@ -23,8 +67,8 @@ After completing this lesson you can:
 
 - explain what RAG is and what it is not, using the evidence/generation/policy framing;
 - trace the historical evolution from IR to modern RAG and identify why each step was added;
-- distinguish parametric knowledge (in model weights) from non-parametric knowledge (retrieved at runtime);
-- choose between RAG, fine-tuning, long-context, tool/API, and search engine architectures for a given problem;
+- distinguish parametric knowledge from non-parametric knowledge;
+- choose between RAG, fine-tuning, long-context, tool/API, and search engine architectures;
 - trace the offline and online RAG lifecycle and identify a failure at each stage boundary;
 - build a deterministic lexical retrieval baseline with stable chunk IDs;
 - explain why a similarity score is not a truth or confidence probability;
@@ -34,17 +78,23 @@ After completing this lesson you can:
 
 ## Start with the notebook
 
-Open [`rag_foundations.ipynb`](rag_foundations.ipynb) before building the local
-assistant. It pairs the lifecycle mental model with a deterministic evidence
-selection experiment. For a deeper conceptual reference, read
-[What is RAG?](../../../docs/what-is-rag.md); use the notebook to test the
-distinction between retrieval quality, groundedness, citations, and abstention.
+Open [`rag_foundations.ipynb`](rag_foundations.ipynb) before building the local assistant. It pairs the lifecycle mental model with a deterministic evidence selection experiment. 
 
-You are building an internal assistant for **Harborline**, a fictional SaaS
-company. Support staff need grounded answers about production escalation and
-customer communication. The corpus is intentionally small; that makes every
-retrieval decision inspectable before the course introduces embeddings,
-rerankers, vector databases, and agents.
+You are building an internal assistant for **Harborline**, a fictional SaaS company. Support staff need grounded answers about production escalation and customer communication. The corpus is intentionally small; that makes every retrieval decision inspectable before the course introduces embeddings, rerankers, vector databases, and agents.
+
+## When RAG is the right architecture (vs adjacent approaches)
+
+| Approach | Changes model weights? | Uses current external data? | Best for |
+| --- | --- | --- | --- |
+| **Prompting** | No | Only what fits in prompt | Small, static context |
+| **RAG** | No | Yes, at runtime | Grounded answers over evolving, permissioned knowledge |
+| **Fine-tuning** | Yes | Not by itself | Style, behavior, repeated task format |
+| **Tool use / SQL** | No | Yes, by calling a system | Precise actions and structured, live facts |
+| **Long-context LLMs** | No | Yes | When the context window easily holds all relevant documents |
+
+These approaches combine well. For example, a support assistant might use RAG for policy text, SQL for account status, and fine-tuning for response style.
+
+Do not use RAG when the answer is a precise calculation, when knowledge is static and small, or when users are just querying a well-indexed corpus with exact terms (a traditional search engine is better).
 
 ## The historical evolution of RAG
 
@@ -87,97 +137,9 @@ Agentic / Multimodal RAG (2024–present)
   ↓ Problem: harder to bound, trace, evaluate, and secure
 ```
 
-**Classification:** the original RAG paper is **FOUNDATIONAL**. Dense retrieval, hybrid
-retrieval, and reranking are **PRACTICAL / ESTABLISHED**. Corrective RAG, GraphRAG, and
-structured RAG are **PRACTICAL / ESTABLISHED** for specific use cases. Agentic and multimodal
-RAG are **EMERGING**. Do not treat a technique as appropriate simply because it is recent.
-
-## Parametric vs non-parametric knowledge
-
-A language model stores knowledge in its weights during training. This is
-**parametric knowledge** — it is fixed at inference time. When you ask a model what
-the capital of France is, it uses parametric knowledge. When facts change faster
-than training cycles, or when knowledge is private, permissioned, domain-specific,
-or voluminous, parametric knowledge fails.
-
-**Non-parametric knowledge** is retrieved at inference time from external sources.
-RAG is a non-parametric extension: the model's knowledge is augmented with retrieved
-evidence rather than baked into weights.
-
-| Knowledge type | Where it lives | Update mechanism | Scale |
-|---|---|---|---|
-| Parametric | Model weights | Retraining or fine-tuning | Limited by training data |
-| Non-parametric (RAG) | External index | Ingestion pipeline | Unbounded, versioned |
-| Hybrid | Both | Fine-tune + RAG | Common in production |
-
-Parametric knowledge has one critical advantage: zero retrieval latency. Non-parametric
-knowledge has a critical advantage: it can be updated, versioned, audited, and scoped
-without touching the model. Production systems often use both.
-
-## The mental model: evidence, generation, and policy
-
-```mermaid
-flowchart LR
-  subgraph offline[Offline: prepare evidence]
-    D["Authoritative documents"] --> I["Parse + validate"]
-    I --> C["Chunk + attach metadata"]
-    C --> X["Index"]
-  end
-  subgraph online[Online: answer a request]
-    Q["Question + caller identity"] --> A["Authorization filter"]
-    X --> R["Retrieve and rank"]
-    A --> R
-    R --> G{"Evidence meets policy?"}
-    G -->|"yes"| B["Bounded labelled context"]
-    B --> L["Generate answer + citations"]
-    G -->|"no"| N["Abstain / ask for clarification / escalate"]
-  end
-```
-
-Three planes must remain separate:
-
-| Plane | Responsibility | A common mistake |
-|---|---|---|
-| **Evidence** | What documents are present, current, allowed, and retrieved? | Treating retrieved text as automatically trustworthy or complete. |
-| **Generation** | How is evidence transformed into an answer? | Asking a model to compensate for missing evidence. |
-| **Policy** | Who may see what, when to abstain, how much context to use? | Implementing access control or approvals only in a prompt. |
-
-If the evidence plane cannot support a claim, polished generation cannot repair
-it. When a task needs live structured facts (for example an account balance), a
-typed API or SQL query may be safer than document retrieval. When the answer is
-stable behavior rather than changing knowledge, fine-tuning may be the right
-complement. See [What is RAG?](../../../docs/what-is-rag.md) for the broader
-comparison.
-
-## When RAG is the right architecture
-
-Use RAG when:
-
-- knowledge changes faster than you can retrain or fine-tune;
-- knowledge is private, permissioned, or domain-specific;
-- answers must be traceable to specific source documents;
-- multiple users need access-controlled views of overlapping knowledge; or
-- the corpus is too large for a practical context window.
-
-## When RAG is the wrong architecture
-
-| Situation | Better alternative | Why |
-|---|---|---|
-| The answer is a precise calculation or database lookup | Typed API / SQL tool | Retrieval introduces unnecessary uncertainty for deterministic facts |
-| The behavior needs to change, not the knowledge | Fine-tuning | RAG is for changing knowledge, not changing model behavior |
-| The context window easily holds all relevant documents | Long-context LLM (GPT-4o, Gemini 1.5 Pro) | Retrieval adds latency and complexity without benefit |
-| Users query a well-indexed corpus with exact terms | Search engine + snippet | A full RAG pipeline is over-engineered |
-| Knowledge is static and small | Fine-tuning or few-shot prompting | Ingestion + retrieval infrastructure costs more than it saves |
-| You need real-time data (stock prices, live sensor readings) | Typed tool / API call | RAG indexes are not real-time |
-
-The architecture choice should be driven by the specific failure of the simpler alternative,
-measured on real data. Do not add RAG because it is fashionable.
-
 ## RAG as a pipeline of contracts
 
-Every stage of a RAG system makes a contract with the next stage. A failure at one
-stage cannot be corrected by a later stage. Understanding these contracts is the
-central skill of RAG engineering.
+Every stage of a RAG system makes a contract with the next stage. A failure at one stage cannot be corrected by a later stage. Understanding these contracts is the central skill of RAG engineering.
 
 | Contract | Question | Failure if broken |
 |---|---|---|
@@ -194,13 +156,9 @@ central skill of RAG engineering.
 | **Evaluation contract** | How is quality measured at each stage? | Wrong stage is blamed; correct stage is not fixed |
 | **Production contract** | How is the system versioned, traced, operated, and rolled back? | Regressions are undetected; incidents are unrecoverable |
 
-This vocabulary is used throughout the course. When a failure occurs, identify which
-contract was broken before deciding what to change.
-
 ## End-to-end quality decomposition
 
-"The answer is wrong" is not a diagnosis. A RAG answer that is wrong can fail at any
-of these layers — and each requires a different fix:
+"The answer is wrong" is not a diagnosis. A RAG answer that is wrong can fail at any of these layers — and each requires a different fix:
 
 ```
 Retrieval quality      → Did the system return relevant evidence?
@@ -221,11 +179,6 @@ Abstention quality     → Does the system correctly decline unanswerable questi
                          without declining answerable ones?
 ```
 
-A system can have perfect retrieval recall and still produce an unsupported answer
-(context truncation or generation failure). A system can produce a grounded answer
-(faithful to context) that is factually wrong (because the source is wrong). These
-layers are not interchangeable. Measure each separately.
-
 ## A stage-by-stage failure map
 
 | Stage | Question to ask | Typical failure | First response |
@@ -241,32 +194,22 @@ layers are not interchangeable. Measure each separately.
 
 ## Retrieval is ranking, not certainty
 
-The starter uses lexical overlap so you can see each matching term. For a query
-term set \(Q\) and chunk term set \(D\), its score is:
+The starter uses lexical overlap so you can see each matching term. For a query term set \(Q\) and chunk term set \(D\), its score is:
 
 \[
 score(Q, D) = \frac{|Q \cap D|}{\max(|Q|, 1)}
 \]
 
-That score answers only "how much literal vocabulary overlaps?" It does *not*
-mean "the answer is 70% correct," "the source is authoritative," or "a model
-will faithfully summarize it." This limitation is intentional. It exposes
-synonym mismatch (`reboot` versus `restart`), weak headings, and irrelevant
-keyword matches before those failures are hidden inside an embedding model.
+That score answers only "how much literal vocabulary overlaps?" It does *not* mean "the answer is 70% correct," "the source is authoritative," or "a model will faithfully summarize it." This limitation is intentional. It exposes synonym mismatch, weak headings, and irrelevant keyword matches before those failures are hidden inside an embedding model.
 
-Classical BM25 uses term frequency, inverse document frequency, and document
-length normalization; dense retrieval ranks semantic vectors; hybrid retrieval
-combines signals; rerankers examine a small candidate set more deeply. Each can
-improve a specific measured failure, but none eliminates the need for source
-quality, authorization, or answer evaluation. The [Stanford IR book](https://nlp.stanford.edu/IR-book/)
-is the foundational reference for lexical ranking; [BEIR](https://arxiv.org/abs/2104.08663)
-is a useful reminder to test retrieval across varied tasks rather than a single
-friendly demo.
+### Common Misconceptions
+- **“A vector database is RAG”**: A vector store is one implementation of candidate retrieval. RAG also includes extraction, chunking, permission enforcement, query handling, answer generation, citations, and evaluation. 
+- **“Embeddings solve retrieval”**: Embeddings capture semantic similarity but can underperform on exact names, error codes, rare entities, dates, and identifiers. Hybrid retrieval combines dense and lexical signals.
+- **“More context is always better”**: Extra context can dilute relevant evidence, increase cost and latency, and make it harder for a model to identify the right passage. 
 
 ## RAG latency and cost decomposition
 
-A RAG pipeline has multiple cost centers. Understand the breakdown before
-choosing where to invest:
+A RAG pipeline has multiple cost centers. Understand the breakdown before choosing where to invest:
 
 | Stage | Latency driver | Cost driver |
 |---|---|---|
@@ -280,64 +223,33 @@ choosing where to invest:
 | Citation verification | Number of claims × evidence size | Negligible to model-based |
 | Observability | Trace storage | Storage |
 
-**Key insight:** LLM generation usually dominates cost. Retrieval latency is usually
-dominated by the reranker on large candidate sets. Optimizing the wrong stage is
-a common mistake.
-
 ## The implementation contract
 
-The baseline has intentionally small, production-relevant contracts:
+The baseline notebook has intentionally small, production-relevant contracts:
 
-1. **Stable identity.** `Chunk` preserves `chunk_id`, source filename, section,
-   and ordinal. A production chunk should also carry document version, location,
-   owner, timestamps, tenant/ACL attributes, and a content hash.
-2. **Inspectable ranking.** `RetrievalHit` reports rank, score, and matched
-   terms. A retrieval trace should answer "why did this evidence appear?"
-3. **Authorization before ranking.** `retrieve_authorized` demonstrates an
-   allow-list before search. Filtering after context construction risks exposing
-   protected text in logs or prompts.
-4. **Bounded context.** `ContextPack` sends text together with retained IDs and
-   citations, and says when lower-ranked evidence was truncated.
-5. **Safe terminal behavior.** An answer policy may abstain, request
-   clarification, or escalate. "I don't have enough evidence" is a valid result.
-6. **Separate evaluation.** Retrieval metrics answer whether evidence was
-   located; later lessons assess citation correctness and answer faithfulness.
+1. **Stable identity.** `Chunk` preserves `chunk_id`, source filename, section, and ordinal. 
+2. **Inspectable ranking.** `RetrievalHit` reports rank, score, and matched terms.
+3. **Authorization before ranking.** `retrieve_authorized` demonstrates an allow-list before search. Filtering after context construction risks exposing protected text in logs or prompts.
+4. **Bounded context.** `ContextPack` sends text together with retained IDs and citations, and says when lower-ranked evidence was truncated.
+5. **Safe terminal behavior.** An answer policy may abstain, request clarification, or escalate. 
+6. **Separate evaluation.** Retrieval metrics answer whether evidence was located; later lessons assess citation correctness and answer faithfulness.
 
 ## Step-by-step practice plan
 
 ### Step 1 — Audit the corpus
-
-Open [`examples/data/beginner-docs`](../../../examples/data/beginner-docs).
-For each document, identify the source owner, intended audience, update signal,
-and one statement that would be harmful if stale. Add these metadata fields to a
-design note before you change the retrieval algorithm.
+Open the Harborline mock documents. Identify the source owner, intended audience, update signal, and one statement that would be harmful if stale.
 
 ### Step 2 — Trace a supported question
-
-Ask: "Who may restart production services?" Inspect matched terms, result rank,
-section, source, context pack, and rendered citation. State what the source does
-and does *not* authorize.
+Ask: "Who may restart production services?" Inspect matched terms, result rank, section, source, context pack, and rendered citation. State what the source does and does *not* authorize.
 
 ### Step 3 — Break the lexical baseline on purpose
-
-Ask: "Can support reboot checkout?" Compare it with "Who may restart production
-services?" If one fails, record whether the cause is vocabulary, chunk boundary,
-or source wording. Do not call it "hallucination"—the failure occurred before
-generation.
+Ask: "Can support reboot checkout?" Compare it with "Who may restart production services?" If one fails, record whether the cause is vocabulary, chunk boundary, or source wording. Do not call it "hallucination"—the failure occurred before generation.
 
 ### Step 4 — Add a visibility boundary
-
-Call `retrieve_authorized` with only one allowed source. Verify an answer can
-become unavailable without accidentally revealing the excluded source ID or
-text. In a real system, bind the filter to authenticated caller claims, not a
-model-supplied source name.
+Call `retrieve_authorized` with only one allowed source. Verify an answer can become unavailable without accidentally revealing the excluded source ID or text.
 
 ### Step 5 — Tune a decision, not a demo
-
-Run the golden set at multiple `top_k` and `min_score` values. A lower threshold
-may increase answer coverage while creating unsupported answers; a high threshold
-may create false abstentions. Choose a policy based on costs of each error for
-Harborline support, then write down the escalation path.
+Run the golden set at multiple `top_k` and `min_score` values. A lower threshold may increase answer coverage while creating unsupported answers; a high threshold may create false abstentions. 
 
 ### Step 6 — Choose the next upgrade with evidence
 
@@ -352,76 +264,37 @@ Harborline support, then write down the escalation path.
 
 ## Evaluation: the minimum viable golden set
 
-Every case should include a question, expected evidence IDs, expected terminal
-behavior, caller role/tenant if relevant, and an explanation of why it matters.
+Every case should include a question, expected evidence IDs, expected terminal behavior, caller role/tenant if relevant, and an explanation of why it matters. Track **Recall@k / hit rate**, **Precision@k**, **MRR**, and **Abstention accuracy**. 
 
-```python
-EvaluationCase(
-    question="Who may restart production services?",
-    relevant_ids=("harborline-support-7",),
-    should_abstain=False,
-)
-```
-
-At this stage, track:
-
-- **Recall@k / hit rate:** does any expected evidence appear in the top `k`?
-- **Precision@k:** how much of the returned evidence is relevant?
-- **MRR:** how early does the first relevant piece appear?
-- **Abstention accuracy:** does the system correctly withhold an answer when it
-  should, without declining supported questions?
-
-These are not interchangeable with answer correctness. A system can retrieve
-the right passage yet generate an unsupported sentence; it can also retrieve a
-wrong passage and produce a plausible answer. The evaluation track expands this
-distinction with claim and citation tests.
+These are not interchangeable with answer correctness. A system can retrieve the right passage yet generate an unsupported sentence; it can also retrieve a wrong passage and produce a plausible answer.
 
 ## Technical decisions and production guardrails
 
 - Start with a deterministic test corpus before adding a provider API.
-- Treat retrieved documents, tool results, and user uploads as untrusted data;
-  never let content inside them override application instructions.
-- Apply authorization and tenant isolation at retrieval time and preserve that
-  decision in traces.
-- Set a context budget and measure truncation. More context is not automatically
-  better context.
-- Version sources and indexes; record source IDs and retrieval configuration in
-  evaluation results.
+- Treat retrieved documents, tool results, and user uploads as untrusted data; never let content inside them override application instructions.
+- Apply authorization and tenant isolation at retrieval time and preserve that decision in traces.
+- Set a context budget and measure truncation. More context is not automatically better context.
+- Version sources and indexes; record source IDs and retrieval configuration in evaluation results.
 - Do not rely on a model to decide whether an irreversible action is allowed.
-- Define a useful no-answer response: what was searched, what is missing, and
-  which safe next action a user can take.
-
-NIST's [Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
-is a broader risk-management reference for governing these decisions in a real
-system.
+- Define a useful no-answer response: what was searched, what is missing, and which safe next action a user can take.
 
 ## Checkpoint
-
-Answer these before advancing:
 
 1. Why can a high retrieval score still produce a bad answer?
 2. At which stage should tenant filtering occur, and why is a prompt insufficient?
 3. Which metric identifies a false abstention versus a failed retrieval?
-4. For the `reboot` failure, what evidence would justify choosing hybrid search
-   rather than changing the source document?
-5. Give one case where RAG is the wrong primary architecture and a typed tool is
-   safer.
+4. For the `reboot` failure, what evidence would justify choosing hybrid search rather than changing the source document?
+5. Give one case where RAG is the wrong primary architecture and a typed tool is safer.
 6. What is the difference between groundedness and factual correctness?
-7. A system produces a grounded, cited answer that is factually wrong. At which
-   stage did the failure occur?
-8. Name one technique that belongs to each generation of RAG evolution and explain
-   why each was added.
+7. A system produces a grounded, cited answer that is factually wrong. At which stage did the failure occur?
+8. Name one technique that belongs to each generation of RAG evolution and explain why each was added.
 
 ## Continue the beginner path
 
-1. [First local RAG baseline](../02-first-local-rag/README.md) — turn the
-   foundation into a runnable local assistant.
-2. [Chunking lab](../03-chunking-lab/README.md) — measure how chunk boundaries
-   change retrieval coverage.
-3. [Citations and abstention](../04-citations-abstention/README.md) — audit
-   evidence-backed answers and explicit no-answer behavior.
-4. [Documentation assistant capstone](../../../use-cases/documentation-assistant/README.md)
-   — assemble a small useful RAG application.
+1. [First local RAG baseline](../02-first-local-rag/README.md) — turn the foundation into a runnable local assistant.
+2. [Chunking lab](../03-chunking-lab/README.md) — measure how chunk boundaries change retrieval coverage.
+3. [Citations and abstention](../04-citations-abstention/README.md) — audit evidence-backed answers and explicit no-answer behavior.
+4. [Documentation assistant capstone](../../../use-cases/documentation-assistant/README.md) — assemble a small useful RAG application.
 
 ## References
 
@@ -434,4 +307,4 @@ Answer these before advancing:
 - Manning, Raghavan, and Schütze, [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/)
 - Thakur et al., [BEIR: A Heterogeneous Benchmark for Zero-Shot IR Evaluation](https://arxiv.org/abs/2104.08663)
 - NIST, [AI RMF: Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
-- [What is RAG?](../../../docs/what-is-rag.md) in this repository
+- LangChain, [Retrieval Documentation](https://docs.langchain.com/oss/python/langchain/retrieval)

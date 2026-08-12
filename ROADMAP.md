@@ -37,4 +37,4 @@ The main path will use one coherent Python stack: `uv`, LlamaIndex, Qdrant, Sent
 
 ## How to use the roadmap
 
-Use the catalog in the README to choose a lesson. New tutorials should follow [`docs/tutorial-template.md`](docs/tutorial-template.md) and be added to the appropriate level directory. The roadmap is intentionally incremental: a small, evaluated tutorial is more valuable than an untested collection of notebooks.
+Use the catalog in the README to choose a lesson. New tutorials should be added to the appropriate level directory. The roadmap is intentionally incremental: a small, evaluated tutorial is more valuable than an untested collection of notebooks.

@@ -15,6 +15,6 @@ Thank you for improving this collection.
 3. Use this format: `- [Project](https://example.com) — what it is and why it belongs here.`
 4. Do not add promotional descriptions, affiliate links, or star counts.
 5. Verify the link, license claims, and that the project is actively maintained.
-6. For substantial concepts, add an explanatory note and cite the primary source in `docs/`.
+6. For substantial concepts, add an explanatory note and cite the primary source in the relevant `curriculum/` module.
 
 Please keep pull requests focused. One topic or a small coherent group of resources per PR is easiest to review.
