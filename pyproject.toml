@@ -20,6 +20,7 @@ learner = [
     "pandas",
     "langchain-experimental",
     "langchain",
+    "langchain-classic",
     "langchain-community",
     "langchain-huggingface",
     "chromadb",
