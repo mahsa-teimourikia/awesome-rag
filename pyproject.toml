@@ -18,7 +18,16 @@ learner = [
     "ragas",
     "docling",
     "pandas",
-    "langchain-experimental"
+    "langchain-experimental",
+    "langchain",
+    "langchain-community",
+    "langchain-huggingface",
+    "chromadb",
+    "rank-bm25",
+    "networkx",
+    "matplotlib",
+    "langgraph",
+    "langchain-qdrant"
 ]
 contributor = [
     "awesome-rag-learning[learner]",
