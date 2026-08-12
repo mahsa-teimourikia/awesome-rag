@@ -38,14 +38,50 @@ flowchart TD
 
 ## 1. Architecture choice before framework choice
 
-| Task | Architecture | Example |
-| --- | --- | --- |
-| Known path | Workflow | Get checkout status, then format report. |
-| A few conditional steps | Agentic workflow | If unhealthy, fetch the runbook and summarize it. |
-| Open evidence investigation | Single bounded agent | Decide whether to inspect deployments, logs, or dependencies. |
-| Independent specialist work | Team, only if measured benefit | Observability and customer-impact analyses run in parallel. |
+| Task | Architecture | Example (Northstar incident) | Key property |
+|---|---|---|---|
+| Known path | Workflow | Get checkout status, format incident report | Deterministic, testable, fastest |
+| A few conditional steps | Agentic workflow | If service is unhealthy, fetch the runbook; else return status summary | Conditional but bounded |
+| Open evidence investigation | Single bounded agent | Decide whether to inspect deployments, logs, or graph dependencies first | Dynamic next-step decision |
+| Independent specialist work | Multi-agent (only if measured benefit) | Observability and customer-impact analyses run in parallel | Higher complexity and coordination cost |
 
 Do not use multi-agent coordination to compensate for missing tool contracts or weak retrieval. A single agent often wins on latency, cost, and debuggability.
+
+### Same task, three architectures
+
+To understand the trade-off concretely, consider the same task — "European checkout fell after deploy-842, investigate" — with three architectures:
+
+**Fixed workflow:** `get_service_status("checkout")` → `get_recent_deployments("checkout", since_hours=24)` → `search_runbooks("checkout degradation EU")` → generate report. Always runs all three steps. Fast, predictable, easy to test.
+
+**Agentic workflow (conditional):** `get_service_status` → if unhealthy, `get_recent_deployments` → if deploy found, `search_runbooks` for that deploy. Skips unnecessary calls. Slightly more complex to test.
+
+**Bounded evidence agent:** starts with `classify_task`, then chooses from `{get_service_status, get_recent_deployments, search_runbooks, query_graph}` based on what it finds. May discover the dependency graph is the critical evidence. Most flexible; highest cost and complexity; hardest to evaluate.
+
+**Choose based on:** does the next evidence source depend on what you find? If yes, consider agentic. If the path is essentially known, use a workflow.
+
+### Source selection and the evidence ledger
+
+An agentic RAG system must track which sources have been queried and what they returned — not just the final synthesized answer. This **evidence ledger** serves multiple purposes:
+
+- prevents re-querying the same source (cost control)
+- ensures every claim in the recommendation maps to a specific tool result
+- provides an auditable trace for incident review
+- detects when the agent has been stuck in a retrieval loop
+
+```python
+@dataclass
+class EvidenceEntry:
+    tool: str
+    arguments: dict
+    result_ids: tuple[str, ...]
+    timestamp: float
+    authorized: bool
+    cost_usd: float
+
+ledger: list[EvidenceEntry] = []
+```
+
+Before generating a recommendation, verify that every material claim maps to an entry in the ledger. A claim without a ledger entry is a hallucination risk.
 
 ## 2. Step-by-step control design
 
@@ -92,7 +128,41 @@ Before a response: validate evidence and citations. Before an action: validate a
 
 ## 3. Evaluation and production operations
 
-Evaluate outcomes **and trajectories**. For each task record success, supported recommendation, tool names/arguments, forbidden calls, retries, turns, latency, cost, approval decision, receipt, and escalation. Compare the agent against a fixed workflow baseline. The useful optimization target is the shortest reliable trajectory, not the fewest model tokens.
+Evaluate outcomes **and trajectories**. For each task record:
+
+| Metric | What it measures | Target signal |
+|---|---|---|
+| Task success | Did the agent produce a supported, cited recommendation? | Outcome quality |
+| Tool call count | How many tool calls did the agent make? | Efficiency |
+| Unnecessary tool calls | Tool calls that did not contribute to the final answer | Trajectory waste |
+| Forbidden tool calls | Calls to tools outside the allowed set | Safety failure |
+| Evidence coverage | Fraction of final claims with a ledger entry | Grounding |
+| Unsupported claims | Claims without a ledger-traceable evidence source | Hallucination |
+| Retries | Tool calls repeated for the same arguments | Loop detection |
+| Turns to completion | Number of reasoning-action cycles | Complexity |
+| Total latency | Wall time from question to recommendation | User experience |
+| Total cost | LLM + tool + retrieval cost for the trajectory | Economics |
+| Approval compliance | Were high-impact actions gated by human approval? | Safety |
+| Receipt verification | Were action receipts collected and verified? | Auditability |
+
+Compare the agent against a **fixed workflow baseline** on the same 20+ labeled tasks. If the agent does not improve task success, evidence coverage, or user-measurable outcomes at acceptable cost and latency vs the baseline, the baseline is the correct architecture.
+
+**Shortest reliable trajectory** is the optimization target — not fewest tokens. An agent that takes 4 turns and always succeeds is better than one that takes 2 turns and frequently fails or hallucinates.
+
+### Memory and state design
+
+Agentic RAG systems often need state that persists across turns within a task:
+
+| State type | What it holds | Example |
+|---|---|---|
+| Working memory | Evidence found so far; ledger entries | Deployment ID, service status, runbook citations |
+| Task state | Current step; stopping conditions; budget remaining | turn=2, cost=$0.03, recommendation=None |
+| Approval state | Approval tokens, expiry, approver, policy version | {approver: "alice", expires: ..., request_hash: ...} |
+| Conversation history | Prior exchanges in a multi-turn investigation | Relevant for context-dependent follow-up queries |
+
+Use **explicit typed state** rather than relying on the model's context window for state management. The model's context window is not durable, not auditable, and not resumable.
+
+For durable state (resumable after failure), use a framework with explicit state persistence (LangGraph, OpenAI Assistants, custom database-backed state). Define the schema before implementing the agent loop.
 
 Production checklist:
 
@@ -103,6 +173,7 @@ Production checklist:
 - [ ] Trace every model turn, evidence ID, tool argument, policy result, approval, and receipt with redaction.
 - [ ] Prompt-injection tests for retrieved documents and tool responses.
 - [ ] Kill switch and degraded mode: read-only retrieval plus abstention.
+- [ ] Evidence ledger verified before recommendation generation.
 
 ## 4. Current implementations and references
 
@@ -110,7 +181,7 @@ Production checklist:
 | --- | --- | --- |
 | Managed agent loop, tools, guardrails, tracing | [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) | Supports agents, tools, sessions, handoffs, guardrails, and tracing; keep business authorization external. |
 | Explicit state, retries, persistence, HITL | [LangGraph](https://langchain-ai.github.io/langgraph/) | Useful when control flow and resumption must be first-class; see [human-in-the-loop](https://docs.langchain.com/oss/python/langchain/human-in-the-loop). |
-| Retrieval/evidence layer | This repository’s Corrective and GraphRAG modules | Use policy-bound retrieval before granting broader agent autonomy. |
+| Retrieval/evidence layer | This repository's Corrective and GraphRAG modules | Use policy-bound retrieval before granting broader agent autonomy. |
 | Evaluation | trajectory dataset + task-specific assertions | Score supported outcomes, tool correctness, safety, latency, and cost. |
 
 ## Exercises

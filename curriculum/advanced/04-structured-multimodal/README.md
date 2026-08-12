@@ -38,13 +38,57 @@ flowchart TD
 ### Step 1 — classify the operation, not only the modality
 
 | User request | Correct first boundary | Why |
-| --- | --- | --- |
-| “What is the total renewal risk for Acme?” | Typed filter + aggregation | The answer is a calculation over authorized rows. |
-| “Which account has the chart warning?” | Image/OCR region retrieval | The evidence is a visual observation with coordinates. |
-| “What does the renewal policy require?” | Text retrieval | A cited paragraph supplies the answer. |
-| “Should we contact Acme?” | Combine typed result + visual evidence + policy | The system must state what is computed, observed, and inferred. |
+|---|---|---|
+| "What is the total renewal risk for Acme?" | Typed filter + aggregation | The answer is a calculation over authorized rows. |
+| "Which account has the chart warning?" | Image/OCR region retrieval | The evidence is a visual observation with coordinates. |
+| "What does the renewal policy require?" | Text retrieval | A cited paragraph supplies the answer. |
+| "Should we contact Acme?" | Combine typed result + visual evidence + policy | The system must state what is computed, observed, and inferred. |
 
 Never use an LLM to silently substitute for a deterministic aggregation. Do math and filters in code/SQL, then provide the result and citations to the model.
+
+---
+
+## Part A: Structured Data RAG
+
+### Text-to-SQL: validation over generation
+
+When user queries require structured data retrieval, a natural-language-to-SQL
+approach must be tightly controlled:
+
+**What the model may generate:** a SQL template that a validated query builder populates.
+
+**What the model must never do:** execute arbitrary SQL against production tables.
+
+**Validation requirements:**
+- Prepared statements with parameter binding (no string interpolation)
+- Allowlisted table names and column references
+- Query timeout and result size limit
+- Tenant predicate enforced by database role or view (not appended as a WHERE clause by the LLM)
+- Row-level security (RLS) applied at the database layer
+
+```python
+# Wrong: LLM generates raw SQL
+sql = llm.complete(f"Write SQL for: {user_query}")
+results = db.execute(sql)  # SQL injection risk; no tenant enforcement
+
+# Correct: LLM generates a structured query specification
+query_spec = llm.complete_structured(
+    f"Extract filter parameters for: {user_query}",
+    schema=QuerySpec,
+)
+results = validated_query_builder.run(query_spec, tenant_id=caller.tenant_id)
+```
+
+### Semantic layer
+
+A **semantic layer** sits between the application and the raw database, providing:
+- a curated set of metrics, dimensions, and business logic
+- row-level security and tenant isolation enforced in one place
+- consistent definitions across reports and RAG answers
+
+For structured data RAG, a semantic layer is preferable to exposing raw tables directly. Tools: dbt Semantic Layer, Cube, Looker LookML, or a custom metric store.
+
+**Key property:** the semantic layer ensures that "renewal risk" means the same thing whether queried by the RAG system, a BI dashboard, or a scheduled report.
 
 ### Step 2 — validate data before it becomes evidence
 
@@ -58,6 +102,26 @@ if errors:
 
 For SQL, use prepared statements, tenant predicates enforced by the database role or view, a query timeout, result limit, and an allowlisted query API. Do not allow a model to compose arbitrary SQL against production data.
 
+### Row-level security
+
+Row-level security (RLS) ensures that a tenant can only see their own rows, enforced
+at the database level — not by WHERE clauses that an LLM might omit:
+
+```sql
+-- PostgreSQL RLS policy
+CREATE POLICY tenant_isolation ON renewals
+  USING (tenant_id = current_setting('app.current_tenant'));
+```
+
+**Why this matters for RAG:** if the RAG system retrieves structured data by constructing
+SQL, it must not bypass RLS. Bind the tenant ID at the database connection level, not
+as a model-generated WHERE clause. A model-generated WHERE clause can be dropped or
+modified; an RLS policy cannot.
+
+---
+
+## Part B: Multimodal RAG
+
 ### Step 3 — treat OCR and vision as uncertain observations
 
 OCR text must carry asset ID, page, bounding box, extraction engine/version, confidence, and source checksum. A low-confidence token should trigger review, not a fabricated reading. Charts additionally require axis/unit/legend interpretation; a visual estimate is not a financial calculation.
@@ -67,9 +131,56 @@ OCR evidence: dashboard.svg, page 1, bbox=(80,290,760,45), confidence=0.98
 Table evidence: renewals.csv, row=acme-17, risk_usd=125000, currency=USD
 ```
 
+### VLM-based interpretation
+
+For complex images (charts, diagrams, annotated screenshots), an OCR engine may not
+capture the full semantic content. A **vision-language model (VLM)** can provide
+richer interpretation:
+
+- identifying chart type, axes, labels, and data trends
+- interpreting handwritten annotations or non-standard layouts
+- describing relative spatial relationships between elements
+
+**Critical constraint:** VLM interpretation is an **inference**, not an observation.
+It must be:
+- labeled as model-generated, not as a factual measurement
+- qualified with the confidence level of the interpretation
+- routed for human review when it contributes to a material recommendation
+- never used to derive a numeric result that should come from a calculation
+
+```text
+OCR measurement: "bar at position x=3 reaches height y=125" (observation)
+VLM interpretation: "the chart shows Acme's renewal risk is approximately $125K" (inference)
+```
+
+### Modality-aware reranking
+
+When retrieval returns a mix of structured rows, OCR regions, and text passages, a
+standard text-similarity reranker cannot correctly compare across modalities.
+
+**Modality-aware reranking:**
+1. Route each candidate to the appropriate evidence model (table summary, OCR summary, text passage)
+2. Score each within its modality
+3. Apply modality weights from a query classification (a calculation query should weight table evidence above text evidence)
+4. Fuse scores with RRF or an ensemble policy
+
+The evidence bundle should preserve modality labels so the generator knows what
+evidence type each citation represents.
+
 ### Step 4 — compose an evidence bundle, then verify claims
 
 Keep modality-specific citations separate. A table citation identifies rows/cells; a visual citation identifies page/region; a text citation identifies document/chunk. The answer generator may summarize them together, but a verifier must check that every material claim maps to an evidence object of the right modality.
+
+**Evidence bundle structure:**
+
+```python
+EvidenceBundle(
+    table_evidence=[TableCitation(row_id="acme-17", column="risk_usd", value=125000, as_of="2024-01-15")],
+    visual_evidence=[OCRCitation(asset_id="dashboard.svg", page=1, bbox=(80,290,760,45), confidence=0.98)],
+    text_evidence=[TextCitation(chunk_id="policy-7", source="renewal-policy-v3")],
+    vlm_inferences=[VLMInference(asset_id="dashboard.svg", interpretation="...", requires_review=True)],
+)
+```
 
 ## 2. Implementation patterns
 

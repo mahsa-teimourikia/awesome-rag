@@ -65,6 +65,20 @@ The controller must be designed like any other production policy. It needs input
 | Ambiguous | Some relevant evidence exists, but a key term, constraint, or source is missing. | Rewrite, query another representation, widen *within policy*, or rerank. | Append every retrieved passage to the prompt. |
 | Weak | No authorized evidence sufficiently supports the task. | Ask a clarifying question, use a pre-approved alternate source, or abstain. | Retry indefinitely or invent a fallback answer. |
 
+### Retrieval evaluator comparison
+
+The grading signal is as important as the routing table. Different evaluator designs make different accuracy-cost-latency trade-offs:
+
+| Evaluator type | How it works | Accuracy | Latency | Cost | When to use |
+| --- | --- | --- | --- | --- | --- |
+| Similarity threshold | Compare query-document cosine similarity to a threshold | Low — sensitive to embedding domain shift | Negligible | Negligible | Prototype / fast baseline only |
+| Lexical heuristic | Required-term coverage, keyword overlap | Medium for narrow domains | Very low | Very low | Domain-specific exact-term requirements |
+| Cross-encoder | Joint query-document encoding (full attention) | High | Medium (50–200ms per candidate set) | Low-medium | Production default for most pipelines |
+| Small classifier | Binary relevant/not-relevant trained on domain examples | Medium-high if well-trained | Low | Low | High-throughput systems with labeled training data |
+| LLM judge | Structured relevance prompt to a language model | High for nuanced judgment | High (LLM latency) | High | High-stakes decisions; calibrated against human labels |
+
+The training code uses transparent query-term coverage (lexical heuristic) so routing behavior is directly observable. In production, replace or augment it with a calibrated cross-encoder or small classifier. Maintain a held-out calibration set and version the evaluator alongside the corpus and policy.
+
 ### CRAG, Adaptive RAG, and Self-RAG are related but not identical
 
 - **Corrective RAG** focuses on assessing a retrieved set and correcting low-quality evidence with different retrieval actions and document refinement. [CRAG paper](https://arxiv.org/abs/2401.15884)
@@ -113,6 +127,38 @@ retrieval_quality = f(
 ```
 
 The training code uses transparent query-term coverage, intentionally not a probability. That allows learners to observe a threshold changing a route. In a real system, replace or augment it with a calibrated cross-encoder, a small classifier, or a structured LLM judge. Maintain a held-out calibration set, measure false accepts and false abstains, and record the evaluator version in traces.
+
+### Threshold calibration: use a confusion matrix
+
+A threshold is not a universal constant — it is a product-risk policy calibrated on held-out data for your specific corpus and risk level.
+
+**Confusion matrix for retrieval quality classification:**
+
+|  | Predicted: Strong | Predicted: Weak/Abstain |
+|---|---|---|
+| **Actually: Strong evidence** | True Accept (TA) | False Abstain (FA) |
+| **Actually: Weak evidence** | False Accept (FA) | True Abstain (TA) |
+
+- **False Accept (FA):** system accepts weak evidence and generates an answer → risk of unsupported or incorrect answer.
+- **False Abstain (TA):** system abstains on strong evidence → user receives no answer despite the system having it.
+
+For a security-support assistant:
+- False Accepts are more costly (incorrect security guidance)
+- False Abstains are annoying but safe
+- → Set threshold conservatively (higher), accepting more False Abstains
+
+For a low-stakes FAQ assistant:
+- False Abstains reduce utility significantly
+- False Accepts are recoverable with citation checking
+- → Set threshold permissively (lower), accepting some False Accepts
+
+**Calibration procedure:**
+1. Build a labeled evaluation set with at least 100–200 cases: 50% answerable, 25% unanswerable, 25% ambiguous.
+2. Run the evaluator at multiple threshold values.
+3. Plot FA rate vs TA rate (ROC curve).
+4. Choose the operating point that reflects your domain's cost asymmetry.
+5. Measure both FA and TA rates on a held-out set — not the calibration set.
+6. Record the chosen threshold, the calibration set version, and the evaluation date in the policy configuration.
 
 ### Step 4 — recover with a finite route table
 
@@ -185,6 +231,23 @@ Corrective RAG is justified only if it improves a measured objective. Evaluate t
 | Safety | cross-tenant leakage, unauthorized-source attempts, injection-follow rate | A “recovery” route must not widen trust boundaries. |
 
 Use two budgets: a **per-query** cap (attempts, tokens, time) and a **fleet** cap (external search volume, reranker concurrency, cost). Alert on route-distribution shifts: a sudden jump in fallback traffic often indicates broken ingestion, an embedding regression, stale documents, or a changed query mix.
+
+### Fixed RAG vs CRAG vs Adaptive RAG vs Self-RAG: explicit comparison
+
+These are related but not identical designs. Choose based on what the evaluation demonstrates is needed, not on what sounds most sophisticated.
+
+| Dimension | Fixed RAG | Corrective RAG (CRAG) | Adaptive RAG | Self-RAG |
+| --- | --- | --- | --- | --- |
+| **Retrieval decision** | Always retrieves, fixed K | Evaluates quality; routes to recovery | Routes by task complexity/query type | Model decides when to retrieve |
+| **Recovery mechanism** | None | Rewrite → alternate retriever → abstain | Route to different strategy | Reflection tokens guide retrieval |
+| **Evaluator** | None | External policy + evaluator | Complexity classifier | Trained reflection tokens in model |
+| **Auditability** | High (deterministic) | High (explicit route table and trace) | Medium (classifier decision visible) | Low (internal model state) |
+| **Latency** | Lowest | Medium (correction adds calls) | Low-medium (routing may be cheap) | Medium (reflection tokens) |
+| **Security** | External auth filter | External auth filter required at every route | External auth filter required | Auth must be enforced externally; model cannot be trusted to enforce policy |
+| **Use when** | Simple, well-covered queries; high throughput | Corpus is incomplete, heterogeneous, or queries vary in complexity | Different query types need different retrieval strategies | Research/exploration; not recommended for production security-critical systems |
+| **Research reference** | Lewis et al., 2020 | Yan et al., 2024 | Various | Asai et al., 2024 |
+
+**Key decision criterion:** add correction only if evaluation shows that uncorrected retrieval failures are costly and correction measurably improves outcomes at acceptable latency and cost. Do not add CRAG because it is architecturally interesting.
 
 ## 5. Production-ready architecture
 

@@ -64,6 +64,17 @@ The metadata is not decoration. A graph fact without source, revision, tenant, e
 
 A graph database is storage and query infrastructure. GraphRAG is a retrieval-and-generation design that may use a graph database, a graph library, or a graph projected from other stores. The hard engineering work is extraction quality, entity resolution, schema governance, provenance, authorization, and evaluation—not merely writing Cypher.
 
+### Property graph vs knowledge graph vs labeled-property graph
+
+| Term | What it means | RAG implication |
+|---|---|---|
+| **Property graph** | Nodes and edges with arbitrary key-value properties | Flexible schema; properties carry provenance metadata |
+| **Labeled-property graph (LPG)** | Property graph where nodes/edges have typed labels (Neo4j, TinkerPop model) | Types enable schema validation and typed traversal |
+| **Knowledge graph** | A graph where facts represent world-knowledge assertions (subject-predicate-object triples) | Often RDF-based; assertions have truth claims; may use SPARQL |
+| **RAG graph index** | A property graph or LPG built for retrieval, not general world knowledge | Optimized for bounded, authorized, provenance-carrying traversal |
+
+For production RAG, use a **labeled-property graph** model: typed node and edge labels, required properties (source, revision, tenant, confidence), and a versioned schema. Avoid ad-hoc graph construction without governance.
+
 ## 2. Step-by-step: model the incident domain
 
 ### Step 1 — start from questions, then design a minimal schema
@@ -97,6 +108,23 @@ flowchart TD
 
 Entity resolution deserves dedicated tests. “Payments API,” “payments-api,” and “Payment Service” may be the same entity; “Atlas” may be a service in one tenant and a product in another. Merge only with evidence, keep canonical IDs and aliases, and preserve original mentions.
 
+### Relation confidence and provenance per edge
+
+Every edge in a production graph should carry:
+
+| Property | Why it matters |
+|---|---|
+| `source_doc_id` | Which document the relation was extracted from |
+| `source_span` | The exact text span supporting the relation |
+| `extraction_model` | Which model/prompt produced the extraction |
+| `confidence` | A calibrated score from the extraction model |
+| `ingestion_timestamp` | When the relation was added |
+| `tenant_id` | Authorization scope |
+| `revision` | Version of the source document at extraction time |
+| `is_active` | Whether the relation is current or retracted |
+
+A graph fact without confidence and source span cannot be safely cited. A graph fact without tenant and revision cannot be safely authorized or retracted. When a source document is updated, all relations extracted from it must be retractable — design your schema with `is_active` and `superseded_at` fields on edges.
+
 ### Step 3 — authorize before traversal
 
 Graph edges can leak information even when node text is hidden: an edge can reveal that a customer, project, or incident exists. Apply tenant/role/source filters during seed resolution and every traversal step. The example’s `GraphPolicy` enforces permitted tenants, minimum confidence, hop count, and maximum facts before facts reach model context.
@@ -114,6 +142,24 @@ Unlimited traversal creates irrelevant context, cost, and accidental leakage. Us
 
 The reference implementation returns `GraphEvidence`: selected facts, resolved seeds, hop bound, truncation state, and a terminal reason. `linearize()` includes fact IDs and source revisions so generation and verification can cite the same evidence.
 
+### Community detection for global-search GraphRAG
+
+For corpus-level questions ("what are the recurring failure themes?"), communities of related entities are detected and summarized:
+
+**Common community detection algorithms:**
+- **Leiden algorithm** (Traag et al.): state of the art; fast and high-quality; used in Microsoft GraphRAG
+- **Louvain algorithm**: widely available; good quality; faster than Leiden for very large graphs
+- **Label propagation**: very fast; lower quality for RAG purposes
+
+**Community summary pipeline:**
+1. Detect communities at multiple resolutions (coarse to fine)
+2. Generate a text summary of each community from its entities and relations
+3. Index community summaries alongside the fact graph
+4. For global queries: retrieve and map-reduce over community summaries
+5. For local queries: use entity-neighborhood traversal, not community summaries
+
+**Cost warning:** community detection and summary generation are expensive. Recompute only when the graph has changed significantly. Monitor recomputation cost — it is often the dominant indexing expense in GraphRAG.
+
 ### Step 5 — separate local, global, and hybrid retrieval
 
 - **Local GraphRAG:** seed on resolved entities; expand a small neighborhood or find paths. Best for specific relationship questions.
@@ -127,9 +173,10 @@ Graph traversal does not remove the need for chunks. Store source chunks or span
 | Layer | What to measure | Failure signal |
 | --- | --- | --- |
 | Extraction | entity/relation precision and recall, schema violations | Confident but false edges poison every downstream path. |
-| Resolution | canonical-ID accuracy, merge/split error rate | A wrong merge creates cross-entity hallucination. |
+| Resolution | canonical-ID accuracy, merge/split error rate, alias coverage | A wrong merge creates cross-entity hallucination; a missed alias breaks seed resolution. |
 | Retrieval | seed recall, path recall, subgraph precision, authorized recall | The correct path is absent, too broad, or crosses a tenant. |
-| Generation | claim support, citation correctness, path faithfulness | Answer claims a relationship not represented by selected facts. |
+| Path faithfulness | fraction of generated relationship claims supported by selected facts | Answer claims a relationship not represented by the evidence. |
+| Generation | claim support, citation correctness | Answer invents an intermediate entity not in the evidence. |
 | Operations | index freshness, p95 traversal latency, facts/context, cost/query | Graph fan-out grows or stale facts dominate. |
 | Security | cross-tenant path attempts, source leakage, injection in source chunks | Authorization after traversal is too late. |
 
