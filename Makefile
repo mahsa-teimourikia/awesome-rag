@@ -8,7 +8,8 @@ PIP = $(PYTHON) -m pip
 .PHONY: help setup install test notebooks notebook-check links pages external-links clean
 
 help:
-	@echo "make setup          Create the virtual environment and install developer tools"
+	@echo "make setup-learner  Create the virtual environment and install notebook libraries"
+	@echo "make setup-contributor Create the virtual environment and install developer/UI tools"
 	@echo "make test           Run the deterministic Python test suite"
 	@echo "make notebooks      Start Jupyter Lab for the course notebooks"
 	@echo "make notebook-check Execute all credential-free notebooks in Jupyter kernels"
@@ -16,18 +17,22 @@ help:
 	@echo "make pages          Build and smoke-test the GitHub Pages Hub and quiz"
 	@echo "make external-links Check curated external links (network required)"
 
-setup:
+setup-learner:
 	python3 -m venv $(VENV)
 	$(PIP) install --upgrade pip
-	$(PIP) install -e '.[dev]'
+	$(PIP) install -e '.[learner]'
 
-install: setup
+setup-contributor: setup-learner
+	$(PIP) install -e '.[contributor]'
+	npm ci
+
+install: setup-learner
 
 test:
 	PYTHONPATH=. $(PYTHON) -m pytest -q
 
 notebooks:
-	PYTHONPATH=. $(PYTHON) -m jupyterlab notebooks
+	PYTHONPATH=. $(PYTHON) -m jupyterlab curriculum
 
 notebook-check:
 	PYTHONPATH=. $(PYTHON) scripts/execute-notebooks.py --timeout 90

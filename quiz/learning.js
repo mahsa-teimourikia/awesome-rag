@@ -1,37 +1,45 @@
 export const learningPath = [
-  { id: "beginner", level: "Beginner", tone: "beginner", outcome: "Build a cited local RAG assistant.", modules: [
-    { id: "beginner-foundations", title: "RAG foundations", description: "Understand the pipeline and groundedness.", material: "../curriculum/beginner/01-rag-foundations/README.md", notebook: "../notebooks/beginner/01_first_local_rag.ipynb", category: "Foundations", minutes: 20, technologies: ["Python", "RAG"] },
-    { id: "beginner-local", title: "First local baseline", description: "Retrieve inspectable evidence and abstain safely.", material: "../curriculum/beginner/02-first-local-rag/README.md", notebook: "../notebooks/beginner/01_first_local_rag.ipynb", category: "Foundations", minutes: 30, technologies: ["Python", "Lexical retrieval"] },
-    { id: "beginner-chunking", title: "Chunking lab", description: "Compare fixed-size and structure-aware chunks.", material: "../curriculum/beginner/03-chunking-lab/README.md", notebook: "../notebooks/beginner/02_chunking_lab.ipynb", category: "Ingestion", minutes: 35, technologies: ["Chunking", "Metadata"] },
-    { id: "beginner-citations", title: "Citations and abstention", description: "Preserve provenance and explain uncertainty.", material: "../curriculum/beginner/04-citations-abstention/README.md", notebook: "../notebooks/beginner/03_citations_abstention.ipynb", category: "Generation", minutes: 30, technologies: ["Citations", "Abstention"] },
-    { id: "beginner-capstone", title: "Documentation assistant", description: "Combine the beginner patterns in a capstone.", material: "../use-cases/documentation-assistant/README.md", notebook: "../use-cases/documentation-assistant/documentation_assistant.ipynb", category: "Foundations", minutes: 90, technologies: ["Python", "Provenance"] },
+  { id: "beginner", level: "Beginner", tone: "beginner", outcome: "Build a trustworthy local RAG assistant.", modules: [
+    { id: "b1", title: "RAG foundations", description: "Understand the pipeline and retrieved evidence.", material: "../curriculum/beginner/01-rag-foundations/README.md", notebook: "../curriculum/beginner/01-rag-foundations/rag_foundations.ipynb", category: "01 - RAG Foundations", minutes: 20, technologies: ["Theory"] },
+    { id: "b2", title: "First local baseline", description: "Retrieve inspectable evidence and abstain safely.", material: "../curriculum/beginner/02-first-local-rag/README.md", notebook: "../curriculum/beginner/02-first-local-rag/02_first_local_rag.ipynb", category: "02 - First Local Baseline", minutes: 75, technologies: ["Python", "Lexical"] },
+    { id: "b3", title: "Chunking lab", description: "Compare fixed and structure-aware chunks.", material: "../curriculum/beginner/03-chunking-lab/README.md", notebook: "../curriculum/beginner/03-chunking-lab/03_chunking_lab.ipynb", category: "03 - Chunking Lab", minutes: 80, technologies: ["Chunking"] },
+    { id: "b4", title: "Citations & abstention", description: "Preserve provenance and explain uncertainty.", material: "../curriculum/beginner/04-citations-abstention/README.md", notebook: "../curriculum/beginner/04-citations-abstention/04_citations_abstention.ipynb", category: "04 - Citations & Abstention", minutes: 80, technologies: ["Citations", "Abstention"] }
   ]},
   { id: "intermediate", level: "Intermediate", tone: "intermediate", outcome: "Improve and measure retrieval quality.", modules: [
-    { id: "intermediate-retrieval", title: "Retrieval strategies", description: "Compare BM25, dense adapters, and fusion.", material: "../curriculum/intermediate/01-retrieval-strategies/README.md", notebook: "../curriculum/intermediate/01-retrieval-strategies/retrieval_strategies.ipynb", category: "Retrieval", minutes: 45, technologies: ["BM25", "Hybrid search"] },
-    { id: "intermediate-permissions", title: "Metadata permissions", description: "Authorize before retrieval and context construction.", material: "../curriculum/intermediate/02-metadata-permissions/README.md", notebook: "../curriculum/intermediate/02-metadata-permissions/metadata_permissions.ipynb", category: "Security", minutes: 40, technologies: ["ACLs", "Tenancy"] },
-    { id: "intermediate-reranking", title: "Query rewriting and reranking", description: "Improve recall and candidate ordering.", material: "../curriculum/intermediate/03-query-reranking/README.md", notebook: "../curriculum/intermediate/03-query-reranking/query_reranking.ipynb", category: "Retrieval", minutes: 45, technologies: ["Reranking", "Query expansion"] },
-    { id: "intermediate-evaluation", title: "Evaluation lab", description: "Build golden sets and regression gates.", material: "../curriculum/intermediate/04-evaluation/README.md", notebook: "../curriculum/intermediate/04-evaluation/evaluation.ipynb", category: "Evaluation", minutes: 45, technologies: ["Recall@k", "MRR"] },
-    { id: "intermediate-research", title: "Research synthesis", description: "Use multi-query evidence and claim citations.", material: "../curriculum/intermediate/05-research-synthesis/README.md", notebook: "../curriculum/intermediate/05-research-synthesis/research_synthesis.ipynb", category: "Evaluation", minutes: 60, technologies: ["Multi-query", "Claims"] },
-    { id: "intermediate-support", title: "Customer support", description: "Apply retrieval, permissions, and escalation.", material: "../use-cases/customer-support/README.md", notebook: "../use-cases/customer-support/customer_support.ipynb", category: "Security", minutes: 90, technologies: ["Routing", "Escalation"] },
-    { id: "intermediate-qdrant", title: "Local Qdrant and embeddings", description: "Run vector search with payload filters.", material: "../curriculum/intermediate/06-qdrant-local/README.md", notebook: "../curriculum/intermediate/06-qdrant-local/qdrant_local.ipynb", category: "Retrieval", minutes: 60, technologies: ["Qdrant", "Sentence Transformers"] },
+    { id: "i1", title: "Retrieval strategies", description: "Compare BM25, dense & hybrid.", material: "../curriculum/intermediate/01-retrieval-strategies/README.md", notebook: "../curriculum/intermediate/01-retrieval-strategies/01_retrieval_strategies.ipynb", category: "05 - Retrieval Strategies", minutes: 45, technologies: ["Hybrid Search"] },
+    { id: "i2", title: "Metadata permissions", description: "Authorize before retrieval.", material: "../curriculum/intermediate/02-metadata-permissions/README.md", notebook: "../curriculum/intermediate/02-metadata-permissions/02_metadata_permissions.ipynb", category: "06 - Metadata Permissions", minutes: 40, technologies: ["ACLs", "Security"] },
+    { id: "i3", title: "Query reranking", description: "Improve recall and candidate ordering.", material: "../curriculum/intermediate/03-query-reranking/README.md", notebook: "../curriculum/intermediate/03-query-reranking/03_query_reranking.ipynb", category: "07 - Query Reranking", minutes: 45, technologies: ["Reranking"] },
+    { id: "i4", title: "Evaluation lab", description: "Build golden sets and regression gates.", material: "../curriculum/intermediate/04-evaluation/README.md", notebook: "../curriculum/intermediate/04-evaluation/01_building_eval_datasets.ipynb", category: "08 - Evaluation Lab", minutes: 45, technologies: ["Recall@k", "Metrics"] },
+    { id: "i5", title: "Research synthesis", description: "Use multi-query evidence.", material: "../curriculum/intermediate/05-research-synthesis/README.md", notebook: "../curriculum/intermediate/05-research-synthesis/05_research_synthesis.ipynb", category: "09 - Research Synthesis", minutes: 60, technologies: ["Multi-query", "Claims"] },
+    { id: "i6", title: "Local Qdrant & embeddings", description: "Run vector search with payload filters.", material: "../curriculum/intermediate/06-qdrant-local/README.md", notebook: "../curriculum/intermediate/06-qdrant-local/06_qdrant_local.ipynb", category: "10 - Local Qdrant & Embeddings", minutes: 60, technologies: ["Qdrant", "Embeddings"] }
   ]},
   { id: "advanced", level: "Advanced", tone: "advanced", outcome: "Design recoverable, agentic, and operable RAG systems.", modules: [
-    { id: "advanced-corrective", title: "Corrective RAG", description: "Recover from weak retrieval with bounded routes.", material: "../curriculum/advanced/01-corrective-rag/README.md", notebook: "../curriculum/advanced/01-corrective-rag/corrective_rag.ipynb", category: "Retrieval", minutes: 60, technologies: ["Recovery", "Routing"] },
-    { id: "advanced-graph", title: "GraphRAG", description: "Traverse entities and preserve fact provenance.", material: "../curriculum/advanced/02-graphrag/README.md", notebook: "../curriculum/advanced/02-graphrag/graph_rag.ipynb", category: "Retrieval", minutes: 60, technologies: ["Graphs", "Entities"] },
-    { id: "advanced-agentic", title: "Agentic RAG", description: "Route tools with explicit approval boundaries.", material: "../curriculum/advanced/03-agentic-rag/README.md", notebook: "../curriculum/advanced/03-agentic-rag/agentic_rag.ipynb", category: "Security", minutes: 60, technologies: ["Tools", "Approval"] },
-    { id: "advanced-multimodal", title: "Structured and multimodal", description: "Handle tables, images, and OCR as typed evidence.", material: "../curriculum/advanced/04-structured-multimodal/README.md", notebook: "../curriculum/advanced/04-structured-multimodal/structured_multimodal.ipynb", category: "Retrieval", minutes: 60, technologies: ["Tables", "OCR"] },
-    { id: "advanced-operations", title: "Production operations", description: "Operate with traces, budgets, freshness, and readiness.", material: "../curriculum/advanced/05-production-operations/README.md", notebook: "../curriculum/advanced/05-production-operations/production_operations.ipynb", category: "Operations", minutes: 60, technologies: ["Tracing", "Budgets"] },
+    { id: "a1", title: "Corrective RAG", description: "Recover from weak retrieval with bounded routes.", material: "../curriculum/advanced/01-corrective-rag/README.md", notebook: "../curriculum/advanced/01-corrective-rag/01_corrective_rag.ipynb", category: "11 - Corrective RAG", minutes: 60, technologies: ["Routing", "Recovery"] },
+    { id: "a2", title: "GraphRAG & entity retrieval", description: "Traverse entities and preserve fact provenance.", material: "../curriculum/advanced/02-graphrag/README.md", notebook: "../curriculum/advanced/02-graphrag/02_graphrag.ipynb", category: "12 - GraphRAG", minutes: 60, technologies: ["Graph", "Traversal"] },
+    { id: "a3", title: "Agentic RAG & tool boundaries", description: "Route tools with explicit approval boundaries.", material: "../curriculum/advanced/03-agentic-rag/README.md", notebook: "../curriculum/advanced/03-agentic-rag/03_agentic_rag.ipynb", category: "13 - Agentic RAG", minutes: 60, technologies: ["Agents", "Tools"] },
+    { id: "a4", title: "Structured & multimodal RAG", description: "Handle tables, images, and OCR.", material: "../curriculum/advanced/04-structured-multimodal/README.md", notebook: "../curriculum/advanced/04-structured-multimodal/04_structured_multimodal.ipynb", category: "14 - Structured & Multimodal RAG", minutes: 60, technologies: ["SQL", "OCR"] },
+    { id: "a5", title: "Adaptive RAG", description: "Choose the minimum safe retrieval strategy.", material: "../curriculum/advanced/05-adaptive-rag/README.md", notebook: "../curriculum/advanced/05-adaptive-rag/README.md", category: "15 - Adaptive RAG", minutes: 60, technologies: ["Adaptive"] },
+    { id: "a6", title: "Production operations", description: "Operate with traces, budgets, and readiness.", material: "../curriculum/advanced/06-production-operations/README.md", notebook: "../curriculum/advanced/06-production-operations/README.md", category: "16 - Production Operations", minutes: 60, technologies: ["Tracing", "Budgets"] }
   ]},
 ];
 
 const questionIdsByCategory = {
-  Foundations: ["foundations-1", "foundations-2", "foundations-3"],
-  Ingestion: ["ingestion-1", "ingestion-2", "ingestion-3"],
-  Retrieval: ["retrieval-1", "retrieval-2", "retrieval-3"],
-  Generation: ["generation-1", "generation-2", "generation-3"],
-  Security: ["security-1", "security-2", "security-3"],
-  Evaluation: ["evaluation-1", "evaluation-2", "evaluation-3"],
-  Operations: ["operations-1", "operations-2", "operations-3"],
+  "01 - RAG Foundations": ["b1-foundations"],
+  "02 - First Local Baseline": ["b2-baseline"],
+  "03 - Chunking Lab": ["b3-chunking"],
+  "04 - Citations & Abstention": ["b4-citations"],
+  "05 - Retrieval Strategies": ["i1-retrieval"],
+  "06 - Metadata Permissions": ["i2-metadata"],
+  "07 - Query Reranking": ["i3-reranking"],
+  "08 - Evaluation Lab": ["i4-evaluation"],
+  "09 - Research Synthesis": ["i5-research"],
+  "10 - Local Qdrant & Embeddings": ["i6-qdrant"],
+  "11 - Corrective RAG": ["a1-corrective"],
+  "12 - GraphRAG": ["a2-graphrag"],
+  "13 - Agentic RAG": ["a3-agentic"],
+  "14 - Structured & Multimodal RAG": ["a4-multimodal"],
+  "15 - Adaptive RAG": ["a5-adaptive"],
+  "16 - Production Operations": ["a6-operations"],
 };
 
 export const allLessons = learningPath.flatMap((track) => track.modules.map((module) => ({ ...module, level: track.level, tone: track.tone, trackId: track.id, questionIds: questionIdsByCategory[module.category] ?? [] })));

@@ -10,7 +10,7 @@ This collection emphasizes primary sources, maintained open-source projects, and
 
 Open the repository in GitHub Codespaces or use the included [dev container](.devcontainer/devcontainer.json) for a consistent Python and notebook environment. Optional infrastructure, such as Qdrant, is documented in the intermediate lab that uses it.
 
-**Run locally:** follow the [installation and development guide](docs/local-development.md), or run `make setup`, `make test`, and `make notebook-check` on macOS/Linux.
+**Run locally:** follow the [installation and development guide](#local-installation-and-development), or run `make setup-learner`, `make test`, and `make notebook-check` on macOS/Linux.
 
 ## Contents
 
@@ -49,7 +49,7 @@ The two quality questions are distinct:
 - **Did we retrieve the right evidence?** (retrieval quality)
 - **Did the model answer faithfully from that evidence?** (generation quality)
 
-See [What is RAG?](docs/what-is-rag.md) for the concepts, trade-offs, and a source-by-source explanation.
+See [RAG foundations](curriculum/beginner/01-rag-foundations/README.md) for the concepts, trade-offs, and a source-by-source explanation.
 
 ## Start here
 
@@ -61,47 +61,35 @@ If you prefer GitHub navigation, use the [curriculum index](curriculum/README.md
 
 ## Curriculum roadmap
 
-Follow the levels in order. A lesson README explains the outcome and theory; its notebook is the primary hands-on learning artifact; `lab.py` holds the reusable, credential-free implementation used by the notebook.
+Follow the levels in order. Each lesson directory explains the outcome and theory, and contains a notebook for hands-on learning.
 
-| Level | Topic | Learn | Practice |
-| --- | --- | --- | --- |
-| Beginner | RAG foundations | [Lesson](curriculum/beginner/01-rag-foundations/README.md) | [Notebook](curriculum/beginner/01-rag-foundations/rag_foundations.ipynb) |
-| Beginner | First local RAG | [Lesson](curriculum/beginner/02-first-local-rag/README.md) | [Notebook](notebooks/beginner/01_first_local_rag.ipynb) · [Lab](curriculum/beginner/02-first-local-rag/lab.py) |
-| Beginner | Chunking decisions | [Lesson](curriculum/beginner/03-chunking-lab/README.md) | [Notebook](notebooks/beginner/02_chunking_lab.ipynb) · [Lab](curriculum/beginner/03-chunking-lab/lab.py) |
-| Beginner | Citations and abstention | [Lesson](curriculum/beginner/04-citations-abstention/README.md) | [Notebook](notebooks/beginner/03_citations_abstention.ipynb) · [Lab](curriculum/beginner/04-citations-abstention/lab.py) |
-| Intermediate | Retrieval strategies | [Lesson](curriculum/intermediate/01-retrieval-strategies/README.md) | [Notebook](curriculum/intermediate/01-retrieval-strategies/retrieval_strategies.ipynb) · [Shared core](src/rag_core/retrieval.py) |
-| Intermediate | Metadata and permissions | [Lesson](curriculum/intermediate/02-metadata-permissions/README.md) | [Notebook](curriculum/intermediate/02-metadata-permissions/metadata_permissions.ipynb) · [Lab](curriculum/intermediate/02-metadata-permissions/lab.py) |
-| Intermediate | Query planning and reranking | [Lesson](curriculum/intermediate/03-query-reranking/README.md) | [Notebook](curriculum/intermediate/03-query-reranking/query_reranking.ipynb) · [Lab](curriculum/intermediate/03-query-reranking/lab.py) |
-| Intermediate | Evaluation and release gates | [Lesson](curriculum/intermediate/04-evaluation/README.md) | [Notebook](curriculum/intermediate/04-evaluation/evaluation.ipynb) · [Lab](curriculum/intermediate/04-evaluation/lab.py) |
-| Intermediate | Research synthesis | [Lesson](curriculum/intermediate/05-research-synthesis/README.md) | [Notebook](curriculum/intermediate/05-research-synthesis/research_synthesis.ipynb) · [Lab](curriculum/intermediate/05-research-synthesis/lab.py) |
-| Intermediate | Local Qdrant | [Lesson](curriculum/intermediate/06-qdrant-local/README.md) | [Notebook](curriculum/intermediate/06-qdrant-local/qdrant_local.ipynb) · [Lab](curriculum/intermediate/06-qdrant-local/lab.py) |
-| Advanced | Corrective RAG | [Lesson](curriculum/advanced/01-corrective-rag/README.md) | [Notebook](curriculum/advanced/01-corrective-rag/corrective_rag.ipynb) · [Lab](curriculum/advanced/01-corrective-rag/lab.py) |
-| Advanced | GraphRAG | [Lesson](curriculum/advanced/02-graphrag/README.md) | [Notebook](curriculum/advanced/02-graphrag/graph_rag.ipynb) · [Lab](curriculum/advanced/02-graphrag/lab.py) |
-| Advanced | Agentic RAG | [Lesson](curriculum/advanced/03-agentic-rag/README.md) | [Notebook](curriculum/advanced/03-agentic-rag/agentic_rag.ipynb) · [Lab](curriculum/advanced/03-agentic-rag/lab.py) |
-| Advanced | Structured and multimodal RAG | [Lesson](curriculum/advanced/04-structured-multimodal/README.md) | [Notebook](curriculum/advanced/04-structured-multimodal/structured_multimodal.ipynb) · [Lab](curriculum/advanced/04-structured-multimodal/lab.py) |
-| Advanced | Production operations | [Lesson](curriculum/advanced/05-production-operations/README.md) | [Notebook](curriculum/advanced/05-production-operations/production_operations.ipynb) · [Lab](curriculum/advanced/05-production-operations/lab.py) |
-
-After each level, apply the skills in a realistic capstone: the [documentation assistant](use-cases/documentation-assistant/README.md) after Beginner and the [customer-support assistant](use-cases/customer-support/README.md) after Intermediate. The [use-case catalog](use-cases/README.md) helps select a starting architecture for other projects.
-
-## Guided lab tracks
-
-Use a specialist notebook track when you want a longer, connected business scenario in addition to the level roadmap.
-
-| Track | Best after | What it covers |
+| Level | Topic | Lesson & Notebook |
 | --- | --- | --- |
-| [Harborline Support](notebooks/README.md#harborline-support--beginner-notebook-track) | Foundations | Transparent retrieval, chunking choices, citations, and safe abstention |
-| [NovaTech Enterprise Knowledge Assistant](notebooks/enterprise/README.md) | Intermediate | Eleven labs from retrieval and hybrid search through evaluation, adaptive systems, multimodal evidence, security, and production operations |
-| [PolicyAssist Evaluation Lab](notebooks/evaluation/README.md) | Evaluation | Twelve notebooks on datasets, retrieval, context, grounded generation, citation checks, judges, robustness, security, observability, and release review |
-| [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) | Advanced retrieval | Six notebooks on complexity gates, source routing, adaptive depth, corrective loops, and production policy selection |
+| Beginner | RAG foundations | [curriculum/beginner/01-rag-foundations](curriculum/beginner/01-rag-foundations) |
+| Beginner | First local RAG | [curriculum/beginner/02-first-local-rag](curriculum/beginner/02-first-local-rag) |
+| Beginner | Chunking decisions | [curriculum/beginner/03-chunking-lab](curriculum/beginner/03-chunking-lab) |
+| Beginner | Citations and abstention | [curriculum/beginner/04-citations-abstention](curriculum/beginner/04-citations-abstention) |
+| Intermediate | Retrieval strategies | [curriculum/intermediate/01-retrieval-strategies](curriculum/intermediate/01-retrieval-strategies) |
+| Intermediate | Metadata and permissions | [curriculum/intermediate/02-metadata-permissions](curriculum/intermediate/02-metadata-permissions) |
+| Intermediate | Query planning and reranking | [curriculum/intermediate/03-query-reranking](curriculum/intermediate/03-query-reranking) |
+| Intermediate | Evaluation and release gates | [curriculum/intermediate/04-evaluation](curriculum/intermediate/04-evaluation) |
+| Intermediate | Research synthesis | [curriculum/intermediate/05-research-synthesis](curriculum/intermediate/05-research-synthesis) |
+| Intermediate | Local Qdrant | [curriculum/intermediate/06-qdrant-local](curriculum/intermediate/06-qdrant-local) |
+| Advanced | Corrective RAG | [curriculum/advanced/01-corrective-rag](curriculum/advanced/01-corrective-rag) |
+| Advanced | GraphRAG | [curriculum/advanced/02-graphrag](curriculum/advanced/02-graphrag) |
+| Advanced | Agentic RAG | [curriculum/advanced/03-agentic-rag](curriculum/advanced/03-agentic-rag) |
+| Advanced | Structured and multimodal RAG | [curriculum/advanced/04-structured-multimodal](curriculum/advanced/04-structured-multimodal) |
+| Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
+| Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
 
-The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) links these tracks alongside the level roadmap, while the [course map](COURSE_MAP.md) is the repository-wide source of truth for every lesson, notebook, lab, test, and data fixture.
+The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) links these modules alongside the level roadmap, while the [course map](COURSE_MAP.md) is the repository-wide source of truth for every lesson, notebook, lab, test, and data fixture.
 
 ## Run locally
 
 The guided setup is in [local installation and development](docs/local-development.md). On macOS/Linux:
 
 ```bash
-make setup
+make setup-learner
 make test
 make notebook-check
 ```
@@ -112,11 +100,10 @@ Use `make notebooks` to open JupyterLab, `make pages` to build and smoke-test th
 
 These guides complement the hub with deeper design references and production checklists:
 
-- [Technology decisions](docs/technology-decisions.md) — default stack, alternatives, and framework/retrieval-store criteria.
-- [Retrieval patterns](docs/retrieval-patterns.md) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
-- [Evaluation guide](docs/evaluation.md) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
-- [PolicyAssist RAG Evaluation Lab](notebooks/evaluation/README.md) — a notebook-first course that turns the evaluation guide into an end-to-end production-readiness investigation.
-- [Adaptive RAG guide](docs/adaptive-rag.md) and [Adaptive RAG Lab](notebooks/adaptive-rag/README.md) — move from fixed retrieval to safe, measurable policy selection.
+- [Technology decisions](#technology-decisions) — default stack, alternatives, and framework/retrieval-store criteria.
+- [Retrieval patterns](curriculum/intermediate/01-retrieval-strategies) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
+- [Evaluation guide](curriculum/intermediate/04-evaluation) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
+- [Adaptive RAG guide](curriculum/advanced/05-adaptive-rag) — move from fixed retrieval to safe, measurable policy selection.
 - [Learning guide](LEARNING.md) — concise beginner/intermediate/advanced sequence for repository readers.
 
 The hub and quiz run entirely in the browser and store completion only on the learner's device. For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets, Field Guide shell, and quiz page. `npm run check:external-links` performs an opt-in health check for curated external URLs.
@@ -145,7 +132,7 @@ The hub and quiz run entirely in the browser and store completion only on the le
 | Research synthesis | Multi-query retrieval + deduplication + claim-level citations | One query rarely captures every relevant source |
 | Enterprise knowledge graph | GraphRAG / entity retrieval alongside text search | Relationships and global questions exceed isolated-chunk retrieval |
 
-Read [Retrieval patterns](docs/retrieval-patterns.md) for detailed explanations, decision criteria, and sources.
+Read [Retrieval strategies](curriculum/intermediate/01-retrieval-strategies) for detailed explanations, decision criteria, and sources.
 
 ## Appendix: curated references and resources
 
@@ -236,7 +223,7 @@ in the Learning Hub and practical guides.
 - [RAGAS documentation](https://docs.ragas.io/en/stable/concepts/metrics/) — definitions and use of metrics such as faithfulness, context precision, and context recall.
 - [RAGChecker](https://github.com/amazon-science/RAGChecker) — fine-grained diagnostic framework for RAG evaluation.
 
-See [Evaluation](docs/evaluation.md) for a concrete evaluation loop and metric selection guidance.
+See [Evaluation](curriculum/intermediate/04-evaluation) for a concrete evaluation loop and metric selection guidance.
 
 ## Security and production checklist
 
@@ -276,3 +263,133 @@ Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before
 ## License
 
 This repository is licensed under the [MIT License](LICENSE).
+
+
+---
+
+# Local installation and development
+
+This course is designed to run without an API key. The deterministic notebooks, examples, tests, Hub, and quiz use fixtures committed to the repository. Optional labs that use Qdrant, embeddings, or provider SDKs document their extra setup where they appear.
+
+## Quick start (macOS, Linux, or Codespaces)
+
+Requirements:
+
+- Python 3.11 or newer;
+- Node.js 20 or newer for the Hub and quiz; and
+- GNU Make (already present on most macOS/Linux development environments).
+
+```bash
+git clone https://github.com/mahsa-teimourikia/awsome-rag.git
+cd awsome-rag
+make setup-learner
+make test
+make notebook-check
+```
+
+`make setup-learner` creates `.venv` and installs the project’s `learner` extra, including the Jupyter execution runtime. Use `make setup-contributor` to install the `contributor` extra along with node dependencies. `make notebook-check` executes the 32 deterministic beginner, Enterprise, Evaluation, and Adaptive RAG notebooks in real kernels—the same notebook contract used by CI.
+
+## Study in Jupyter
+
+Activate the environment, then launch Jupyter from the repository root so imports and data paths resolve correctly:
+
+```bash
+source .venv/bin/activate
+PYTHONPATH=. python -m jupyterlab curriculum
+```
+
+Start with the [Beginner track](curriculum/beginner), then follow the [course map](COURSE_MAP.md). Notebooks are self-contained: they explain theory, include their exercises, and import reusable deterministic modules rather than requiring a model API.
+
+## Preview the Learning Hub and quiz
+
+Install the Node dependencies and build the same static artifact GitHub Pages deploys:
+
+```bash
+npm ci
+npm run test:pages
+```
+
+The generated site is written to `out/`; the command also checks that the Hub bundle, One+i asset, and `/quiz/` artifact exist. For a development server, use `npm run dev`.
+
+## Manual setup and Windows
+
+If you do not have Make, create and use a virtual environment directly:
+
+```bash
+python -m venv .venv
+# macOS/Linux
+source .venv/bin/activate
+# Windows PowerShell
+# .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e '.[learner]'
+PYTHONPATH=. python -m pytest -q
+PYTHONPATH=. python scripts/execute-notebooks.py --timeout 90
+```
+
+On Windows PowerShell, set the Python path for the current shell with `$env:PYTHONPATH='.'` before running the final two commands.
+
+## Optional infrastructure
+
+The core path does not require a model download, Docker, Qdrant, or an API key. Add optional capabilities only when you reach the related lesson:
+
+- `pip install -e '.[llamaindex]'` for LlamaIndex comparisons;
+- `pip install -e '.[qdrant]'` for the Qdrant/Sentence Transformers lab; and
+- `docker compose up -d` only when following the local Qdrant service instructions.
+
+Never commit API keys. Put provider credentials in a local environment file ignored by Git, set a budget, and keep side-effecting tools behind explicit approval boundaries.
+
+## Useful checks
+
+| Goal | Command |
+| --- | --- |
+| Python behavior | `make test` |
+| Execute deterministic notebooks | `make notebook-check` |
+| Validate Hub resource paths | `make links` |
+| Build and smoke-test Hub + quiz | `make pages` |
+| Check external curated links | `make external-links` |
+
+The `external-links` target needs network access and is intentionally separate from the deterministic local test path.
+
+
+---
+
+# Technology decisions
+
+The core curriculum intentionally uses small Python implementations first, then introduces production technologies when the learner understands the failure mode they address. This keeps the learning path coherent while still showing the broader ecosystem.
+
+## Default path
+
+| Need | Default | Why it appears here |
+| --- | --- | --- |
+| Environment | `uv` + Python 3.11+ | Fast, reproducible project setup |
+| Data framework | LlamaIndex | Clear ingestion and retrieval abstractions |
+| Workflow/agents | LangGraph | Explicit stateful routing and recovery |
+| Vector search | Qdrant | Local Docker path plus metadata filtering |
+| Embeddings | Sentence Transformers | Local experimentation and model choice |
+| Documents | Docling | Layout-aware PDF and document parsing |
+| Schemas | Pydantic | Typed boundaries and validation |
+| API | FastAPI | Small production-style service surface |
+| Evaluation | Ragas + DeepEval | Retrieval and answer-quality checks |
+| Observability | OpenTelemetry + Phoenix/Langfuse | Traces, metrics, and experiment inspection |
+
+## Choosing alternatives
+
+- Choose **LangChain** when a team already uses its integrations or wants broad provider coverage; do not introduce it before learners understand the underlying stages.
+- Choose **Haystack** when component pipelines and deployment-oriented abstractions are the main teaching goal.
+- Choose **Chroma** for a very small prototype; choose **Qdrant**, **Weaviate**, **Milvus**, or **OpenSearch** when filtering, scale, hybrid search, or operational requirements justify them.
+- Choose hosted retrieval when managed operations matter more than local control; still teach permissions, citations, evaluation, and failure behavior around it.
+- Choose GraphRAG only when relationships or corpus-level questions justify graph extraction and traversal complexity.
+
+## Selection checklist
+
+Before choosing a library, write down:
+
+1. Corpus size, update frequency, and document modalities.
+2. Tenant and document authorization requirements.
+3. Exact-term versus semantic retrieval needs.
+4. Latency, cost, and deployment constraints.
+5. Evaluation data and regression thresholds.
+6. Observability, retention, and incident-response requirements.
+
+The most prominent tool is not automatically the best tool. A technology belongs in a production design only when its trade-offs match the use case and can be measured.

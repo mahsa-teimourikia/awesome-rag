@@ -1,1 +1,0 @@
-"""Intermediate retrieval examples."""
