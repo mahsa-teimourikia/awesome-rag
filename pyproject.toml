@@ -16,7 +16,9 @@ learner = [
     "pydantic>=2.0",
     "fastapi>=0.110.0",
     "ragas",
-    "docling"
+    "docling",
+    "pandas",
+    "langchain-experimental"
 ]
 contributor = [
     "awesome-rag-learning[learner]",
