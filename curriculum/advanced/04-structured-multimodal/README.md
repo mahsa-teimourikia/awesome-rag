@@ -53,6 +53,270 @@ After this lesson you should be able to:
 
 ---
 
+# Deep dive — Structured and Multimodal RAG
+
+## Why text-only RAG is insufficient
+
+Enterprise knowledge rarely exists only as paragraphs. Important evidence lives in:
+
+- relational databases;
+- spreadsheets;
+- tables embedded in PDFs;
+- charts and diagrams;
+- screenshots;
+- scanned forms;
+- images;
+- audio/video transcripts and frames.
+
+A text-only ingestion pipeline often flattens these modalities into strings and loses structure. Structured and Multimodal RAG instead asks: **what representation, retrieval method, and evidence contract are appropriate for this information type?**
+
+## Operation-first routing
+
+Modality is only part of the decision. The required operation matters too.
+
+```text
+"What is the policy limit?"       → text retrieval
+"Total exposure for customer X?"  → deterministic structured query
+"What number is in this cell?"    → table/OCR extraction
+"What trend does this chart show?"→ visual interpretation
+```
+
+The system should route by both **information source** and **operation semantics**.
+
+## Structured RAG
+
+Structured RAG retrieves or computes over schema-bearing data rather than unstructured chunks.
+
+Common patterns include:
+
+### Typed API / semantic layer
+
+Expose business operations such as:
+
+```text
+get_customer_exposure(customer_id)
+get_policy_limits(policy_id)
+```
+
+This is often the safest option because business semantics and authorization are encoded outside the model.
+
+### Constrained query specification
+
+The model emits a typed intent:
+
+```json
+{
+  "dataset": "claims",
+  "filters": [{"field": "customer_id", "op": "eq", "value": "C-17"}],
+  "aggregation": {"field": "amount", "op": "sum"}
+}
+```
+
+Trusted code validates and executes it.
+
+### Text-to-SQL
+
+Useful for flexible analytics, but it introduces schema exposure, query correctness, resource, and authorization risks. Use read-only credentials, row-level security, allowlists, query validation, timeouts, and—where appropriate—human review.
+
+## Deterministic computation boundary
+
+LLMs are useful for interpreting user intent and explaining results. They should not replace deterministic arithmetic.
+
+```text
+natural-language request
+        ↓
+validated structured operation
+        ↓
+database / dataframe / calculation
+        ↓
+exact result + provenance
+        ↓
+LLM explanation
+```
+
+This separation improves reproducibility and makes numeric errors diagnosable.
+
+## Table understanding
+
+Tables are not ordinary text. Flattening a table can destroy:
+
+- row/column relationships;
+- headers;
+- merged cells;
+- units;
+- hierarchical structure.
+
+Possible representations include:
+
+- row-wise documents;
+- table-level summaries;
+- schema + cell coordinates;
+- HTML/Markdown serialization;
+- table embeddings;
+- multimodal page representations.
+
+The right representation depends on whether questions target individual cells, row filtering, aggregation, or semantic interpretation.
+
+## OCR pipelines
+
+OCR converts visual text into machine-readable text and often provides geometry.
+
+A robust OCR record can include:
+
+```text
+asset_id
+page
+region/bounding_box
+text
+confidence
+reading_order
+engine/version
+```
+
+OCR remains valuable because it supports searchable text, coordinates, deterministic extraction, and lower-cost indexing. Its weaknesses include recognition errors, reading-order errors, and loss of visual semantics.
+
+## Native multimodal retrieval
+
+Multimodal RAG can index and retrieve images/pages directly using multimodal representations. Instead of converting every page to text first:
+
+```text
+page image → multimodal embedding → retrieve page/region → multimodal model
+```
+
+This can preserve layout, charts, handwriting, visual annotations, and spatial relationships that OCR-only pipelines lose.
+
+The trade-off is greater compute cost and more difficult evaluation/provenance.
+
+## Cross-modal retrieval
+
+Multimodal systems may support:
+
+```text
+text query → image/page
+image query → text
+image query → image
+text query → text + image
+```
+
+Cross-modal alignment is a central challenge: the embedding space must make the query and the relevant evidence comparable even when they use different modalities.
+
+## Late fusion vs unified retrieval
+
+Two broad architectures are common.
+
+### Separate retrievers + fusion
+
+```text
+text retriever ─┐
+table retriever ├→ fusion/rerank → context
+image retriever ┘
+```
+
+Advantages: specialized indexes, easier diagnostics, independent tuning.
+
+### Unified multimodal representation
+
+```text
+all modalities → shared representation → one retrieval layer
+```
+
+Advantages: simpler cross-modal search. Risks: modality-specific signals can be lost and evaluation becomes less transparent.
+
+For enterprise systems, separate retrieval paths with explicit fusion are often easier to govern.
+
+## Visual evidence granularity
+
+Retrieving an entire 50-page PDF because one chart is relevant wastes context. Useful retrieval units include:
+
+- page;
+- figure;
+- chart;
+- table;
+- image region;
+- slide;
+- video segment/frame.
+
+Store locators so the answer can identify where the evidence came from.
+
+## Observation, computation, and inference
+
+These evidence types must remain distinct.
+
+```text
+Observed:  OCR reads "$5M" in region R3.
+Computed:  SUM(rows 12–18) = $5M.
+Inferred:  The chart appears to show accelerating growth.
+```
+
+They have different error modes. A model inference should not be presented with the certainty of a database calculation.
+
+## Multimodal context construction
+
+Context assembly must account for modality budgets. A final prompt may contain:
+
+- extracted text;
+- structured result objects;
+- table snippets;
+- selected images/pages;
+- source metadata.
+
+Avoid duplicating the same evidence as OCR text, page image, and generated summary unless there is a reason. Duplication consumes context and can overweight one source.
+
+## Security
+
+Structured and multimodal systems expand the attack surface:
+
+- SQL/data authorization;
+- hidden text in images;
+- prompt injection inside documents/screenshots;
+- EXIF/metadata leakage;
+- sensitive OCR content;
+- cross-tenant vector indexes;
+- generated code execution.
+
+Authorization must apply before evidence is exposed to the model. A multimodal model seeing a restricted page is already a data-access event.
+
+## Evaluation
+
+Use modality-specific metrics.
+
+**Structured**
+- query/operation correctness;
+- row selection;
+- arithmetic accuracy;
+- units/currency handling;
+- authorization.
+
+**OCR/table extraction**
+- character/word error;
+- field accuracy;
+- cell/header association;
+- locator accuracy.
+
+**Visual**
+- evidence retrieval recall;
+- chart/diagram interpretation accuracy;
+- region grounding;
+- unsupported visual inference.
+
+**End-to-end**
+- claim support across modalities;
+- citation/locator completeness;
+- contradiction handling;
+- latency/cost.
+
+## Architecture selection
+
+Use OCR-first when the task is predominantly textual extraction. Use native multimodal retrieval when visual layout and non-textual information are essential. Use structured execution when the task is a database operation or calculation. Many real systems combine all three.
+
+The design goal is not maximum modality support. It is to preserve the strongest available evidence representation for each task.
+
+---
+
+# Notebook companion
+
+The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
+
 # 1. What the notebook actually implements
 
 The folder contains:
@@ -301,6 +565,8 @@ Route requests to the cheapest reliable retrieval/data path instead of sending e
 - NIST — [AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
 
 ---
+- Abootorabi et al. — [Ask in Any Modality: A Comprehensive Survey on Multimodal RAG](https://arxiv.org/abs/2502.08826)
+- Gao et al. — [Scaling Beyond Context: Multimodal RAG for Document Understanding](https://arxiv.org/abs/2510.15253)
 
 ## Key takeaway
 

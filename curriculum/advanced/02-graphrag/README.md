@@ -52,6 +52,280 @@ After this lesson you should be able to:
 
 ---
 
+# Deep dive — GraphRAG theory, indexing, and retrieval
+
+## Why graph retrieval exists
+
+Vector retrieval represents semantic similarity well, but many enterprise questions are fundamentally relational:
+
+```text
+Which applications depend on the vulnerable library?
+Which supplier supports the service owned by this business unit?
+How is regulation R connected to control C and system S?
+What themes dominate the corpus as a whole?
+```
+
+A knowledge graph represents entities and typed relationships explicitly. GraphRAG combines that structure with retrieval and generation so the system can retrieve **connections**, not merely similar passages.
+
+The important distinction is:
+
+```text
+vector RAG: query → similar evidence
+GraphRAG: query → entities/communities/paths → supporting evidence
+```
+
+Graph retrieval is most valuable when topology carries information that would otherwise require assembling many disconnected chunks.
+
+## Graph data model
+
+A minimal property-graph representation contains:
+
+```text
+Node:
+  id
+  type
+  canonical_name
+  aliases
+  attributes
+  provenance
+
+Edge:
+  id
+  source_id
+  relation_type
+  target_id
+  attributes
+  provenance
+```
+
+Enterprise graphs also commonly need:
+
+- tenant/security scope;
+- valid-from / valid-to dates;
+- confidence or extraction status;
+- source document and source span;
+- extraction pipeline version;
+- human verification status.
+
+Treat graph facts as derived data. If the source document changes, the graph needs a lineage-aware update strategy.
+
+## The indexing pipeline
+
+A GraphRAG indexing pipeline is substantially more expensive than ordinary chunk embedding.
+
+```text
+documents
+   ↓
+chunk / text-unit creation
+   ↓
+entity extraction
+   ↓
+relationship extraction
+   ↓
+entity resolution / deduplication
+   ↓
+graph construction
+   ↓
+community detection / summaries (optional)
+   ↓
+embeddings + indexes
+```
+
+The quality of every downstream graph query depends on these extraction stages. A sophisticated graph search cannot repair a graph that merged two different people or missed the relationship that matters.
+
+## Entity resolution
+
+Entity resolution is often the hardest practical problem.
+
+You need to decide whether:
+
+```text
+"ACME"
+"Acme Systems"
+"Acme Systems Inc."
+```
+
+are the same entity, and whether an identical name in another geography or tenant is different.
+
+Useful signals include:
+
+- normalized names;
+- aliases;
+- entity type;
+- neighboring relationships;
+- identifiers from authoritative systems;
+- tenant/domain context;
+- temporal context.
+
+False merges create fabricated paths. False splits make true paths unreachable. Measure both.
+
+## Relationship extraction and semantics
+
+Edges should use a controlled relation vocabulary where possible:
+
+```text
+OWNS
+DEPENDS_ON
+SUPPLIED_BY
+LOCATED_IN
+IMPLEMENTS_CONTROL
+GOVERNED_BY
+```
+
+Free-form relation text is flexible but difficult to validate and query. Typed relations allow schema constraints and direction rules.
+
+Direction matters. `A DEPENDS_ON B` does not mean `B DEPENDS_ON A`. Some relationships are symmetric; many are not.
+
+## Graph traversal strategies
+
+Basic graph retrieval can use:
+
+- one-hop neighborhood expansion;
+- bounded k-hop traversal;
+- shortest path;
+- weighted path search;
+- relation-constrained traversal;
+- personalized PageRank or centrality-based expansion;
+- subgraph retrieval seeded by vector search.
+
+The best traversal depends on the question. Shortest path is not automatically the most meaningful path. A two-hop path through a generic hub may be less useful than a three-hop path through semantically precise relationships.
+
+## Microsoft GraphRAG architecture
+
+Microsoft GraphRAG popularized a broader graph-based RAG architecture that includes entity/relationship extraction, community detection, community reports, and multiple query modes.
+
+Current GraphRAG distinguishes:
+
+### Local Search
+
+Entity-focused retrieval that combines graph data with related source text. Use it when the question is anchored around specific entities and their neighborhood.
+
+### Global Search
+
+Corpus-level search over community reports using a map-reduce style process. Use it for questions about dominant themes, patterns, or the dataset as a whole.
+
+### DRIFT Search
+
+A search mode that combines community-level context with iterative local exploration, broadening the starting context and generating follow-up investigation.
+
+### Basic Search
+
+A vector-RAG baseline useful for comparing whether graph structure actually adds value.
+
+This taxonomy is important: "GraphRAG" is not synonymous with `shortest_path()`.
+
+## Communities and hierarchical summarization
+
+Large graphs can be partitioned into communities—groups of densely connected entities. Community summaries create a hierarchy:
+
+```text
+raw text
+  ↓
+entities + relations
+  ↓
+communities
+  ↓
+community reports
+  ↓
+corpus-level retrieval
+```
+
+This is useful for global questions because retrieving individual entities may never expose the overall pattern. The trade-off is indexing cost and summary drift: every generated community report is another derived artifact that must be versioned and evaluated.
+
+## Hybrid graph + vector retrieval
+
+Many production designs use vector retrieval to seed graph exploration:
+
+```text
+query
+  ↓
+retrieve relevant chunks/entities by embedding
+  ↓
+resolve seed entities
+  ↓
+expand allowed relationships
+  ↓
+retrieve source passages for graph facts
+  ↓
+rank combined evidence
+```
+
+This avoids requiring the query to exactly match graph entity names while still exploiting explicit relationships.
+
+## Provenance architecture
+
+A graph edge should never become an uncited fact simply because it is stored in a graph database.
+
+Maintain:
+
+```text
+edge → extraction record → source span → source version
+```
+
+For generated answers, cite the underlying source evidence, not merely the graph node ID. The graph is an index over evidence, not necessarily the authoritative source itself.
+
+## Security and multi-tenancy
+
+Graph authorization is subtle because traversal can reveal sensitive structure even when node content is hidden. Controls may need to apply to:
+
+- nodes;
+- edges;
+- properties;
+- traversal rules;
+- community summaries.
+
+A path should be valid only if every traversed fact is visible in the requester's authorization scope. Precomputed community summaries are especially important to review because they can blend facts from multiple scopes.
+
+## Cost model
+
+GraphRAG shifts cost toward indexing:
+
+```text
+entity extraction
+relationship extraction
+entity resolution
+community detection
+community summarization
+embeddings
+```
+
+Query cost can also be high for global/map-reduce modes. Evaluate whether graph-specific question classes justify that cost. For many FAQ or direct lookup workloads, hybrid text retrieval remains simpler and cheaper.
+
+## Evaluation
+
+Evaluate the graph before the answer:
+
+- entity extraction precision/recall;
+- entity-resolution false merge/split rate;
+- relation extraction accuracy;
+- path recall;
+- path precision;
+- source-provenance coverage;
+- graph freshness;
+- unauthorized path exposure;
+- answer claim support.
+
+Create separate benchmark groups for entity lookup, relationship questions, multi-hop questions, and global/corpus-level questions. GraphRAG should outperform the text baseline specifically where graph structure is expected to matter.
+
+## When not to use GraphRAG
+
+Avoid GraphRAG when:
+
+- questions are mostly direct passage lookups;
+- relationships are sparse or unreliable;
+- entity resolution cannot be made trustworthy;
+- the corpus changes too rapidly for the indexing cost;
+- authorization boundaries make graph-derived summaries unsafe;
+- a simpler hybrid retriever already meets quality targets.
+
+GraphRAG is a specialized retrieval architecture, not the next mandatory stage after vector RAG.
+
+---
+
+# Notebook companion
+
+The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
+
 # 1. What the notebook actually implements
 
 The folder contains only:
@@ -340,6 +614,8 @@ Move from a bounded graph query to runtime tool selection while retaining explic
 - NetworkX — [Documentation](https://networkx.org/documentation/stable/)
 
 ---
+- Microsoft GraphRAG — [Query engine overview](https://microsoft.github.io/graphrag/query/overview/)
+- Microsoft GraphRAG — [Prompt tuning](https://microsoft.github.io/graphrag/prompt_tuning/overview/)
 
 ## Key takeaway
 

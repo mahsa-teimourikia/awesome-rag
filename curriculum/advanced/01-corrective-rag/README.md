@@ -57,6 +57,211 @@ After this lesson you should be able to:
 
 ---
 
+# Deep dive — Corrective RAG theory and architecture
+
+## The problem CRAG is trying to solve
+
+Vanilla RAG usually treats retrieval as if it were a reliable preprocessing step. In reality, retrieval is a probabilistic subsystem. It can return evidence that is relevant but incomplete, topically similar but factually useless, stale, contradictory, unauthorized, or simply empty. Once weak evidence is placed into the context window, the generator can make the failure harder to see by producing a fluent answer.
+
+Corrective RAG changes the architecture from **retrieve then trust** to **retrieve, assess, then decide**. The original CRAG work introduced a retrieval evaluator that estimates retrieval quality and uses that signal to trigger different retrieval actions. It also proposed knowledge refinement and external retrieval as mechanisms for improving weak evidence. In enterprise systems, the more general lesson is to introduce an explicit evidence-quality control point between retrieval and generation.
+
+A useful abstraction is:
+
+```text
+q → R(q) → E(q, D) → policy(E) → {accept, transform, recover, abstain}
+```
+
+where:
+
+- `q` is the user query;
+- `R` is the retriever;
+- `D` is the retrieved evidence set;
+- `E` is an evidence evaluator; and
+- `policy` converts evidence state into an allowed action.
+
+The evaluator and the policy should be treated as separate concepts. An evaluator may say *weak evidence*; policy decides whether that means query rewrite, another internal retriever, clarification, an approved external source, or abstention.
+
+## Retrieval failure taxonomy
+
+A corrective system is easier to design when failures are classified explicitly.
+
+| Failure | What it looks like | Typical response |
+|---|---|---|
+| Empty retrieval | no candidates survive filters | rewrite, alternate index, clarify |
+| Lexical mismatch | semantic retriever misses exact code/name | BM25/hybrid fallback |
+| Semantic mismatch | retrieved passages share vocabulary but not intent | rerank/rewrite |
+| Partial coverage | evidence answers only part of a compound question | decompose query, retrieve missing facets |
+| Staleness | evidence is relevant but outside freshness policy | fresher approved source |
+| Conflict | authoritative sources disagree | surface conflict, prefer policy-defined authority |
+| Authorization loss | relevant documents exist but are not accessible | abstain; never widen permissions |
+| Corpus gap | authorized corpus does not contain answer | external route if approved, otherwise abstain |
+
+This taxonomy matters because a generic `retry()` often repeats the same failure. Correction should change a variable that plausibly caused the failure.
+
+## Evidence grading
+
+Evidence grading is not the same as asking a model, "Are you confident?" A useful grader examines properties of the retrieved set.
+
+For a query with requirements `r1...rn`, a conceptual evidence score can combine:
+
+```text
+coverage(q, D)
+relevance(q, D)
+authority(D)
+freshness(D)
+consistency(D)
+authorization(D)
+```
+
+The exact implementation can be rules, a classifier, an LLM evaluator, or a hybrid. High-risk invariants such as authorization should remain deterministic.
+
+A three-state design is often easier to operate than a continuous score:
+
+```text
+STRONG       → generate
+WEAK         → bounded recovery
+INSUFFICIENT → clarify / abstain
+```
+
+Continuous scores can still be recorded for analysis, but operational decisions benefit from explicit states and calibrated thresholds.
+
+## Document-level vs set-level grading
+
+CRAG-style systems can evaluate individual documents and/or the retrieved set as a whole.
+
+**Document-level grading** asks whether each candidate contributes useful evidence. It is useful for pruning irrelevant chunks.
+
+**Set-level grading** asks whether the surviving evidence collectively covers the information need. This is critical for multi-part questions where every individual chunk may be relevant but the set is incomplete.
+
+A production implementation commonly needs both:
+
+```text
+retrieve candidates
+   ↓
+per-document relevance / authority checks
+   ↓
+prune or rerank
+   ↓
+set-level coverage / conflict check
+   ↓
+accept or recover
+```
+
+## Knowledge refinement
+
+One idea in the original CRAG design is to decompose retrieved documents into smaller knowledge units, score those units, and recompose useful evidence. The broader engineering pattern is **evidence refinement**: reduce irrelevant context before generation without destroying provenance.
+
+Possible refinement operations include:
+
+- passage extraction;
+- sentence selection;
+- table row selection;
+- metadata filtering;
+- deduplication;
+- contradiction grouping;
+- contextual compression.
+
+Refinement must retain a mapping from the refined evidence back to the original source. A compressed statement with no source locator is weaker operational evidence than the raw passage it replaced.
+
+## Recovery policy design
+
+A recovery graph should be finite and failure-specific. Example:
+
+```text
+retrieve
+  ↓
+grade
+  ├─ strong → answer
+  ├─ lexical_gap → hybrid retrieve → grade
+  ├─ partial → decompose → retrieve missing facet → grade
+  ├─ stale → approved fresh source → grade
+  └─ insufficient / budget exhausted → abstain
+```
+
+Each edge should define:
+
+- trigger condition;
+- allowed data sources;
+- identity/tenant scope;
+- maximum attempts;
+- latency budget;
+- cost budget;
+- evidence requirements;
+- terminal behavior.
+
+This turns "self-correction" into a testable state machine rather than an open-ended model behavior.
+
+## CRAG, Self-RAG, Adaptive RAG, and reranking
+
+These techniques solve related but different problems.
+
+| Technique | Primary decision | Typical location |
+|---|---|---|
+| Reranking | Which retrieved candidates are best? | after candidate retrieval |
+| Corrective RAG | Is retrieved evidence sufficient, and how should we recover? | after retrieval |
+| Adaptive RAG | Which retrieval strategy should be used? | before/around retrieval |
+| Self-RAG | When should retrieval/reflection occur during generation? | generation-time control |
+| Agentic RAG | Which tools/steps should be chosen dynamically? | runtime orchestration |
+
+A mature architecture may combine them, but combining controllers increases evaluation and failure complexity.
+
+## Enterprise design pattern
+
+For a regulated internal assistant, a strong pattern is:
+
+```text
+identity + policy context
+        ↓
+authorized retrieval
+        ↓
+evidence grader
+        ↓
+policy-controlled recovery
+        ↓
+evidence ledger
+        ↓
+generation
+        ↓
+claim/citation verification
+        ↓
+answer or abstain
+```
+
+The evidence ledger should record source IDs, versions, retrieval route, grader result, recovery attempts, and terminal reason. This is much more useful for audit than a generic "confidence" value.
+
+## Evaluation strategy
+
+Evaluate the controller, not only the final answer. Build cases for each known failure class and measure:
+
+- retrieval sufficiency classification;
+- false accepts of weak evidence;
+- unnecessary correction of strong evidence;
+- recovery success by route;
+- answer support after correction;
+- abstention precision/recall;
+- latency and cost delta;
+- unauthorized route attempts.
+
+Always compare against a fixed-RAG baseline. A corrective controller that improves a few difficult questions but doubles cost for all traffic may be the wrong design.
+
+## When not to use Corrective RAG
+
+Do not add a corrective loop when:
+
+- retrieval is already highly reliable for a narrow corpus;
+- a deterministic fallback completely handles the known failure;
+- latency requirements cannot tolerate another retrieval/evaluation pass;
+- the evaluator cannot be calibrated well enough to improve decisions;
+- the application should simply abstain on missing evidence.
+
+The goal is not self-correction as a feature. The goal is measurable reduction in evidence failures.
+
+---
+
+# Notebook companion
+
+The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
+
 # 1. What the notebook actually implements
 
 The course folder contains:
@@ -310,6 +515,7 @@ Move from correcting retrieval failures to retrieving explicit relationships acr
 - LangGraph — [What's new in v1](https://docs.langchain.com/oss/python/releases/langgraph-v1)
 
 ---
+- Akarsu et al. — [From BM25 to Corrective RAG: Benchmarking Retrieval Strategies for Text-and-Table Documents](https://arxiv.org/abs/2604.01733)
 
 ## Key takeaway
 
