@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/postcss";
 
 export default defineConfig({
   root: "github-pages",
-  base: "/awsome-rag/",
+  base: "/awesome-rag/",
   plugins: [react()],
   css: { postcss: { plugins: [tailwindcss()] } },
   build: { outDir: "../out", emptyOutDir: true },
