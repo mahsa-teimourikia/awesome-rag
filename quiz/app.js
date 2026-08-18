@@ -5,7 +5,7 @@ import { lessonContent } from "./content.js";
 
 const storageKey = "awesome-rag-quiz-selections-v1";
 const repositoryContentBase =
-  "https://github.com/mahsa-teimourikia/awsome-rag/blob/main/";
+  "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/";
 
 function resourceHref(path) {
   return `${repositoryContentBase}${path.replace(/^\.\.\//, "")}`;
