@@ -737,7 +737,9 @@ footer a { color:var(--accent-dark); }
 .quiz-hero-content { max-width: 860px; }
 .quiz-hero-content .hero-copy { max-width: 720px; }
 .quiz-hero-content .hero-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 820px; }
-.quiz-column { min-width: 0; max-width: 860px; }
+.quiz-context { grid-column: 1 / -1; }
+.progress-panel { grid-column: 1; }
+.quiz-column { grid-column: 2; min-width: 0; max-width: 860px; }
 .quiz-intro { max-width: 720px; margin: 14px 0 0; color: var(--muted); line-height: 1.65; }
 .quiz-guidance { display: grid; gap: 5px; margin: 0 0 22px; padding: 16px 18px; color: var(--muted); background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; }
 .quiz-guidance strong { color: var(--ink); font-size: .9rem; }
@@ -758,4 +760,10 @@ legend { margin-bottom: 20px; font-size: clamp(1.15rem, 2.2vw, 1.35rem); line-he
   .question-meta { align-items: flex-start; flex-direction: column; }
   .option { padding: 14px; font-size: .98rem; }
   legend { font-size: 1.12rem; }
+}
+
+@media (max-width: 900px) {
+  .quiz-context,
+  .progress-panel,
+  .quiz-column { grid-column: 1; }
 }
