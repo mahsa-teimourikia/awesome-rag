@@ -10,5 +10,5 @@ for (const asset of assets) await access(`out/${asset.replace(/^\/awesome-rag\//
 const javascript = await Promise.all(assets.filter((asset) => asset.endsWith(".js")).map((asset) => readFile(`out/${asset.replace(/^\/awesome-rag\//, "")}`, "utf8")));
 const bundle = javascript.join("\n");
 if (!bundle.includes("Build answers") || !bundle.includes("FIELD GUIDE") || !bundle.includes("Corrective RAG") || !bundle.includes("Adaptive RAG")) throw new Error("Pages bundle is missing current Field Guide learning content");
-if (!quizHtml.includes("Initial knowledge check") || !quizHtml.includes("question-list")) throw new Error("Quiz page artifact is missing the knowledge check shell");
+if (!quizHtml.includes("RAG KNOWLEDGE CHECK") || !quizHtml.includes("question-list")) throw new Error("Quiz page artifact is missing the knowledge check shell");
 console.log(`Pages smoke check passed (${assets.length} assets, Field Guide bundle, quiz page, and One+i branding present).`);

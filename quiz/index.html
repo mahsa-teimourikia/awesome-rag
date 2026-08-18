@@ -31,34 +31,18 @@
         </a>
       </nav>
 
-      <div class="hero-content hero-copy">
-        <p class="eyebrow">THE OPEN-SOURCE PATH · FROM THEORY TO OPERATIONS</p>
-        <h1>Build answers<br><span>that know why.</span></h1>
-        <p class="hero-copy">
-          Use this full knowledge check after working through the RAG Learning Hub.
-          Choose a level, study the theory, run a notebook, and prove your understanding across the main RAG topics.
-        </p>
-        <div class="hero-actions"><a class="primary-button" href="#learning-path">Start the path <span>↓</span></a><a class="text-link" href="#initial-check">Take the initial knowledge check ↗</a></div>
-        <div class="hero-meta"><span><b>17</b> repo lessons</span><span><b>3</b> levels</span><span><b>1</b> source of truth</span></div>
-
+      <div class="hero-content quiz-hero-content">
+        <p class="eyebrow">RAG KNOWLEDGE CHECK</p>
+        <h1>Test your<br><span>understanding.</span></h1>
+        <p class="hero-copy">A source-linked checkpoint for the Awesome RAG curriculum. Select every answer that applies, then use the feedback and linked lesson to close any gaps.</p>
+        <div class="hero-actions"><a class="primary-button" href="#initial-check">Start the knowledge check <span>↓</span></a><a class="text-link" href="#learning-path">Browse the learning path ↗</a></div>
         <div class="hero-stats" role="group" aria-label="Quiz summary">
-          <div>
-            <strong id="question-count">18</strong>
-            <span>questions</span>
-          </div>
-          <div>
-            <strong>6</strong>
-            <span>technical areas</span>
-          </div>
-          <div>
-            <strong>Exact</strong>
-            <span>multi-answer grading</span>
-          </div>
+          <div><strong id="question-count">—</strong><span>questions</span></div>
+          <div><strong>Multi-select</strong><span>grade every applicable answer</span></div>
+          <div><strong>Source-linked</strong><span>review the lesson after grading</span></div>
         </div>
-      </div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="core"><span>RAG</span><small>grounded generation</small></div><div class="node node-a">01<br><b>RETRIEVE</b></div><div class="node node-b">02<br><b>GENERATE</b></div><div class="node node-c">03<br><b>VERIFY</b></div><div class="art-caption">Your model is only<br><strong>as good as its context.</strong></div></div>
+      </div>
     </header>
-
-    <section class="signal"><div><span class="signal-icon">↗</span><b>FOLLOW THE REPO</b><p>Objectives, notebooks, examples, exercises, and next steps are mapped from the source material.</p></div><div><span class="signal-icon">⌁</span><b>LEARN IN LOOPS</b><p>Read a concept. Run the lab. Change one variable. Inspect the failure.</p></div><div><span class="signal-icon">◌</span><b>CHECK YOUR SIGNAL</b><p>Use the checkpoint quiz and tests to see what actually stuck.</p></div></section>
 
     <main class="learning-layout">
       <section class="learning-hub" id="learning-path" aria-labelledby="learning-heading">
@@ -104,13 +88,15 @@
       <section class="quiz-column" id="initial-check" aria-labelledby="quiz-heading">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Initial knowledge check · select all that apply</p>
-            <h2 id="quiz-heading">Where should you begin?</h2>
+            <p class="eyebrow">Knowledge check</p>
+            <h2 id="quiz-heading">Check your RAG foundations and practice.</h2>
+            <p class="quiz-intro">Each question may have more than one correct answer. Select only the statements you can support, then grade the full set when you are ready.</p>
           </div>
           <button class="text-button" id="reset-button" type="button">Reset answers</button>
         </div>
 
         <form id="quiz-form">
+          <div class="quiz-guidance"><strong>How to use this checkpoint</strong><span>Answer at your own pace. Your selections are saved in this browser. After grading, every question links to the relevant lesson.</span></div>
           <div id="question-list"></div>
 
           <div class="submit-panel">
