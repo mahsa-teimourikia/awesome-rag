@@ -327,3 +327,59 @@ Improve candidate ordering with a cross-encoder and separate first-stage recall 
 **First-stage retrieval is a recall problem.**
 
 Use lexical, dense, hybrid, or query expansion because your evaluation data shows that the additional signal retrieves evidence the simpler baseline misses.
+
+
+---
+
+# Deep Dive — Modern Retrieval Strategies
+
+The notebook is the lab; this chapter is the technical course material. Retrieval is best treated as **candidate generation under relevance, latency, cost, and authorization constraints**.
+
+## Candidate generation vs final precision
+First-stage retrieval should maximize the chance that required evidence enters a bounded candidate set. A later reranker can improve ordering, but cannot recover evidence that was never retrieved.
+
+```text
+authorized query → dense + lexical/sparse → fusion → candidates → reranker → context selection
+```
+
+## Lexical retrieval
+BM25 remains important for identifiers, policy numbers, names, error codes, acronyms, and rare domain terms. It balances term frequency, inverse document frequency, and document-length normalization. Lexical retrieval is not obsolete; it captures a signal dense models often lose.
+
+## Dense retrieval
+Dense embeddings excel at paraphrase and semantic similarity. Common failures include exact identifiers, negation, rare terminology, domain mismatch, and fine-grained constraints. Vector similarity is a ranking signal, not calibrated confidence.
+
+## Learned sparse retrieval
+Learned sparse models retain lexical/token behavior while learning useful weights and expansion signals. They can complement BM25 and dense search, but should earn their additional indexing/model complexity through evaluation.
+
+## Hybrid retrieval and fusion
+Hybrid systems combine complementary candidate lists. Reciprocal Rank Fusion is robust because it combines ranks instead of incompatible raw score scales. Do not linearly mix BM25 and cosine scores without normalization and validation.
+
+## Late interaction
+ColBERT-style late interaction preserves token-level representations instead of compressing a passage into one vector. It can improve fine-grained relevance at higher storage and compute cost. A common cascade is dense+sparse retrieval followed by late-interaction reranking.
+
+## Multi-representation retrieval
+Titles, abstracts, sections, chunks, tags, and generated questions can be represented separately and fused. This is useful when one pooled document vector would erase important signals.
+
+## Query expansion
+Expansion can improve recall using synonyms, alternate phrasings, or decomposed probes, but may drift from intent and multiply cost. Preserve the original query and treat generated queries as search hypotheses—not evidence.
+
+## Candidate budgets
+`top_k` is a tunable budget. Too small harms recall; too large increases reranking cost, duplication, and context noise. Evaluate candidate diversity as well as count.
+
+## Evaluation
+Use Recall@k, Precision@k, MRR, and nDCG where relevance labels exist. Slice results by identifier lookup, semantic paraphrase, multi-evidence queries, and domain terminology. Aggregate averages can hide critical failures.
+
+## Enterprise trade-offs
+Measure relevance together with p50/p95 latency, index size, memory, update latency, embedding cost, reranking cost, and authorization filtering.
+
+## Decision guide
+```text
+exact terms missed       → lexical/sparse
+semantic paraphrase miss → dense
+mixed population         → hybrid
+poor candidate ordering  → reranker
+single-vector weakness   → late interaction / multi-representation
+```
+
+### Further study
+Robertson & Zaragoza on BM25; Karpukhin et al. on DPR; Khattab & Zaharia on ColBERT; BEIR; current Qdrant hybrid/multi-stage search documentation.

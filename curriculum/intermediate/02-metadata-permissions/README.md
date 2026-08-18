@@ -342,3 +342,57 @@ Once the candidate space is authorized, improve ranking within that safe candida
 ## Key takeaway
 
 **Authorization is a deterministic retrieval constraint, not a prompt instruction.**
+
+
+---
+
+# Deep Dive — Metadata, Filtering, and Permissions
+
+The central enterprise rule is: **authorization defines the candidate space before relevance ranking begins.**
+
+## Metadata as retrieval contract
+Tenant, source, classification, effective dates, region, language, owner, document type, and version are not merely prompt context. They determine evidence eligibility.
+
+## Filter before rank
+Prefer:
+```text
+authenticated identity → policy → trusted scope → filtered retrieval → ranking
+```
+over retrieving broadly and removing unauthorized candidates later. Unauthorized data should not enter model-visible intermediate stages.
+
+## Tenant isolation
+Tenant scope must be derived from authenticated application state, never from model-generated arguments. High-risk systems may combine physical/collection isolation with metadata filters.
+
+## RBAC, ABAC, and relationships
+RBAC maps roles to permissions; ABAC evaluates subject/resource/action/environment attributes; relationship-aware systems model ownership and membership. Enterprise retrieval often combines them. The LLM may interpret intent but must not grant access.
+
+## Classification
+Define classification semantics and precedence. Missing classification must not default to public. Chunks, summaries, embeddings, and cached contexts inherit source security obligations.
+
+## Temporal validity
+Track effective-from/to, superseded state, source version, ingestion time, and index time. “Newest” and “currently effective” are different concepts.
+
+## Metadata schema design
+Use stable IDs, controlled vocabularies, explicit null semantics, normalized values, and versioned schemas for security-critical fields.
+
+## Filter selectivity
+Restrictive filters can change ANN behavior and latency. Benchmark realistic tenant/classification filters, not only unfiltered search.
+
+## Authorization-aware caching
+Cache keys may need query, tenant, authorization scope, policy version, index version, and temporal state. Never reuse retrieved context across principals simply because their natural-language query matches.
+
+## Adversarial tests
+Include same-name documents in different tenants, revoked access, stale permission caches, missing metadata, downgraded clearance, cross-tenant prompt attempts, and superseded policies. Cross-tenant leakage is a hard release failure.
+
+## Auditability
+Record principal, policy version, authorized scope, filters, evidence IDs, and source versions. Avoid unnecessary sensitive text and hidden reasoning.
+
+## Reference architecture
+```text
+authenticate → resolve attributes → policy engine → trusted filter → authorized retrieval → ranking → generation/citations
+```
+
+The notebook implements only a subset of this architecture. Policy engines, sophisticated caches, and temporal governance should remain clearly labelled production extensions unless implemented.
+
+### Further study
+NIST ABAC guidance; OWASP access-control guidance; Qdrant filtering/multitenancy; PostgreSQL Row Security; NIST AI RMF.

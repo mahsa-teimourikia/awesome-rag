@@ -336,3 +336,59 @@ Measure, do not assume parity.
 ## Key takeaway
 
 **A vector database is part of your retrieval contract. Manage vectors, payloads, IDs, filters, and versions as production data—not as disposable embeddings.**
+
+
+---
+
+# Deep Dive — Qdrant and Modern Search Engineering
+
+Qdrant is retrieval infrastructure. The course should map retrieval theory to a real search engine rather than reduce the topic to vector-database CRUD.
+
+## Core model
+Collections contain points. Points can carry stable IDs, payload metadata, dense vectors, sparse vectors, named vectors, and multivectors. Stable identity matters for updates, deletion, provenance, and citations.
+
+## Dense and sparse representations
+Dense vectors capture semantic similarity; sparse representations preserve lexical behavior. Storing both supports hybrid retrieval within one search system.
+
+## Named vectors
+Separate title, body, summary, or other representations can be stored independently rather than collapsed into one embedding.
+
+## Multivectors
+Multivectors store multiple same-shaped vectors per point and support late-interaction representations such as ColBERT.
+
+## Payload filtering
+Payload fields can carry tenant, classification, document type, and effective date. Security-sensitive filters must come from trusted authorization state. Index frequently filtered fields and benchmark realistic selectivity.
+
+## HNSW
+HNSW uses a navigable graph for approximate nearest-neighbor search. Parameters trade memory/build cost against search latency and ANN recall. Benchmark rather than assuming defaults.
+
+## ANN recall vs semantic relevance
+ANN recall asks whether approximate search recovered the neighbors exact vector search would return. Retrieval relevance asks whether those neighbors are useful evidence. Measure both to separate infrastructure approximation from embedding/relevance failures.
+
+## Hybrid Query API
+Current Qdrant supports dense+sparse prefetch and fusion. RRF combines ranks; distribution-based score fusion normalizes score distributions. Weighted fusion should be tuned on relevance data.
+
+## Multi-stage queries
+Prefetch enables coarse-to-fine pipelines:
+```text
+cheap retrieval → 100 candidates → expensive reranker/representation → top 10
+```
+Nested prefetch enables richer cascades.
+
+## Late-interaction reranking
+A modern pattern is dense+sparse → fusion → candidate set → ColBERT multivector reranking. This combines broad recall with fine-grained precision.
+
+## Quantization
+Quantization reduces memory and may improve performance at the cost of approximation. Measure memory, ANN recall, end-to-end relevance, and latency; use rescoring/oversampling when appropriate.
+
+## Multitenancy
+Collection, shard, and payload strategies depend on tenant size/count, isolation requirements, and workload. Database authentication does not replace application authorization.
+
+## Local vs production
+A local notebook does not demonstrate high availability, snapshots/backups, network security, capacity planning, observability, upgrades, embedding migrations, or index rebuild operations. Keep that boundary explicit.
+
+## Current search-engineering direction
+Modern Qdrant supports hybrid search, RRF/DBSF fusion, multi-stage prefetch, named vectors, multi-representation retrieval, and multivector late interaction. Teach these as implementations of retrieval principles established earlier in the track.
+
+### Further study
+Qdrant official docs; Hybrid and Multi-Stage Queries; Hybrid Search with Reranking; Multivectors and Late Interaction; Multi-Representation Search; Malkov & Yashunin on HNSW.

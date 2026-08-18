@@ -280,3 +280,52 @@ Measure retrieval and answer behavior separately and build release gates.
 ## Key takeaway
 
 **A reranker improves ordering; it does not create missing evidence.**
+
+
+---
+
+# Deep Dive — Query Planning and Reranking
+
+Planning improves **what is searched**. Reranking improves **the ordering of candidates already retrieved**.
+
+## Retrieval cascade
+```text
+query → optional rewrite/decomposition → candidate retrieval → fusion → reranking → context selection
+```
+A reranker cannot fix missing candidate recall.
+
+## Query decomposition
+Decompose comparisons, multi-part questions, and multi-hop information needs into bounded structured retrieval intents. Preserve the original objective and map subqueries back to it. Over-decomposition increases latency and semantic drift.
+
+## Rewriting and expansion
+Rewriting can normalize vocabulary or expose implicit constraints. Expansion creates alternate probes. Retain the original query and evaluate incremental retrieval value.
+
+## HyDE
+Hypothetical Document Embeddings use generated hypothetical content as a retrieval representation. It can bridge vocabulary gaps, but generated content is not evidence and must never be cited as corpus fact.
+
+## Cross-encoders
+Bi-encoders independently encode query/document and support efficient ANN search. Cross-encoders jointly process pairs and usually provide stronger relevance at higher cost, motivating retrieve-then-rerank.
+
+## Late interaction
+ColBERT-style models retain token-level embeddings and offer fine-grained matching. They can act as retrievers or second-stage rerankers.
+
+## Multi-stage cascades
+```text
+BM25 + dense → RRF → 100 candidates → cross-encoder/ColBERT → 20 → context selection
+```
+Every stage should demonstrate incremental benefit in an ablation.
+
+## Context selection
+Highest-ranked chunks are not automatically the best prompt context. Consider duplication, source diversity, neighboring context, token budgets, and evidence completeness.
+
+## Budgets
+Bound subqueries, candidates, rerank pairs, elapsed time, and cost. Parallelize independent retrieval calls where safe.
+
+## Failure modes
+Watch for redundant subqueries, lost constraints, recursive decomposition, semantic drift, scope mixing, and answering a generated subquestion instead of the user's question.
+
+## Evaluation
+Measure candidate recall before reranking, MRR/nDCG afterward, then downstream claim support, latency, and cost. Compare dense → hybrid → hybrid+reranker → planner+hybrid+reranker.
+
+### Further study
+Nogueira & Cho on BERT reranking; Khattab & Zaharia on ColBERT; BEIR; current Qdrant hybrid/reranking documentation.

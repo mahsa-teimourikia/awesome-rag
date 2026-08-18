@@ -334,3 +334,57 @@ Apply evidence discipline to multi-document synthesis and conflicting sources.
 ## Key takeaway
 
 **Evaluation should tell you which stage failed, whether the change is safe to release, and whether production behavior is drifting.**
+
+
+---
+
+# Deep Dive — RAG Evaluation
+
+Evaluation is the **control system for RAG development**, not a final reporting exercise.
+
+## Dataset design
+Combine representative historical questions, expert-curated cases, targeted synthetic cases, and adversarial cases. Label answerability, required/relevant evidence, expected facts, forbidden evidence, query class, and risk class. Keep a held-out regression set.
+
+## Retrieval evaluation
+Use deterministic IR metrics when relevance labels exist: Recall@k, Precision@k, MRR, and nDCG. For multi-evidence questions, label all required evidence.
+
+## Generation evaluation
+Separate task correctness, relevance, completeness, claim support, and instruction compliance. A relevant answer can still be unsupported.
+
+## Groundedness
+Decompose output into material claims and test whether each claim is supported by retrieved evidence. For consequential systems, complement model judges with deterministic checks and human review.
+
+## Citation evaluation
+Measure citation correctness (does it support the claim?), completeness (are material claims cited?), and identity (does it resolve to the intended source/version?).
+
+## Abstention
+Include unanswerable cases. Measure false-answer and false-abstention rates. A benchmark containing only answerable questions teaches the wrong behavior.
+
+## LLM-as-a-judge
+Judges scale semantic evaluation but introduce variance, bias, prompt sensitivity, position effects, and shared-model blind spots. Use explicit rubrics, version judges, and calibrate against human labels.
+
+## Human calibration
+Use experts to validate rubrics, inspect disagreements, and assess consequential domain correctness. Measure agreement where useful.
+
+## Slice analysis
+Slice by query type, answerability, language, tenant, document age, source type, identifier-heavy questions, long documents, and risk class. Averages hide regressions.
+
+## Synthetic/adversarial cases
+Target missing evidence, conflicting sources, stale documents, permission boundaries, near-duplicate distractors, and misleading lexical overlap. Validate synthetic distributions against real usage.
+
+## CI/CD gates
+Hard invariants such as cross-tenant leakage or invalid citation identity should hard-fail. Quality metrics can use controlled thresholds and baseline comparisons. Store per-case results.
+
+## Online evaluation
+Monitor empty retrieval, abstention, retrieval distribution changes, citation failures, latency, cost, and task outcomes. Offline and online evaluation complement each other.
+
+## Framework landscape
+RAGAS and DeepEval provide RAG-oriented metrics and test abstractions; tracing platforms connect evaluation to pipeline stages. Frameworks should implement your evaluation design, not define quality for you.
+
+## Evaluation hierarchy
+```text
+retrieval correctness → evidence sufficiency → claim support → citation validity → task success → latency/cost/risk
+```
+
+### Further study
+RAGAS; DeepEval; BEIR; Phoenix/Arize evaluation concepts; NIST AI RMF.

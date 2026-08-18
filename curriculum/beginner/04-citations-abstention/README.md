@@ -1092,3 +1092,250 @@ citation
 And when that chain cannot be established, the system needs a deliberate path to:
 
 > **abstain rather than manufacture confidence.**
+
+---
+
+# Deep Dive — Citations, Grounding, and Abstention
+
+A trustworthy RAG system needs to answer two different questions:
+
+```text
+What can I say?
+What evidence supports saying it?
+```
+
+Citations and abstention turn retrieval into an explicit evidence contract.
+
+## 1. Grounding vs correctness
+
+An answer can be:
+
+- factually correct but unsupported by the supplied evidence;
+- grounded in the evidence but based on stale/incorrect evidence;
+- both correct and grounded;
+- neither.
+
+RAG evaluation should therefore separate factual/task correctness from evidence faithfulness.
+
+## 2. Claim-level evidence
+
+Citation quality is easiest to reason about at claim granularity.
+
+Example:
+
+```text
+Claim A → evidence 17
+Claim B → evidence 17 + evidence 22
+Claim C → no support
+```
+
+Claim C should be removed, qualified, researched further, or cause abstention depending on the task.
+
+## 3. Citation correctness
+
+A citation is correct when the cited evidence actually supports the associated claim.
+
+A citation is not correct merely because:
+
+- the source is related to the topic;
+- the URL exists;
+- the passage contains similar words;
+- the model generated a plausible source reference.
+
+## 4. Citation completeness
+
+Citation completeness asks whether material claims that require evidence are actually cited.
+
+A response with one valid citation and five unsupported factual claims is not well grounded.
+
+## 5. Citation identity and provenance
+
+The application should construct citations from trusted evidence metadata:
+
+```text
+evidence_id
+source_id
+document/version
+page/section/span
+```
+
+Do not ask the model to invent URLs or reconstruct source identifiers from memory.
+
+## 6. Evidence ledger
+
+A useful architecture maintains a bounded evidence ledger:
+
+```text
+E17 → source A, section 3, span ...
+E22 → source B, page 4, span ...
+```
+
+The model can cite `E17`; application code resolves it to a human-readable citation.
+
+This separates language generation from source identity.
+
+## 7. Answerability
+
+Before generating a definitive answer, ask whether sufficient authorized evidence exists.
+
+```text
+retrieve
+  ↓
+evidence sufficient?
+ ├─ yes → answer
+ └─ no  → abstain / clarify / recover
+```
+
+“Sufficient” is task-specific.
+
+A simple lookup may need one direct passage. A comparison may require evidence for every side. A consequential recommendation may require stronger coverage.
+
+## 8. Abstention is a valid output
+
+A good RAG system should be rewarded for saying:
+
+```text
+The available evidence does not support an answer.
+```
+
+when appropriate.
+
+Do not treat answer rate as success rate.
+
+## 9. Confidence is not enough
+
+LLM self-confidence is not a reliable substitute for evidence sufficiency.
+
+Similarity thresholds alone are also fragile because retrieval scores vary by model, query, corpus, and retriever.
+
+Better abstention decisions can combine:
+
+- required evidence coverage;
+- retrieval/reranking signals;
+- source authority;
+- contradiction checks;
+- answerability classifiers;
+- deterministic task rules.
+
+## 10. Partial answerability
+
+Some questions contain both supported and unsupported parts.
+
+Possible behavior:
+
+```text
+answer supported part
+identify missing part
+request clarification or abstain from that claim
+```
+
+This is often better than all-or-nothing refusal.
+
+## 11. Conflicting evidence
+
+Abstention is also appropriate when authoritative evidence conflicts and the application cannot resolve the conflict.
+
+Do not silently choose whichever passage ranked first.
+
+Preserve source date, scope, and version so conflicts can be analyzed.
+
+## 12. Citation generation patterns
+
+### Inline evidence IDs
+Generate text with controlled evidence markers and resolve them afterward.
+
+### Structured output
+Generate:
+
+```json
+{
+  "claims": [
+    {"text": "...", "evidence_ids": ["E17"]}
+  ]
+}
+```
+
+then render the final prose/citations in application code.
+
+Structured claim/evidence outputs are easier to validate than free-form source strings.
+
+## 13. Citation validation
+
+A validation stage can check:
+
+```text
+citation ID exists
+citation was retrieved for this request
+source is authorized
+source version is valid
+claim is supported by cited evidence
+```
+
+Some checks are deterministic; semantic support may require a model judge or human review.
+
+## 14. Evaluation
+
+Measure:
+
+- claim support / faithfulness;
+- citation correctness;
+- citation completeness;
+- invalid citation rate;
+- false-answer rate on unanswerable questions;
+- false-abstention rate;
+- evidence coverage.
+
+Current RAG evaluation frameworks expose metrics such as faithfulness, context precision/recall, and answer relevance, but the application should define its own quality contract rather than blindly adopting a framework's defaults.
+
+## 15. Prompting is necessary but insufficient
+
+Instructions such as “answer only from context” are useful.
+
+They do not replace:
+
+- authorization;
+- evidence IDs;
+- structured citation contracts;
+- answerability logic;
+- validation;
+- evaluation.
+
+Treat prompting as one layer in a system.
+
+## 16. Enterprise pattern
+
+```text
+authorized retrieval
+      ↓
+evidence ledger
+      ↓
+answerability decision
+      ↓
+claim/evidence generation
+      ↓
+citation validation
+      ↓
+answer / partial answer / abstain
+```
+
+## 17. Failure cases to test
+
+Include:
+
+- no relevant evidence;
+- weakly related distractor;
+- evidence supporting only half the question;
+- contradictory sources;
+- stale source;
+- source with missing provenance;
+- fabricated citation ID;
+- correct answer from model memory but absent evidence.
+
+The last case is particularly important: under a strict evidence contract, a memorized but uncited fact can still be a system failure.
+
+## Further study
+
+- RAGAS faithfulness/context metrics
+- attribution and citation-correctness research for RAG
+- NIST AI RMF for measurement/governance context
+- retrieval evaluation literature for answerability and evidence coverage

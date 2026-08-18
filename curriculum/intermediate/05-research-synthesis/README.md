@@ -305,3 +305,61 @@ Move from framework-level retrieval to a vector database with explicit collectio
 ## Key takeaway
 
 **A synthesis should expose the structure of the evidence—including disagreement—before it produces polished prose.**
+
+
+---
+
+# Deep Dive — Evidence-Based Research Synthesis
+
+Research synthesis is **evidence integration**, not “retrieve many documents and summarize.”
+
+## Evidence planning
+Decompose the question into claims, comparisons, quantitative facts, exceptions, timeline needs, and counterevidence. This becomes a bounded research plan.
+
+## Evidence records
+Normalize findings into records containing evidence ID, fact/claim, source ID/span, date/version, authority, retrieval route, and verification status. An evidence table exposes gaps before generation.
+
+## Source authority
+Relevance does not establish authority. Define domain-specific source tiers and prefer primary/authoritative sources for material factual claims where available.
+
+## Diversity and correlated sources
+Multiple pages may repeat one original report. Track source families and provenance so syndicated copies do not create false confidence.
+
+## Freshness
+Freshness requirements are claim-dependent. Preserve publication/effective date and source version.
+
+## Deduplication
+Deduplicate at chunk, document, source, and source-family levels to prevent repeated evidence from dominating synthesis.
+
+## Contradiction handling
+Do not silently average conflicting claims. Identify the conflict, compare dates/scope/definitions, assess authority, resolve only when justified, and preserve uncertainty otherwise.
+
+## Claim-evidence mapping
+Before final synthesis, identify material claims and require:
+```text
+claim → evidence IDs
+```
+This reduces unsupported connective reasoning.
+
+## Citation-preserving synthesis
+Preserve mappings through intermediate summaries and compression. Do not generate prose first and reconstruct citations afterward.
+
+## Long context vs retrieval
+Long context can help with a bounded evidence set but does not eliminate authorization, provenance, freshness, authority, attention, or cost concerns. A strong pattern is retrieval → bounded evidence → long-context synthesis.
+
+## Iterative gap filling
+Identify required claims without support and perform targeted retrieval. Bound iterations. If evidence remains unavailable, report uncertainty.
+
+## Evaluation
+Measure evidence coverage, citation correctness, source diversity, contradiction handling, unsupported claims, completeness, latency, and cost. Citation count alone is not a quality metric.
+
+## Audit trail
+For consequential research retain plan version, source IDs/versions, evidence records, conflict decisions, exclusion reasons, synthesis version, and reviewer actions.
+
+## Reference workflow
+```text
+question → evidence plan → retrieval → evidence table → authority/duplicate/conflict checks → gap filling → claim-evidence map → cited synthesis
+```
+
+### Further study
+Lewis et al. on RAG; RAG survey literature; attribution/citation research; IR diversity literature; NIST AI RMF.

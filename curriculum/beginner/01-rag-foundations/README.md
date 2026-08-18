@@ -536,7 +536,7 @@ It is:
 
 A simple 2-step RAG pipeline is only the beginning.
 
-![RAG learning progression](assets/rag-learning-progression.png)
+![RAG learning progression](assets/rag-learning-progression.svg)
 
 Complexity should be introduced to solve measured failures—not because a technique is fashionable.
 
@@ -780,3 +780,276 @@ The first engineering question is therefore not:
 It is:
 
 > **What evidence should this system use, how will it retrieve that evidence, and how will I know the resulting answer is actually supported by it?**
+
+---
+
+# Deep Dive — RAG Foundations
+
+The notebook is the practical companion. This chapter establishes the system model you should use throughout the curriculum.
+
+## 1. What RAG actually changes
+
+A language model answers from information encoded in its parameters and the context supplied at inference time. Retrieval-Augmented Generation adds an external evidence-selection step so the application can use information that is private, dynamic, domain-specific, or too large to place permanently in the prompt.
+
+A useful abstraction is:
+
+```text
+knowledge sources
+      ↓
+ingestion / representation
+      ↓
+retrieval index
+      ↓
+user query
+      ↓
+candidate retrieval
+      ↓
+evidence selection
+      ↓
+context
+      ↓
+generation
+      ↓
+supported answer
+```
+
+RAG is therefore not a single model technique. It is an **information-retrieval system connected to a generative system**.
+
+## 2. Parametric knowledge vs retrieved evidence
+
+A model may already “know” something from training, but an enterprise application often needs a stronger contract:
+
+> Answer from the evidence authorized for this request.
+
+This matters for policies, contracts, internal documentation, rapidly changing facts, and auditable decisions. Retrieved evidence gives the application something concrete to inspect, cite, version, authorize, and evaluate.
+
+RAG does not guarantee truth. It creates an architecture in which evidence can be measured.
+
+## 3. The two major pipelines
+
+### Indexing / ingestion
+
+```text
+source
+  ↓
+parse
+  ↓
+normalize
+  ↓
+chunk
+  ↓
+metadata + provenance
+  ↓
+representation / embedding
+  ↓
+index
+```
+
+### Query
+
+```text
+question
+  ↓
+query representation
+  ↓
+retrieve
+  ↓
+rank/select
+  ↓
+construct context
+  ↓
+generate
+  ↓
+verify/cite
+```
+
+Debug these separately.
+
+A malformed document during ingestion and a weak query embedding during retrieval can produce the same final symptom—an unsupported answer—but require completely different fixes.
+
+## 4. Retrieval is not generation
+
+A useful failure decomposition is:
+
+```text
+Was required evidence in the corpus?
+        ↓
+Was it represented/indexed correctly?
+        ↓
+Was it retrieved?
+        ↓
+Was it selected into context?
+        ↓
+Did the model use it correctly?
+        ↓
+Was the final claim supported/cited?
+```
+
+Do not label every failure “hallucination.”
+
+## 5. Retrieval units
+
+The object searched by a retriever might be:
+
+- a whole document;
+- a paragraph;
+- a chunk;
+- a table row;
+- a graph node;
+- a structured record;
+- a multimodal region.
+
+The retrieval unit should match the evidence granularity needed by the task.
+
+## 6. Lexical and semantic retrieval
+
+Lexical retrieval emphasizes shared words and exact terms. Semantic retrieval uses learned representations to capture meaning beyond exact token overlap.
+
+Neither dominates every workload.
+
+Identifier-heavy queries often benefit from lexical signals; paraphrases often benefit from dense semantic retrieval. Later courses introduce hybrid retrieval, but the foundation is understanding that retrieval strategy must follow query behavior.
+
+## 7. Embeddings: the right mental model
+
+An embedding maps an input into a numerical representation used for similarity search.
+
+Do not interpret embedding distance as:
+
+```text
+probability that this passage answers the question
+```
+
+It is a model-dependent similarity signal.
+
+Embedding model, document representation, query wording, distance metric, corpus distribution, and index configuration all affect results.
+
+## 8. Top-k is an engineering budget
+
+Retrievers typically return the top `k` candidates.
+
+Small `k` can miss evidence. Large `k` increases noise, context length, latency, and downstream cost.
+
+There is no universal best value. Tune it with evaluation.
+
+## 9. Context construction
+
+Retrieval results are not automatically a good prompt.
+
+Context construction may need to:
+
+- remove duplicates;
+- preserve source IDs;
+- order passages;
+- add titles/section labels;
+- respect token budgets;
+- keep related evidence together.
+
+The context passed to the model is itself an engineered artifact.
+
+## 10. Provenance
+
+Each evidence unit should retain enough information to identify its origin:
+
+```text
+source_id
+document_id
+chunk_id
+section/page/span
+source_version
+metadata
+```
+
+Without provenance, reliable citation and incident investigation become much harder.
+
+## 11. RAG failure taxonomy
+
+### Corpus failure
+Required information does not exist in the authorized knowledge source.
+
+### Parsing failure
+The source exists but extraction damaged or omitted it.
+
+### Chunking failure
+Evidence was split or grouped poorly.
+
+### Representation failure
+The retriever's representation does not capture the query/evidence relationship.
+
+### Candidate-retrieval failure
+Relevant evidence is indexed but absent from top-k.
+
+### Ranking/context failure
+Evidence is retrieved but excluded, duplicated, or buried.
+
+### Generation failure
+The model ignores, misreads, or overextends evidence.
+
+### Verification failure
+Unsupported claims or bad citations escape the final control.
+
+This taxonomy is more useful than one generic “RAG quality” score.
+
+## 12. Evaluation starts here
+
+Even a beginner pipeline should measure intermediate artifacts.
+
+For retrieval:
+
+```text
+Did expected evidence appear in top-k?
+Where was it ranked?
+```
+
+For generation:
+
+```text
+Are material claims supported by context?
+Did the system answer an unanswerable question?
+```
+
+Later courses formalize Recall@k, MRR, nDCG, faithfulness, citation quality, and regression testing.
+
+## 13. RAG vs long context vs fine-tuning
+
+These solve different problems.
+
+**Long context** can be effective when the relevant corpus is small enough to supply directly and latency/cost are acceptable.
+
+**Fine-tuning** is useful for changing model behavior, format, or task specialization; it is usually not the right mechanism for frequently changing factual knowledge.
+
+**RAG** is valuable when evidence must be dynamically selected, updated, authorized, inspected, or cited.
+
+Hybrid architectures are common.
+
+## 14. Enterprise architecture concerns
+
+A production RAG system eventually needs:
+
+```text
+identity / authorization
+data lifecycle
+index versioning
+provenance
+evaluation
+observability
+latency/cost budgets
+security controls
+release/rollback
+```
+
+The beginner lab intentionally does not implement all of these. It establishes the evidence loop they depend on.
+
+## 15. Design principle
+
+The most important rule for the rest of this curriculum is:
+
+> **Make the simplest RAG system measurable before making it sophisticated.**
+
+If you cannot explain why the baseline failed, adding agents, graphs, query planners, or corrective loops usually makes debugging harder rather than better.
+
+## Further study
+
+- Lewis et al. — *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*
+- Karpukhin et al. — *Dense Passage Retrieval*
+- BEIR — heterogeneous information-retrieval benchmark
+- Current vector-database documentation for dense, sparse, hybrid, and filtered retrieval

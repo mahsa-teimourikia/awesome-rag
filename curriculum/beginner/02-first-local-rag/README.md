@@ -939,3 +939,258 @@ answer
 Once that boundary is visible, you can measure and improve each stage independently.
 
 **Retrieve first. Inspect the evidence. Then generate.**
+
+---
+
+# Deep Dive — Building the First Local RAG System
+
+The goal of the first implementation is **inspectability**, not framework sophistication.
+
+A local RAG pipeline should let you see every important artifact from source document to final answer.
+
+## 1. Why start locally
+
+A local, small-corpus implementation removes infrastructure variables while you learn the mechanics.
+
+You should be able to print or inspect:
+
+```text
+documents
+chunks
+metadata
+vectors / representations
+query
+similarity scores
+top-k results
+constructed context
+final answer
+```
+
+If a framework hides all of these, it is a poor first learning environment.
+
+## 2. Minimal architecture
+
+```text
+documents
+   ↓
+chunk + metadata
+   ↓
+embed
+   ↓
+local index
+             query
+               ↓
+             embed
+               ↓
+       similarity search
+               ↓
+        top-k evidence
+               ↓
+       context construction
+               ↓
+              LLM
+```
+
+Keep indexing and query execution conceptually separate even if one notebook contains both.
+
+## 3. Document objects and provenance
+
+Represent documents explicitly rather than as anonymous strings.
+
+A useful teaching structure is:
+
+```python
+{
+    "text": "...",
+    "document_id": "...",
+    "chunk_id": "...",
+    "source": "...",
+    "section": "...",
+}
+```
+
+The exact schema can evolve, but source identity should exist from the beginning.
+
+## 4. Embedding pipeline
+
+The document and query must be encoded into compatible representation spaces.
+
+Important questions include:
+
+- Which embedding model?
+- What dimensionality?
+- Is normalization expected?
+- Which distance function does the index use?
+- Was the same representation model used for query and corpus?
+- How will model upgrades trigger re-indexing?
+
+A local lab can use a simple implementation, but learners should understand these production implications.
+
+## 5. Similarity metrics
+
+Common vector-search metrics include cosine similarity, dot product, and Euclidean distance.
+
+They are not interchangeable without considering model training and normalization.
+
+For normalized vectors:
+
+```text
+cosine similarity and dot-product ranking
+```
+
+can become closely related, but do not generalize this blindly to every embedding model.
+
+## 6. Exact vs approximate search
+
+A tiny local corpus can use exact similarity search.
+
+Production vector systems usually use approximate nearest-neighbor indexes such as HNSW to reduce search cost.
+
+This introduces another distinction:
+
+```text
+ANN recall
+```
+
+versus:
+
+```text
+semantic relevance
+```
+
+The beginner lab should not conflate infrastructure approximation with retrieval quality.
+
+## 7. Candidate inspection
+
+Do not immediately feed retrieved passages into the LLM.
+
+Inspect them first.
+
+For each query, ask:
+
+```text
+Did we retrieve the expected passage?
+What score did it receive?
+What irrelevant passage outranked it?
+Was the problem the embedding, chunk, or query?
+```
+
+This habit is foundational for production debugging.
+
+## 8. Context construction
+
+A naive implementation may concatenate top-k chunks.
+
+Even here, notice potential problems:
+
+- repeated chunks;
+- arbitrary ordering;
+- context overflow;
+- missing titles;
+- lost source IDs.
+
+Later courses improve this, but source labels should be preserved from day one.
+
+## 9. Grounded generation
+
+A basic prompt should establish a bounded evidence contract:
+
+```text
+Use the supplied evidence.
+Do not invent missing facts.
+If the evidence is insufficient, say so.
+```
+
+Prompt instructions help but are not a complete safety mechanism. Later courses add explicit abstention and verification.
+
+## 10. Deterministic baseline before frameworks
+
+A valuable first implementation can be built with:
+
+- Python data structures;
+- an embedding model;
+- NumPy/scikit-learn-style similarity;
+- a simple generation call.
+
+Why?
+
+Because learners can see the mechanism.
+
+Afterward, libraries and vector databases can replace components without changing the conceptual architecture.
+
+## 11. What frameworks abstract
+
+RAG frameworks commonly abstract:
+
+```text
+document loaders
+text splitters
+embeddings
+vector stores
+retrievers
+prompt templates
+chains / graphs
+```
+
+These abstractions are useful in production, but only after you understand the underlying contracts.
+
+## 12. Debugging tree
+
+When an answer is wrong:
+
+```text
+1. Is the source in the corpus?
+2. Is the correct chunk present?
+3. Is metadata/provenance correct?
+4. Is the correct chunk retrieved?
+5. Is its rank high enough?
+6. Did context construction retain it?
+7. Did generation use it?
+8. Is the claim actually supported?
+```
+
+Do not change the prompt before checking retrieval.
+
+## 13. Basic evaluation set
+
+Create a tiny labelled set immediately:
+
+| Query | Expected evidence | Answerable? |
+|---|---|---|
+| Q1 | chunk A | yes |
+| Q2 | chunk C | yes |
+| Q3 | none | no |
+
+This is already enough to compare changes to chunking, embeddings, or top-k.
+
+## 14. Reproducibility
+
+Record:
+
+```text
+embedding model/version
+corpus version
+chunking configuration
+top-k
+generation model
+prompt version
+```
+
+Otherwise two notebook runs may appear comparable while using different systems.
+
+## 15. When to move beyond the local baseline
+
+Move to a vector database when you need scale, filtering, persistence, ANN indexing, multi-vector search, or operational capabilities.
+
+Move to hybrid retrieval when lexical and dense retrieval show complementary failure patterns.
+
+Move to reranking when candidate recall is good but ordering is weak.
+
+The next architectural step should always correspond to a measured problem.
+
+## Further study
+
+- Dense Passage Retrieval
+- HNSW approximate nearest-neighbor search
+- Current vector-database semantic-search tutorials
+- BEIR retrieval evaluation

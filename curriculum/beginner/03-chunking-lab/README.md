@@ -714,6 +714,7 @@ A sophisticated chunker cannot repair:
 
 # 17. A practical chunking taxonomy
 
+![Chunking strategy taxonomy](assets/chunking-taxonomy.svg)
 
 | Strategy | Good starting point for | Main limitation |
 |---|---|---|
@@ -1050,3 +1051,243 @@ Begin with:
 > **What information must remain together for my users' questions to be answered and cited correctly?**
 
 Then measure it.
+
+---
+
+# Deep Dive — Chunking and Document Representation
+
+Chunking is not a preprocessing detail. It defines the evidence units the retriever is allowed to find.
+
+## 1. Why chunking exists
+
+Documents are often longer than the useful retrieval unit. Searching an entire manual as one vector may blur many topics; splitting every sentence independently may destroy necessary context.
+
+Chunking therefore balances:
+
+```text
+retrieval specificity
+        ↕
+context completeness
+```
+
+## 2. Chunk-size trade-off
+
+Smaller chunks can improve precision because each representation covers fewer concepts.
+
+But they can:
+
+- lose definitions;
+- separate conditions from exceptions;
+- break tables;
+- remove useful neighboring context.
+
+Larger chunks preserve context but can dilute the signal and consume more prompt tokens.
+
+There is no universal optimum such as “500 tokens.”
+
+## 3. Overlap
+
+Overlap tries to reduce boundary loss:
+
+```text
+chunk 1: A B C D
+chunk 2:       C D E F
+```
+
+Benefits:
+
+- preserves evidence near boundaries.
+
+Costs:
+
+- increases index size;
+- creates duplicates;
+- can cause multiple nearly identical results;
+- increases downstream token usage.
+
+Treat overlap as a parameter to evaluate, not a default ritual.
+
+## 4. Fixed-size chunking
+
+Fixed character/token windows are:
+
+- simple;
+- reproducible;
+- fast.
+
+They ignore document structure and can split headings, paragraphs, code, tables, or logical arguments.
+
+They are useful as a baseline.
+
+## 5. Recursive / structure-aware splitting
+
+Recursive splitters try increasingly smaller separators such as sections, paragraphs, sentences, and then token limits.
+
+Structure-aware splitting can use:
+
+- Markdown headings;
+- HTML elements;
+- document sections;
+- code syntax;
+- PDF layout;
+- semantic units.
+
+The objective is not “smarter chunking” in the abstract; it is preserving useful evidence boundaries.
+
+## 6. Semantic chunking
+
+Semantic chunking attempts to detect topic shifts using embedding or model signals.
+
+Potential benefit:
+
+```text
+boundaries follow meaning rather than fixed length
+```
+
+Potential problems:
+
+- extra embedding/model cost;
+- unstable boundaries;
+- harder reproducibility;
+- domain dependence;
+- still requires maximum-size constraints.
+
+Always compare it with a simpler structure-aware baseline.
+
+## 7. Parent-child retrieval
+
+A powerful pattern separates the retrieval unit from the context unit.
+
+```text
+small child chunk
+      ↓ retrieve precisely
+parent section/document
+      ↓ return richer context
+```
+
+This can combine fine-grained retrieval with enough surrounding evidence for generation.
+
+It also introduces deduplication and context-budget decisions.
+
+## 8. Multi-representation retrieval
+
+Another approach represents a document through several views:
+
+```text
+title
+summary
+section
+chunk
+generated question
+```
+
+The retriever searches the representation best suited to discovery, then maps the result back to the original evidence.
+
+This is a more general idea than chunk-size tuning.
+
+## 9. Tables, code, and structured content
+
+Do not split all modalities like prose.
+
+A table may require:
+
+- header preservation;
+- row grouping;
+- table identity;
+- surrounding caption.
+
+Code may require:
+
+- function/class boundaries;
+- imports;
+- signatures;
+- module context.
+
+Document representation should follow the semantics of the source.
+
+## 10. Metadata belongs with chunks
+
+Every chunk should preserve source-level and chunk-level metadata:
+
+```text
+document_id
+chunk_id
+section
+page/span
+title
+version
+classification
+```
+
+Chunking that destroys provenance makes citation and authorization harder later.
+
+## 11. Lost-in-the-middle and context assembly
+
+Even when retrieval succeeds, many large chunks can create long prompts where useful evidence is harder for the generator to use.
+
+Chunking and context construction must therefore be evaluated together.
+
+## 12. Evaluate chunking through downstream retrieval
+
+Do not score chunking by visual neatness.
+
+Create labelled questions and compare configurations.
+
+Useful measures include:
+
+```text
+Recall@k
+MRR
+nDCG
+duplicate rate
+context tokens/query
+answer support
+```
+
+Also inspect failure cases manually.
+
+## 13. Experiment design
+
+A useful experiment matrix:
+
+| Strategy | Size | Overlap | Representation |
+|---|---:|---:|---|
+| fixed | 256 | 0 | chunk |
+| fixed | 512 | 64 | chunk |
+| recursive | 512 | 64 | structure-aware |
+| parent-child | 256 child | — | parent returned |
+
+Hold the embedding model and evaluation queries constant.
+
+## 14. Query-aware chunking?
+
+Be careful with terminology.
+
+Most production ingestion pipelines chunk before a specific user query exists. Query-time techniques such as sentence-window expansion, parent retrieval, contextual compression, or dynamic context assembly are often more accurately described as **query-aware context selection** rather than ordinary static chunking.
+
+Keeping these concepts separate makes architectures easier to reason about.
+
+## 15. Common anti-patterns
+
+Avoid:
+
+- selecting chunk size from a blog post without evaluation;
+- aggressive overlap that floods retrieval with duplicates;
+- dropping headings;
+- assigning new chunks no stable source identity;
+- splitting tables as arbitrary text;
+- changing chunking and embeddings simultaneously during an experiment;
+- evaluating only final answer fluency.
+
+## 16. Production decision rule
+
+Choose the simplest representation that achieves acceptable retrieval and evidence completeness on the real question distribution.
+
+Complex chunking should solve a measured failure mode.
+
+## Further study
+
+- LangChain/LlamaIndex text-splitting concepts as implementation examples
+- parent-document retrieval patterns
+- late chunking and contextualized document representation research
+- retrieval evaluation literature and BEIR
