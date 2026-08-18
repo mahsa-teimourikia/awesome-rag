@@ -57,7 +57,7 @@ See [RAG foundations](curriculum/beginner/01-rag-foundations/README.md) for the 
 
 The Hub is the recommended starting point. Choose a level, select a lesson, and work through its **Learn → Lab → Checkpoint** tabs. Each lesson pairs a concise theory summary and primary references with a notebook, reusable implementation, practical exercises, and an interactive knowledge check.
 
-If you prefer GitHub navigation, use the [curriculum index](curriculum/README.md) or the complete [course map](COURSE_MAP.md). Take the [full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) before or after the course to measure broad understanding.
+If you prefer GitHub navigation, use the [curriculum index](curriculum/README.md). Take the [full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) before or after the course to measure broad understanding.
 
 ## Curriculum roadmap
 
@@ -82,11 +82,9 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
 | Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
 
-The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) links these modules alongside the level roadmap, while the [course map](COURSE_MAP.md) is the repository-wide source of truth for every lesson, notebook, lab, test, and data fixture.
+The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) links these modules.
 
 ## Run locally
-
-The guided setup is in [local installation and development](docs/local-development.md). On macOS/Linux:
 
 ```bash
 make setup-learner
@@ -104,9 +102,7 @@ These guides complement the hub with deeper design references and production che
 - [Retrieval patterns](curriculum/intermediate/01-retrieval-strategies) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
 - [Evaluation guide](curriculum/intermediate/04-evaluation) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
 - [Adaptive RAG guide](curriculum/advanced/05-adaptive-rag) — move from fixed retrieval to safe, measurable policy selection.
-- [Learning guide](LEARNING.md) — concise beginner/intermediate/advanced sequence for repository readers.
 
-The hub and quiz run entirely in the browser and store completion only on the learner's device. For maintainers, `npm run test:pages` builds the Pages artifact and verifies its hashed assets, Field Guide shell, and quiz page. `npm run check:external-links` performs an opt-in health check for curated external URLs.
 
 ## A practical RAG architecture
 
