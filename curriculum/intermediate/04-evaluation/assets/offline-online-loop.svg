@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430">
+<rect width="1200" height="430" fill="white"/>
+<defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Offline ↔ online evaluation loop</text>
+<text x="55" y="82" font-size="16" fill="#475569">Production feedback should continuously improve the reviewed regression suite.</text>
+<rect x="90" y="170" width="280" height="85" rx="15" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="230" y="218" text-anchor="middle" font-size="16" font-weight="700" fill="#312E81">Offline evaluation</text><line x1="370" y1="212" x2="520" y2="212" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="530" y="170" width="230" height="85" rx="15" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/><text x="645" y="218" text-anchor="middle" font-size="16" font-weight="700" fill="#14532D">Release</text><line x1="760" y1="212" x2="890" y2="212" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="900" y="170" width="220" height="85" rx="15" fill="#FFF7ED" stroke="#F97316" stroke-width="2"/><text x="1010" y="218" text-anchor="middle" font-size="16" font-weight="700" fill="#7C2D12">Online traces</text><path d="M1010 255 C1010 350 230 350 230 255" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><text x="620" y="350" text-anchor="middle" font-size="14" fill="#475569">reviewed production failures become regression cases</text>
+</g></svg>

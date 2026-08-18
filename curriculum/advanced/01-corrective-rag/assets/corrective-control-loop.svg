@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410">
+<rect width="1200" height="410" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Corrective RAG control loop</text>
+<text x="55" y="82" font-size="16" fill="#475569">Evaluate evidence before generation and keep recovery finite.</text>
+<rect x="55" y="170" width="180" height="75" rx="14" fill="#EEF2FF" stroke="#64748B" stroke-width="2"/><text x="145" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Retrieve</text><line x1="235" y1="207" x2="270" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="280" y="170" width="180" height="75" rx="14" fill="#ECFEFF" stroke="#64748B" stroke-width="2"/><text x="370" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Grade evidence</text><line x1="460" y1="207" x2="495" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="505" y="170" width="180" height="75" rx="14" fill="#FFF7ED" stroke="#64748B" stroke-width="2"/><text x="595" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Recover</text><line x1="685" y1="207" x2="720" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="730" y="170" width="180" height="75" rx="14" fill="#FAF5FF" stroke="#64748B" stroke-width="2"/><text x="820" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Verify</text><line x1="910" y1="207" x2="945" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="955" y="170" width="180" height="75" rx="14" fill="#F0FDF4" stroke="#64748B" stroke-width="2"/><text x="1045" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Answer / abstain</text>
+</g></svg>

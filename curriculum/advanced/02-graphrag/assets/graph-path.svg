@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380">
+<rect width="1200" height="380" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Multi-hop graph path</text>
+<text x="55" y="82" font-size="16" fill="#475569">Relationship questions can require several source-backed edges.</text>
+<rect x="100" y="180" width="170" height="70" rx="14" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="185" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#312E81">Project Atlas</text><line x1="270" y1="215" x2="375" y2="215" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><text x="322.5" y="198" text-anchor="middle" font-size="11" fill="#475569">DEPENDS_ON</text><rect x="385" y="180" width="170" height="70" rx="14" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="470" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#312E81">VectorDB-X</text><line x1="555" y1="215" x2="660" y2="215" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><text x="607.5" y="198" text-anchor="middle" font-size="11" fill="#475569">SUPPLIED_BY</text><rect x="670" y="180" width="170" height="70" rx="14" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="755" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#312E81">Acme Systems</text><line x1="840" y1="215" x2="945" y2="215" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><text x="892.5" y="198" text-anchor="middle" font-size="11" fill="#475569">MUST_COMPLY_WITH</text><rect x="955" y="180" width="170" height="70" rx="14" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="1040" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#312E81">Regulation R-17</text>
+</g></svg>

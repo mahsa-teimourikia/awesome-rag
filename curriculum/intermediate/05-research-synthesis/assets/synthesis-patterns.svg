@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="450" viewBox="0 0 1200 450">
+<rect width="1200" height="450" fill="white"/>
+<defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Synthesis patterns</text>
+<text x="55" y="82" font-size="16" fill="#475569">Map-Reduce and Refine make different trade-offs.</text>
+<rect x="100" y="155" width="430" height="210" rx="18" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="315" y="190" text-anchor="middle" font-size="19" font-weight="700" fill="#312E81">Map-Reduce</text><text x="315" y="225" text-anchor="middle" font-size="14" fill="#475569">parallel claim extraction</text><text x="315" y="255" text-anchor="middle" font-size="14" fill="#475569">then one synthesis step</text><text x="315" y="305" text-anchor="middle" font-size="13" fill="#64748B">fast parallelism · many calls · explicit merge</text><rect x="670" y="155" width="430" height="210" rx="18" fill="#FFF7ED" stroke="#F97316" stroke-width="2"/><text x="885" y="190" text-anchor="middle" font-size="19" font-weight="700" fill="#7C2D12">Refine</text><text x="885" y="225" text-anchor="middle" font-size="14" fill="#475569">sequential running answer</text><text x="885" y="255" text-anchor="middle" font-size="14" fill="#475569">each source updates the draft</text><text x="885" y="305" text-anchor="middle" font-size="13" fill="#64748B">coherent narrative · order-sensitive · slower</text>
+</g></svg>

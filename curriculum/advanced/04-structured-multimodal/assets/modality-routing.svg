@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410">
+<rect width="1200" height="410" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Operation-aware evidence routing</text>
+<text x="55" y="82" font-size="16" fill="#475569">Use deterministic and model-based components where each is appropriate.</text>
+<rect x="70" y="145" width="220" height="115" rx="16" fill="#EEF2FF" stroke="#64748B" stroke-width="2"/><text x="180" y="182" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Calculation</text><text x="180" y="220" text-anchor="middle" font-size="14" fill="#475569">Typed data / SQL</text><rect x="345" y="145" width="220" height="115" rx="16" fill="#ECFEFF" stroke="#64748B" stroke-width="2"/><text x="455" y="182" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Text lookup</text><text x="455" y="220" text-anchor="middle" font-size="14" fill="#475569">Text retrieval</text><rect x="620" y="145" width="220" height="115" rx="16" fill="#FFF7ED" stroke="#64748B" stroke-width="2"/><text x="730" y="182" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">OCR field</text><text x="730" y="220" text-anchor="middle" font-size="14" fill="#475569">OCR + region</text><rect x="895" y="145" width="220" height="115" rx="16" fill="#FAF5FF" stroke="#64748B" stroke-width="2"/><text x="1005" y="182" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Visual meaning</text><text x="1005" y="220" text-anchor="middle" font-size="14" fill="#475569">Vision model</text><text x="600" y="345" text-anchor="middle" font-size="14" fill="#475569">Classify the operation first; modality alone does not determine the correct tool.</text>
+</g></svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<rect width="1200" height="420" fill="#ffffff"/>
+<text x="60" y="58" font-family="Arial,Helvetica,sans-serif" font-size="30" font-weight="700" fill="#111827">RAG Foundations</text>
+<text x="60" y="92" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#4b5563">Retrieval connects a user question to external evidence before generation.</text>
+<defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#64748b"/></marker></defs>
+<g font-family="Arial,Helvetica,sans-serif">
+<rect x="70" y="160" rx="18" ry="18" width="180" height="92" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+<text x="160" y="196" text-anchor="middle" font-size="18" font-weight="700" fill="#312e81">User question</text>
+<text x="160" y="224" text-anchor="middle" font-size="14" fill="#4f46e5">What changed?</text>
+
+<rect x="330" y="160" rx="18" ry="18" width="180" height="92" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+<text x="420" y="196" text-anchor="middle" font-size="18" font-weight="700" fill="#164e63">Retriever</text>
+<text x="420" y="224" text-anchor="middle" font-size="14" fill="#0e7490">Find evidence</text>
+
+<rect x="590" y="160" rx="18" ry="18" width="180" height="92" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="680" y="196" text-anchor="middle" font-size="18" font-weight="700" fill="#14532d">Context</text>
+<text x="680" y="224" text-anchor="middle" font-size="14" fill="#15803d">Selected evidence</text>
+
+<rect x="850" y="160" rx="18" ry="18" width="180" height="92" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+<text x="940" y="196" text-anchor="middle" font-size="18" font-weight="700" fill="#7c2d12">LLM</text>
+<text x="940" y="224" text-anchor="middle" font-size="14" fill="#c2410c">Generate answer</text>
+
+<line x1="250" y1="206" x2="330" y2="206" stroke="#64748b" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="510" y1="206" x2="590" y2="206" stroke="#64748b" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="770" y1="206" x2="850" y2="206" stroke="#64748b" stroke-width="2.5" marker-end="url(#a)"/>
+
+<rect x="330" y="305" rx="15" ry="15" width="440" height="68" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<text x="550" y="333" text-anchor="middle" font-size="16" font-weight="700" fill="#334155">External knowledge</text>
+<text x="550" y="356" text-anchor="middle" font-size="14" fill="#64748b">Documents · Search · Databases · APIs · Knowledge graphs</text>
+<line x1="550" y1="305" x2="550" y2="253" stroke="#64748b" stroke-width="2.5" marker-end="url(#a)"/>
+</g>
+</svg>

@@ -1,247 +1,759 @@
-# 05 — Production RAG operations: measure, release, recover, and govern
+# Advanced 06 — Production RAG Operations: Observe, Release, Degrade, and Recover
 
-**Level:** Advanced
+**Level:** Advanced  
+**Estimated time:** 2–3 hours  
+**Notebook:** [`05_production_operations.ipynb`](05_production_operations.ipynb)  
+**Prerequisite:** complete the preceding advanced modules
 
-**Time:** 2–3 hours
+> **Repository note:** this folder is `06-production-operations`, but the existing notebook is named `05_production_operations.ipynb`. This README intentionally links to the real file.
 
-**Prerequisites:** all preceding advanced modules and the [evaluation track](../../../notebooks/evaluation/README.md).
+---
 
-## Why operations is part of RAG quality
+## Why this lesson exists
 
-A response can be fluent and even grounded while the system is operationally unsafe: the index is stale, a retrieval dependency is timing out, an evaluator is failing open, a new embedding version has degraded recall, a fallback route has multiplied cost, or a trace leaks sensitive text. Production RAG quality is the combination of **answer quality, retrieval quality, safety, latency, cost, freshness, and recoverability**.
+A RAG system can be grounded and still be operationally unsafe.
 
-This module follows a Northstar Cloud release: a new chunking/reranking configuration looks better in a demo. Learners must decide whether it can be promoted, observe it in a canary, detect a stale index and rising fallback rate, contain the incident, and roll back safely.
+Examples:
 
-## Outcome
+- index freshness is outside policy;
+- retrieval latency spikes;
+- a new embedding version reduces recall;
+- a fallback loop multiplies cost;
+- citation verification is unavailable;
+- telemetry leaks sensitive text.
 
-Build an operational contract that instruments a request, separates service readiness from corpus freshness, enforces budgets, gates releases on evaluation, detects degradation, supports circuit breaking and kill switches, and preserves redacted traces for incident response.
-
-Open [`05_production_operations.ipynb`](05_production_operations.ipynb). Its deterministic examples run without infrastructure.
-
-```mermaid
-flowchart TD
-  R["Request"] --> T["Trace route, retrieval, generation, citations"]
-  T --> B{"Latency / cost / safety budget"}
-  B -->|pass| V["Answer verification"]
-  B -->|exceeded| F["Degrade, shed load, or abstain"]
-  I["Index + corpus freshness"] --> H["Readiness"]
-  E["Golden-set / online evaluation"] --> G["Release gate"]
-  H --> G
-  G -->|promote| C["Canary + monitor"]
-  G -->|hold / regression| RB["Rollback or kill switch"]
-```
-
-## 1. Step-by-step operational design
-
-### Step 1 — define SLOs and error budgets by user impact
-
-Separate service SLOs from model-quality objectives. Example: p95 retrieval+generation latency < 3 s, p99 < 8 s; 99.9% availability; citation coverage > 95% for factual answer classes; no cross-tenant retrieval; and a golden-set groundedness threshold before release. A lower cost is not a valid trade if it causes unsupported answers.
-
-### Step 2 — trace the trajectory, redact the content
-
-Record trace ID, request class, tenant pseudonym, policy/retriever/index/model versions, route, candidate IDs, source revisions, evaluator results, tool calls, latency by stage, token/cost estimate, cache state, and terminal reason. Do not default to logging raw prompts, secrets, private documents, or full tool output.
-
-### Step 3 — distinguish readiness, freshness, and quality
-
-| Signal | Question answered | Example action |
-| --- | --- | --- |
-| Readiness | Can dependencies answer requests? | Shed traffic when vector store/evaluator is unavailable. |
-| Freshness | Is the corpus/index current enough? | Serve a dated answer, disable fresh-data claims, or abstain. |
-| Offline quality | Should this configuration be promoted? | Hold release if golden-set recall/citation metrics regress. |
-| Online quality | Is real traffic behaving as expected? | Canary rollback on route, latency, or feedback regression. |
-
-### Step 4 — release with gates and canaries
-
-Version prompts, chunking, corpus snapshot, embedding model, retriever, reranker, evaluator, and policy together. Evaluate a held-out set, run security/adversarial tests, validate readiness, then canary a small identity-safe traffic slice. Define rollback *before* promotion: previous version, owner, trigger, communication path, and cache/index compatibility.
-
-### Step 5 — degrade safely
-
-Examples: disable external retrieval on an outage; switch from expensive reranking to a measured baseline; return read-only results during an action-system incident; or abstain when citation verification is unavailable. Do not silently remove authorization, verification, or safety checks to maintain apparent availability.
-
-## 2. Incident response and observability
+Production quality combines:
 
 ```text
-Signal -> classify -> contain -> investigate -> recover -> verify -> learn
-  |        |            |             |             |          |
-  |        |            |             |             |          +-- post-incident regression test
-  |        |            |             |             +-- replay golden/adversarial cases
-  |        |            |             +-- traces, versions, corpus/index diff
-  |        |            +-- circuit breaker / kill switch / rollback
-  |        +-- quality, freshness, safety, cost, latency, availability
-  +-- alert with trace IDs and tenant-safe context
+retrieval quality
+answer support
+authorization
+freshness
+latency
+cost
+observability
+recoverability
 ```
 
-High-signal alerts include: empty-retrieval spikes, stale-index age, route distribution shifts, citation-verification failures, authorization denials, evaluator timeout/fail-open events, p95/p99 latency, cost per supported answer, and cross-tenant policy violations. Alert fatigue is itself an operational risk: pair each alert with an owner, runbook, threshold rationale, and expected mitigation.
+![Production operating loop](assets/production-operating-loop.svg)
 
-## 3. Evaluation-driven release gates
+The notebook demonstrates a small subset of this: callback-based LLM timing and simulated cost accounting around a mock LCEL pipeline.
 
-Release gates should include normal, ambiguous, no-answer, stale, access-restricted, adversarial, and multimodal cases. Track retrieval recall/precision, grounded answer/citation correctness, abstention behavior, tool trajectory correctness, latency, cost, and safety. Use statistical confidence where traffic volume supports it; do not promote because one demo looks better.
+---
 
-The reference `release_gate()` is deliberately simple: it holds a deployment when golden-set quality, readiness, freshness, or error rate violate policy. Production gates need richer telemetry but should retain this explainability.
+## Learning objectives
 
-### Canary release procedure
+After this lesson you should be able to:
 
-Define the canary procedure **before** the first production deployment:
+- separate service reliability from RAG quality;
+- define service-level objectives and release thresholds;
+- instrument stage-level latency and cost;
+- understand what the notebook's callback does and does not measure;
+- define release gates and canary rollback criteria;
+- distinguish readiness, freshness, and answer quality;
+- design safe degraded modes;
+- version retrieval/model/prompt/index artifacts together; and
+- turn incidents into regression tests.
 
-```
-1. Prepare release artifacts
-   - Version bundle: prompt v, chunking config v, corpus snapshot v,
-     embedding model v, retriever config v, policy version
-   - Evaluation report: held-out recall, faithfulness, latency, cost
-   - Security test report: cross-tenant, injection, stale-source
+---
 
-2. Gate check (all must pass)
-   - Golden-set recall ≥ threshold (no regression vs previous version)
-   - Citation validity = 100% (deterministic)
-   - Authorization isolation = pass (zero cross-tenant leaks)
-   - p95 latency ≤ SLO
-   - cost per supported answer ≤ budget
+# Deep dive — Production RAG operations
 
-3. Canary deployment (1-5% traffic)
-   - Route by tenant hash or feature flag (not randomly)
-   - Monitor for 30-60 minutes:
-     - Retrieval fallback rate
-     - Citation failure rate
-     - Route distribution shift
-     - p95/p99 latency
-     - Error rate and timeout rate
-   - Define rollback trigger threshold before starting canary
+## Production RAG is a distributed evidence system
 
-4. Rollback
-   - Automated: rollback if any hard gate fires during canary
-   - Manual: rollback via kill switch within 5 minutes of detection
-   - Cache compatibility: verify old and new versions share key format
-   - Index compatibility: verify old vectors remain valid if rollback needed
+A production RAG request can cross many components:
 
-5. Full promotion
-   - Ramp to 100% after canary window passes
-   - Keep previous version artifacts for 30-day rollback window
-```
-
-### SLO error budgets
-
-An error budget makes the trade-off between reliability and deployment velocity explicit:
-
-```
-Availability SLO: 99.9%
-Monthly error budget: 0.1% × 30 days × 24 hours = 43.2 minutes/month of allowed downtime
-
-Latency SLO: p95 < 3s
-Quality SLO: faithfulness ≥ 0.85 on supported queries
-
-If error budget is >50% consumed:
-  → Freeze non-emergency deployments
-  → Prioritize reliability improvements
-
-If error budget is <10% consumed:
-  → Capacity for faster release cadence
+```text
+API/auth
+  ↓
+router
+  ↓
+retriever / database / graph / tools
+  ↓
+reranker
+  ↓
+context builder
+  ↓
+LLM
+  ↓
+verification
+  ↓
+response
 ```
 
-Track error budget consumption in real-time. Make it visible to both engineering and product teams.
+Each component can fail independently. Traditional API health metrics are necessary but insufficient because a system can return HTTP 200 responses while retrieval quality, freshness, or grounding has silently degraded.
 
-## 4. Cost accounting
+Production operations therefore needs both **software reliability telemetry** and **AI/evidence quality telemetry**.
 
-Operational sustainability requires knowing the full cost of each production request.
+## Observability model
 
-### Cost components to measure
+A useful trace hierarchy is:
 
-| Component | How to measure | Typical range |
-|---|---|---|
-| Embedding inference | token count × cost/token (or inference time for local models) | $0.0001–0.001 per query |
-| Vector search | retrieval calls × cost/call (or infra cost / queries) | $0.0001–0.01 per query |
-| Reranker | candidate count × cost/candidate | $0.001–0.01 per query |
-| LLM generation | input tokens + output tokens × cost/token | $0.005–0.10 per query |
-| External tool calls | API calls × cost/call | varies |
-| Caching | negative cost (savings from cache hits) | -$0.005 per cache hit |
+```text
+rag.request
+ ├─ auth.check
+ ├─ route.select
+ ├─ retrieval.search
+ │   ├─ sparse.search
+ │   └─ vector.search
+ ├─ rerank
+ ├─ context.build
+ ├─ gen_ai.chat
+ └─ answer.verify
+```
 
-### Cost per successful supported answer
+Each span should record low-cardinality operational attributes and stable identifiers for deeper investigation.
 
-The key composite metric:
+Useful attributes include:
+
+```text
+trace_id
+route
+model/version
+retriever version
+index/corpus version
+candidate count
+selected evidence IDs
+latency
+token usage
+policy result
+terminal reason
+```
+
+Avoid turning traces into uncontrolled copies of private prompts and documents.
+
+## OpenTelemetry and GenAI telemetry
+
+OpenTelemetry's GenAI semantic-convention work provides standardized attributes for model operations, token usage, tool calls, and retrieval-related telemetry. Current guidance treats prompt/message content as potentially sensitive and opt-in.
+
+This is a useful direction for vendor-neutral observability: instrument the application once and export traces/metrics through standard telemetry infrastructure rather than coupling operational evidence to one model vendor.
+
+## Four operational planes
+
+A useful production model separates:
+
+### 1. Service reliability
+
+- availability;
+- request latency;
+- dependency errors;
+- saturation;
+- timeouts.
+
+### 2. Retrieval/data health
+
+- index freshness;
+- ingestion lag;
+- embedding failures;
+- empty retrieval rate;
+- candidate count distribution;
+- authorization-filter drop rate.
+
+### 3. AI quality
+
+- retrieval recall on sampled/labelled traffic;
+- claim support;
+- citation correctness;
+- abstention quality;
+- route correctness.
+
+### 4. Economics
+
+- tokens/request;
+- retrieval/tool cost;
+- cost by route;
+- cost per successful supported task;
+- cache effectiveness.
+
+A dashboard that shows only model latency is not RAG observability.
+
+## SLI, SLO, and release threshold
+
+Traditional service SLOs and model-quality thresholds should be related but not conflated.
+
+Example:
+
+```text
+Service SLO:
+  99.9% requests complete within availability policy
+
+Latency SLO:
+  p95 end-to-end latency < application target
+
+Freshness invariant:
+  policy documents indexed within X minutes of publication
+
+Quality release gate:
+  Recall@k and citation support must not regress beyond tolerance
+```
+
+Quality may be measured offline or through sampled online evaluation rather than every request.
+
+## Freshness architecture
+
+Freshness is a first-class RAG reliability property.
+
+Track:
+
+```text
+source_updated_at
+ingested_at
+embedded_at
+index_published_at
+query_time
+```
+
+This allows calculation of source-to-index lag. Different source classes can have different freshness requirements.
+
+A retriever returning a perfectly relevant but obsolete policy is a production failure.
+
+## Versioning and reproducibility
+
+A RAG answer depends on more than the model name. Treat the deployed configuration as a release bundle:
+
+```text
+application version
+prompt version
+embedding model
+chunker/parser version
+retriever parameters
+reranker model
+corpus snapshot
+index version
+policy version
+agent/tool definitions
+evaluator version
+generation model
+```
+
+Attach the bundle ID to traces. When a regression appears, you need to reconstruct exactly which evidence system produced the answer.
+
+## Offline evaluation as CI/CD
+
+A RAG release pipeline should run evaluation before promotion.
+
+```text
+change
+  ↓
+unit/component tests
+  ↓
+retrieval benchmark
+  ↓
+end-to-end evaluation
+  ↓
+safety/authorization tests
+  ↓
+latency/cost benchmark
+  ↓
+release decision
+```
+
+Hard invariants such as cross-tenant leakage should fail the release immediately. They should not be averaged into a composite quality score.
+
+## Online evaluation
+
+Offline datasets cannot capture every production query. Online quality monitoring can use:
+
+- sampled human review;
+- user feedback with careful interpretation;
+- automated claim/evidence checks;
+- route anomaly detection;
+- shadow evaluation;
+- production failure clustering.
+
+LLM-as-judge can be useful for scalable signals, but it should be calibrated against human labels and not become the sole arbiter of high-risk correctness.
+
+## Canary and shadow releases
+
+### Canary
+
+Send a small controlled portion of eligible traffic to the candidate release and compare:
+
+- errors;
+- latency;
+- cost;
+- retrieval distributions;
+- quality signals.
+
+### Shadow
+
+Run the candidate in parallel without serving its answer. This is useful for comparing retrieval/model changes with low user risk, although it increases infrastructure/model cost and requires careful privacy handling.
+
+## Rollback design
+
+Rollback must consider compatibility between components.
+
+Rolling back only the application while leaving a new incompatible index can fail. Define rollback units for:
+
+```text
+code
+prompt
+model
+index
+schema
+policy
+cache
+```
+
+Keep the last known-good release bundle and test rollback procedures before incidents.
+
+## Safe degradation
+
+Design degraded modes in advance.
+
+Examples:
+
+```text
+reranker unavailable → use authorized base retrieval
+external search unavailable → internal-only + freshness warning/abstain
+verification unavailable → abstain for high-risk task
+agent tool unavailable → read-only answer
+fresh index unavailable → refuse freshness-sensitive query
+```
+
+Never degrade by bypassing authorization or silently removing safety checks.
+
+## Capacity and latency engineering
+
+End-to-end latency is a sum of stage latencies plus queueing and retries.
+
+Important techniques include:
+
+- parallel independent retrieval;
+- bounded candidate counts;
+- asynchronous I/O;
+- embedding caches;
+- response/prompt caching where semantics permit;
+- model tiering;
+- timeout budgets per dependency;
+- backpressure;
+- circuit breakers.
+
+Set a latency budget per stage rather than allowing every dependency to consume the full request timeout.
+
+## Cost engineering
+
+Cost includes more than output tokens:
+
+```text
+ingestion parsing
+embeddings
+vector/graph storage
+retrieval compute
+reranking
+LLM input/output
+agent loops
+tool/API calls
+evaluation
+observability
+```
+
+Measure cost by route and task outcome. Average cost/request can hide a small class of agentic queries that dominate spend.
+
+## Privacy-aware telemetry
+
+Prompts, retrieved documents, tool outputs, and traces may contain sensitive information.
+
+Define:
+
+- what content is logged;
+- redaction rules;
+- retention period;
+- access controls;
+- sampling;
+- data residency;
+- incident access procedures.
+
+Prefer stable evidence IDs and metadata over full raw content when that is sufficient for diagnosis.
+
+## Incident taxonomy
+
+Classify incidents by subsystem:
+
+```text
+retrieval relevance
+index freshness
+authorization
+model behavior
+citation/provenance
+routing
+agent/tool execution
+latency/availability
+cost anomaly
+```
+
+The classification determines containment. For example, a stale index may require disabling freshness-sensitive answers, while a tenant-filter defect may require immediate shutdown of the affected route.
+
+## Incident-to-evaluation loop
+
+Every meaningful production failure should become a regression case:
+
+```text
+production failure
+   ↓
+minimal reproducible case
+   ↓
+root cause
+   ↓
+fix
+   ↓
+new automated evaluation/test
+   ↓
+release gate
+```
+
+This is how the evaluation suite evolves from synthetic examples into an operational memory of real failure modes.
+
+## Production readiness review
+
+Before launch, answer:
+
+1. What is the authoritative evidence source for each route?
+2. How is authorization enforced before model access?
+3. What is the freshness requirement?
+4. Which versions are attached to each trace?
+5. What are the quality release gates?
+6. What happens when each dependency fails?
+7. What is the rollback unit?
+8. What telemetry may contain sensitive data?
+9. What is the cost/latency budget?
+10. Who owns incidents and evaluation regressions?
+
+Production RAG maturity is the ability to answer these questions consistently—not the number of frameworks in the stack.
+
+---
+
+# Notebook companion
+
+The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
+
+# 1. What the notebook actually implements
+
+The notebook:
+
+- defines example SLO concepts;
+- defines a "cost per grounded answer" idea;
+- creates `ProductionMetricsCallback`;
+- measures LLM callback latency;
+- estimates cost from **character length** using simulated prices;
+- runs a mock retrieval + prompt + fake LLM pipeline.
+
+This is useful instrumentation training.
+
+It is not production billing or complete distributed tracing.
+
+---
+
+# 2. Important instrumentation limitation
+
+`mock_retrieve` is a plain Python function.
+
+It does not emit LangChain retriever callback events.
+
+Therefore the custom callback does **not** actually record retrieval latency as a retriever span.
+
+The notebook also accumulates:
+
+```text
+total LLM latency
+```
+
+rather than true end-to-end latency.
+
+For production, capture explicit spans:
+
+```text
+request
+ ├─ authorization
+ ├─ retrieval
+ ├─ reranking
+ ├─ context build
+ ├─ generation
+ └─ verification
+```
+
+![Trace spans](assets/trace-spans.svg)
+
+---
+
+# 3. Cost estimates are simulated
+
+The notebook estimates token cost from character lengths and hard-coded example rates.
+
+Do not use those values for financial planning.
+
+Production accounting should use:
+
+- actual provider usage metadata where available;
+- actual local-inference resource accounting;
+- current model/provider pricing;
+- infrastructure cost allocation;
+- external-tool/API costs.
+
+Pricing changes over time.
+
+---
+
+# 4. Define cost per successful supported answer directly
+
+A robust composite metric is:
 
 ```python
-cost_per_success = (
-    total_cost_usd
-    / (n_queries × faithfulness_rate × citation_valid_rate × grounded_rate)
-)
+cost_per_success = total_cost / successful_supported_answers
 ```
 
-A configuration that costs 20% less per query but produces 40% fewer grounded
-answers has a *higher* cost per success, not lower. Track this metric alongside
-raw cost per query.
+where `successful_supported_answers` is counted from evaluated outcomes.
 
-### Cost alerting thresholds
+Avoid multiplying several aggregate rates together and assuming independence:
 
-| Alert | Trigger | Response |
-|---|---|---|
-| Cost spike | Cost per query > 2× baseline | Investigate; check fallback loop, reranker fan-out |
-| Reranker overload | Reranker candidate count > 2× expected | Check retrieval fan-out; verify budget is enforced |
-| LLM token overrun | Output tokens > 3× expected | Check context budget enforcement |
-| External API bill | Daily API cost > budget threshold | Rate limit; enable caching; review fallback rate |
+```text
+n × faithfulness_rate × citation_rate × grounded_rate
+```
 
-## 5. Corpus governance
+Those metrics may overlap and be statistically dependent.
 
-A corpus is not a static artifact. It requires ongoing governance:
+Count successful cases directly whenever possible.
 
-### Corpus lifecycle policies
+---
 
-| Policy | Definition | Example |
-|---|---|---|
-| Ingestion SLA | How quickly new documents are indexed | < 4 hours for operational runbooks |
-| Freshness SLO | Maximum allowed index lag | < 24 hours for policy documents |
-| Retention policy | How long documents remain retrievable | 7 years for financial documents; 90 days for operational logs |
-| Deletion guarantee | How quickly tombstones propagate | < 1 hour for security-sensitive revocations |
-| Reindexing policy | When full reindexing is triggered | New embedding model; new chunking config; corpus correction |
+# 5. SLOs are application-specific
 
-### Corpus quality monitoring
+The notebook's values such as:
 
-- **Duplicate document rate**: same content from multiple sources
-- **Stale document rate**: documents past their `valid_to` date still in index
-- **Schema completeness rate**: chunks with all required metadata fields
-- **Ingestion error rate**: documents that failed to parse or embed
-- **Orphaned chunk rate**: chunks whose parent document was deleted
+```text
+p95 < 3 seconds
+99.9% availability
+```
 
-Alert on anomalies in any of these metrics. A corpus that gradually degrades quality is harder to detect than an outage but causes progressive answer quality degradation.
+are examples.
 
-### Source accountability
+They are not universal RAG standards.
 
-Every source in the corpus should have a documented:
-- Owner: who is responsible for maintaining it
-- Review cadence: how often it is reviewed for accuracy
-- Update notification: who is notified when the RAG system ingests a change
-- Removal authority: who can request emergency revocation
+Set SLOs from:
 
-Without source accountability, the corpus gradually accumulates outdated,
-incorrect, and unauthorized content. This is the most common cause of answer quality
-degradation in mature production RAG systems.
+- user workflow;
+- business impact;
+- dependency reliability;
+- risk class;
+- cost envelope.
 
-## 6. Security and governance
+Also separate:
 
-- Apply identity and tenant checks at retrieval, cache, tool, trace, and evaluation boundaries.
-- Redact/sanitize telemetry; define retention and access policies for traces and evaluation sets.
-- Use least-privilege credentials, secret rotation, dependency provenance, rate limits, and egress controls.
-- Test prompt injection, tool poisoning, malicious documents, schema drift, replay, and cross-tenant access in CI.
-- Maintain a kill switch that degrades to a safe mode rather than bypassing verification or authorization.
-- Document source ownership, review cadence, and emergency revocation process for every corpus source.
-- Version all evaluation artifacts alongside system artifacts; never evaluate on data used for tuning decisions.
+### Service SLO
 
-## Exercises
+```text
+availability / latency
+```
 
-1. Add separate retrieval and generation stage timing to a trace; identify the dominant p95 component.
-2. Create an evaluation regression that improves relevance but violates latency/cost SLO. Should it promote?
-3. Simulate an index 30 hours stale for a tenant with a 12-hour freshness policy; design the response copy and route.
-4. Add a circuit breaker triggered by three verifier failures; prove a request is served through a safe fallback or abstention path.
-5. Write a rollback runbook for an embedding-model change including cache compatibility and corpus reindexing.
-6. Build a privacy review for traces: which fields are required for diagnosis and which must be redacted?
-7. Calculate the error budget for a 99.9% availability SLO. At what point should you freeze deployments?
-8. Design corpus governance policies for a corpus containing runbooks (change daily) and legal policies (change quarterly). How do freshness SLOs, retention policies, and reindexing cadence differ?
+from:
 
-## References
+### Quality release threshold
 
-- [OpenTelemetry](https://opentelemetry.io/) — interoperable tracing and metrics.
-- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework) — governance/risk framing.
-- [Ragas documentation](https://docs.ragas.io/) — RAG evaluation tooling.
-- [Qdrant production checklist](https://qdrant.tech/documentation/production-checklist/) — operational vector-search considerations.
-- [Google SRE Book: SLOs and Error Budgets](https://sre.google/sre-book/service-level-objectives/) — SLO methodology.
-- [DORA metrics](https://dora.dev/guides/dora-metrics-four-keys/) — deployment frequency, lead time, MTTR, change failure rate.
-- [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf) — LLM security.
+```text
+retrieval recall
+citation validity
+false-answer rate
+```
 
+Model-quality metrics do not behave exactly like traditional service availability SLOs.
+
+---
+
+# 6. Readiness vs freshness vs quality
+
+![Operational signals](assets/operational-signals.svg)
+
+### Readiness
+
+Can required dependencies serve requests?
+
+### Freshness
+
+Is the corpus/index current enough for this answer class?
+
+### Offline quality
+
+Should this configuration be promoted?
+
+### Online behavior
+
+Is production traffic behaving as expected?
+
+A healthy HTTP endpoint does not mean the knowledge base is current.
+
+---
+
+# 7. Version the release bundle
+
+Track together:
+
+```text
+prompt version
+chunking version
+embedding model
+retriever config
+reranker config
+corpus snapshot
+index version
+policy version
+evaluator version
+generation model
+```
+
+Without this bundle, rollback and incident reconstruction become guesswork.
+
+---
+
+# 8. Release gate
+
+A useful release gate can combine:
+
+```text
+retrieval metric thresholds
+citation invariants
+abstention behavior
+security tests
+latency budget
+cost budget
+freshness
+```
+
+Hard safety constraints such as cross-tenant isolation should not be averaged with softer quality metrics.
+
+---
+
+# 9. Canary and rollback
+
+Before a release, define:
+
+```text
+canary population
+monitoring window
+rollback thresholds
+previous stable version
+cache compatibility
+index compatibility
+owner
+```
+
+Do not invent fixed percentages or monitoring durations as universal rules.
+
+Choose them according to traffic volume and risk.
+
+---
+
+# 10. Safe degradation
+
+When dependencies fail, degrade capability rather than policy.
+
+Possible safe modes:
+
+```text
+disable optional reranking
+disable external retrieval
+serve dated read-only evidence
+disable side-effecting tools
+abstain when verification unavailable
+```
+
+Unsafe degradation:
+
+```text
+skip authorization
+skip citation validation
+silently use stale data
+```
+
+---
+
+# 11. Telemetry and privacy
+
+Trace enough to diagnose:
+
+```text
+trace ID
+route
+version bundle
+candidate IDs
+source versions
+latency
+token usage
+policy result
+terminal reason
+```
+
+Do not automatically log:
+
+- full private documents;
+- secrets;
+- raw tool credentials;
+- unnecessary user PII;
+- hidden model reasoning.
+
+Use redaction and retention policies.
+
+---
+
+# 12. Incident loop
+
+```text
+detect
+  ↓
+classify
+  ↓
+contain
+  ↓
+investigate
+  ↓
+recover
+  ↓
+verify
+  ↓
+add regression case
+```
+
+Production incidents should improve the evaluation suite.
+
+---
+
+# 13. Exercises
+
+1. Add explicit timers around retrieval and generation.
+2. Compute true end-to-end latency.
+3. Replace character-based token estimates with a real tokenizer or provider usage record.
+4. Define `successful_supported_answer` as a per-case boolean and compute cost per success.
+5. Simulate stale-index policy and safe degradation.
+6. Define a release bundle with all relevant versions.
+7. Create a canary rollback condition.
+8. Redesign the trace schema to avoid storing raw sensitive text.
+
+---
+
+# 14. Checkpoint
+
+1. What does the notebook callback actually measure?
+2. Why is character count not reliable billing data?
+3. How should cost per successful supported answer be calculated?
+4. What is the difference between readiness and freshness?
+5. Why are example SLO numbers not universal?
+6. Which failures should hard-block a release?
+7. What should safe degradation preserve?
+8. What information is required for rollback?
+
+---
+
+# References
+
+- OpenTelemetry — [Documentation](https://opentelemetry.io/docs/)
+- Google SRE — [Service Level Objectives](https://sre.google/sre-book/service-level-objectives/)
+- Qdrant — [Production documentation](https://qdrant.tech/documentation/guides/installation/)
+- NIST — [AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+- OWASP — [Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+
+---
+- OpenTelemetry — [GenAI observability](https://opentelemetry.io/blog/2026/genai-observability/)
+- OpenTelemetry — [Semantic conventions](https://opentelemetry.io/docs/specs/semconv/)
+
+## Key takeaway
+
+**Production RAG is an operated system, not a prompt. Observe every important stage, release versioned artifacts deliberately, and degrade capability without degrading safety.**

@@ -1,405 +1,1293 @@
-# 03 — Chunking lab: design the evidence a retriever can return
+# 03 — Chunking Decisions: Design the Evidence Your Retriever Can Return
 
 **Level:** Beginner  
-**Time:** 2–3 hours  
-**Prerequisites:** [the first local baseline](../02-first-local-rag/README.md)
+**Estimated time:** 90–120 minutes  
+**Scenario:** NovaTech Financial Review  
+**Notebook:** [`03_chunking_lab.ipynb`](03_chunking_lab.ipynb)  
+**Prerequisite:** [02 — First Local RAG](../02-first-local-rag/README.md)
+
+---
+
+## Why this lesson exists
+
+In Course 02, the retrieval units were already prepared for you.
+
+Real documents do not arrive as perfect RAG chunks.
+
+They arrive as PDFs, Markdown, HTML, Office documents, tables, procedures, reports, source code, and other structures. Before retrieval can work, the system must decide:
+
+> **What unit of evidence should be indexed and returned?**
+
+That decision is **chunking**.
+
+A poor chunk boundary can separate a number from its subject, a policy from its exception, a table row from its headers, or a function signature from its implementation.
+
+No embedding model can recover information that your preprocessing has removed from the retrievable unit.
+
+![Chunking as an evidence boundary](assets/chunking-evidence-boundary.svg)
+
+This lesson starts with the two strategies implemented in the notebook—naive character splitting and recursive splitting—and then gives you the design framework needed to understand the more advanced chunking patterns used later in production RAG systems.
+
+---
 
 ## Learning objectives
 
-After this lesson you will be able to:
+After completing this lesson, you should be able to:
 
-- explain the retrieval unit contract and why it is a design choice, not a default;
-- implement and compare at least five chunking strategies: fixed-size, heading-aware,
-  sentence-window, parent/child, and semantic splitting;
-- explain the core chunking trade-off between retrieval specificity and context completeness;
-- select a chunking strategy from the question distribution rather than a global rule;
-- design chunk metadata so authorization, freshness, and citations survive retrieval;
-- evaluate chunking decisions with Recall@k, MRR, evidence completeness, redundancy,
-  index size, and context token count; and
-- diagnose which type of chunking failure caused a retrieval or answer problem.
+- explain why chunking is part of retrieval design rather than clerical preprocessing;
+- describe the trade-off between retrieval specificity and evidence completeness;
+- use LangChain's `CharacterTextSplitter` and `RecursiveCharacterTextSplitter`;
+- explain what recursive splitting actually does—and what it does **not** do;
+- reason about chunk size and overlap;
+- inspect whether critical evidence survives a chunk boundary;
+- preserve document metadata through splitting;
+- distinguish structural, semantic, hierarchical, and context-enrichment approaches;
+- select chunking strategies based on document structure and query patterns;
+- explain why there is no universal "best chunk size"; and
+- design an evaluation experiment for comparing chunking configurations.
 
-## Run the experiment
+---
 
-```bash
-PYTHONPATH=. python curriculum/beginner/03-chunking-lab/lab.py
+# 1. The retrieval unit is a design decision
+
+A retriever does not normally return an entire enterprise knowledge base.
+
+It returns **retrieval units**.
+
+For document RAG, those units are often chunks.
+
+```text
+Source document
+      ↓
+Parsing
+      ↓
+Chunking
+      ↓
+Retrievable units
+      ↓
+Embedding / indexing
+      ↓
+Retrieval
 ```
 
-Or import `fixed_size` and `by_heading` from [`lab.py`](lab.py) in a Python shell. The functions return a stable ID, source, text, and optional section for every chunk.
+The chunk boundary determines what information can be represented and retrieved together.
 
-The guided companion notebook is [`02_chunking_lab.ipynb`](../../../notebooks/beginner/02_chunking_lab.ipynb).
+That affects:
 
-## Why chunking matters
+- retrieval precision;
+- retrieval recall;
+- evidence completeness;
+- citation granularity;
+- metadata filtering;
+- context-window usage;
+- reranking;
+- authorization granularity; and
+- generation quality.
 
-A retriever returns a **unit**, not a document. That unit boundary determines:
+Chunking therefore belongs to the **information architecture** of a RAG system.
 
-- what can be embedded (the representation contract);
-- what can be authorized (access filter must apply to the unit);
-- what can be reranked (the reranker sees this text paired with the query);
-- what can be cited (the user navigates to this exact passage); and
-- what fits in the context window (token budget applies to assembled units).
+---
 
-A chunking choice made before writing any retrieval code constrains every
-downstream component. A poor boundary that splits a rule from its exception is
-not fixable by a better ranker — it is a *source contract* failure that must
-be fixed at the chunking stage.
+# 2. The fundamental trade-off
 
-## The fundamental trade-off
+Smaller and larger chunks create different advantages and failure modes.
 
-```mermaid
-flowchart TD
-  subgraph smaller[Smaller chunks]
-    S1[Higher retrieval specificity]
-    S2[Lower noise in context]
-    S3[Easier to embed precisely]
-    S4[May split meaning across boundaries]
-    S5[Requires more chunks for completeness]
-  end
-  subgraph larger[Larger chunks]
-    L1[Better context completeness]
-    L2[Rule + exception stay together]
-    L3[More noise / lower precision]
-    L4[Context budget consumed faster]
-    L5[Embedding averages over more text]
-  end
-  Q[Evaluation on your query distribution] --> S1
-  Q --> L1
+![Chunk-size trade-off](assets/chunk-size-tradeoff.svg)
+
+### Smaller chunks
+
+Potential advantages:
+
+- more specific representations;
+- less irrelevant text per result;
+- finer citation granularity;
+- potentially better matching for narrow questions.
+
+Potential disadvantages:
+
+- facts can lose surrounding context;
+- rules can be separated from exceptions;
+- more chunks must be indexed;
+- more results may be needed to reconstruct complete evidence.
+
+### Larger chunks
+
+Potential advantages:
+
+- more context stays together;
+- qualifications and surrounding explanations survive;
+- fewer fragments need to be assembled.
+
+Potential disadvantages:
+
+- embeddings represent more competing concepts;
+- retrieval may become less specific;
+- context budgets are consumed faster;
+- citations become less precise.
+
+There is no universal winner.
+
+> The correct chunking strategy is the one that performs best for your corpus, query distribution, retrieval model, and application requirements.
+
+---
+
+# 3. The notebook's failure example
+
+The notebook uses a small financial review:
+
+```text
+# Q2 2025 Financial Review
+
+## Cloud Infrastructure
+
+The migration to the new distributed cluster architecture was completed in May.
+
+As a direct result of these redundant systems and cross-region backups,
+costs increased by 14% compared to the previous quarter.
+
+However, uptime improved to 99.999%.
 ```
 
-There is no universally correct chunk size. The right answer depends on:
-- the typical query length and specificity;
-- how the documents are structured (short procedures vs long legal text);
-- the context window of the model you use;
-- the embedding model's effective input length; and
-- the authorization granularity required.
+Now imagine the user asks:
 
-**Never set a chunk size without measuring retrieval recall and answer
-quality on a representative query set.**
+> What increased by 14%?
 
-## Chunking strategy taxonomy
+The required evidence is not merely:
 
-### 1. Character and token chunking
+```text
+increased by 14%
+```
 
-**Character chunking** splits at a fixed character count (e.g., every 500 characters).
-Simple and predictable. Boundaries are arbitrary: a split can occur mid-sentence
-or mid-word. Useful as a baseline because its behavior is exactly predictable.
+The system must preserve enough surrounding information to determine **what** increased.
 
-**Token chunking** splits at a fixed token count. More semantically aware than
-character splitting (tokens approximate words). Respects tokenizer boundaries but
-not sentence or paragraph boundaries. Many production systems use 256–512 tokens
-with 10–20% overlap.
+A bad split may create:
+
+```text
+Chunk A:
+## Cloud Infrastructure
+The migration to the new distributed...
+
+Chunk B:
+...costs increased by 14% compared to the previous quarter.
+```
+
+Chunk B contains the number but may have lost the section-level context.
+
+This is a chunk-boundary failure.
+
+---
+
+# 4. Strategy 1 — Naive character splitting
+
+The notebook first creates a deliberately naive baseline:
 
 ```python
-from examples.beginner.chunking_lab import fixed_size
+from langchain_text_splitters import CharacterTextSplitter
 
-chunks = fixed_size(policy_text, "harborline-support", size=180, overlap=35)
+naive_splitter = CharacterTextSplitter(
+    separator="",
+    chunk_size=100,
+    chunk_overlap=0,
+)
 ```
 
-**Overlap:** adding overlap between adjacent chunks ensures content near a
-boundary appears in at least one complete chunk. Overlap adds storage cost,
-retrieval candidates, and context tokens — measure the duplicate content before
-treating it as free recall.
+This is useful because the behavior is easy to understand.
 
-### 2. Recursive splitting
+Every chunk has approximately the configured size, regardless of meaning.
 
-A recursive splitter tries to split first at paragraph boundaries, then sentence
-boundaries, then word boundaries, then characters — attempting to maintain
-semantic coherence at each level. It is a more intelligent baseline than fixed
-character splits. LangChain's `RecursiveCharacterTextSplitter` is a widely-used
-implementation. Still does not understand document structure (headings, tables).
+![Naive vs structure-aware splitting](assets/naive-vs-recursive.svg)
 
-### 3. Sentence and paragraph splitting
+The baseline can split:
 
-Splits at detected sentence or paragraph boundaries. Preserves readable units.
-Works well for narrative text, poorly for tables, code, and structured lists.
-**Sentence-window chunking** keeps surrounding sentences as context without
-expanding the retrieval unit — the surrounding sentences are attached at
-retrieval time, not indexed separately.
+- sentences;
+- headings from content;
+- clauses;
+- numbers from subjects;
+- conditions from actions.
+
+That does not make fixed-size splitting useless.
+
+It makes it a **baseline**.
+
+Simple baselines are valuable because they give you something measurable to improve.
+
+---
+
+# 5. Strategy 2 — Recursive character splitting
+
+The notebook then uses:
 
 ```python
-from examples.beginner.chunking_lab import fixed_size, describe_chunks
-# sentence-window: retrieve small child, expand to surrounding sentences at context time
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+recursive_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=150,
+    chunk_overlap=20,
+    separators=["\n\n", "\n", " ", ""],
+)
 ```
 
-### 4. Heading-aware chunking
+The splitter attempts separators in priority order until the resulting pieces fit the configured chunk size.
 
-Uses document headings (H1, H2, H3 in Markdown; styles in DOCX) to define
-semantic sections. Preserves author-defined structure — important for policies,
-manuals, and procedures where a heading defines the scope of the content below it.
+Conceptually:
 
-**Bounded heading chunks** add a maximum character limit so a long section is
-divided into sub-chunks that retain the section heading in their metadata.
+```text
+try paragraph boundary
+        ↓
+if still too large
+        ↓
+try line boundary
+        ↓
+if still too large
+        ↓
+try whitespace
+        ↓
+if still too large
+        ↓
+split at character level
+```
+
+This usually preserves natural text boundaries better than blind character windows.
+
+## Important terminology correction
+
+`RecursiveCharacterTextSplitter` is **not semantic chunking**.
+
+It does not use embeddings to detect topic changes.
+
+It is a **separator-aware recursive text splitter**.
+
+This distinction matters because "semantic chunking" refers to a different family of techniques that uses semantic representations or model-based signals to identify boundaries.
+
+---
+
+# 6. Chunk size
+
+`chunk_size` controls the maximum target size under the splitter's length function.
+
+For the notebook:
 
 ```python
-from examples.beginner.chunking_lab import by_heading_bounded
-
-children = by_heading_bounded(policy_text, "harborline-support", max_characters=140, overlap=20)
-for child in children:
-    print(child.chunk_id, child.section, child.parent_id)
+chunk_size=150
 ```
 
-### 5. Parent/child (small-to-big retrieval)
+means the splitter tries to keep chunks within that configured size.
 
-Index small child chunks for precise retrieval; store large parent chunks for
-context completeness. When a child matches, retrieve its parent for generation.
+Do not interpret `150` as a recommended production value.
 
+The correct size depends on factors such as:
+
+- document structure;
+- question specificity;
+- embedding model;
+- expected answer granularity;
+- retrieval method;
+- reranker;
+- context budget; and
+- whether parent expansion is available.
+
+Rules such as:
+
+> "Always use 500 tokens"
+
+are not reliable engineering guidance.
+
+Chunk size should be evaluated.
+
+---
+
+# 7. Chunk overlap
+
+The notebook uses:
+
+```python
+chunk_overlap=20
 ```
-[Parent: full section]
-  [Child 1: first paragraph] → indexed for retrieval
-  [Child 2: second paragraph] → indexed for retrieval
-  [Child 3: third paragraph with exception] → indexed for retrieval
+
+Overlap repeats some boundary content between adjacent chunks.
+
+Conceptually:
+
+```text
+Chunk 1
+[ A B C D E ]
+
+Chunk 2
+        [ D E F G H ]
+          ↑ overlap
 ```
 
-When the query matches Child 1, the system returns Parent to provide full context.
-This pattern improves both retrieval specificity (small unit for embedding) and
-generation completeness (large unit with full rule + exception).
+![Overlap concept](assets/chunk-overlap.svg)
 
-### 6. Semantic chunking
+Overlap can reduce boundary failures, but it is not free.
 
-Uses an embedding model to detect topic shifts within a document. Splits when
-embedding similarity drops below a threshold. Results in variable-size chunks
-that respect semantic boundaries rather than arbitrary character counts.
+More overlap can increase:
 
-Practical status: **PRACTICAL / ESTABLISHED** but expensive at indexing time (requires
-embedding every sentence). Useful when documents mix topics or sections vary
-greatly in length. Not universally better — measure on your specific corpus.
+- index size;
+- embedding cost;
+- duplicate retrieval;
+- redundant context;
+- storage;
+- context tokens.
 
-LlamaIndex's `SemanticSplitterNodeParser` is a maintained implementation.
+Treat overlap as a tunable parameter—not a default safety mechanism.
 
-### 7. Proposition/atomic-fact indexing
+---
 
-Decomposes each passage into individual propositions (atomic factual claims) and
-indexes those as retrieval units. Each proposition is short, self-contained, and
-precisely citable. Improves retrieval precision for fact-lookup queries.
+# 8. Metadata must survive chunking
 
-Trade-off: expensive to generate (requires LLM); loses narrative flow; may not
-preserve qualifications and exceptions. Research status: **EMERGING**.
+The notebook begins with:
 
-Chen et al., [Dense X Retrieval](https://arxiv.org/abs/2312.06648) introduced
-the proposition retrieval concept.
+```python
+doc = Document(
+    page_content=raw_text,
+    metadata={"source": "q2_review.md"},
+)
+```
 
-### 8. Contextual chunking
+After splitting, inspect:
 
-Generates a brief context summary for each chunk and prepends it at indexing time,
-so the chunk's meaning is less dependent on surrounding text. Addresses the
-"out-of-context" problem where a passage only makes sense with its surrounding
-section.
+```python
+for chunk in recursive_chunks:
+    print(chunk.metadata)
+```
 
-Anthropic's [Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval)
-paper describes this approach with BM25 hybrid retrieval.
+The source metadata should remain attached to the derived chunks.
 
-### 9. Late chunking
+That is essential.
 
-Embeds the full document, then pools token-level embeddings within a chunk boundary.
-Captures document-level context in each chunk embedding without requiring a separate
-context generation step. Requires a long-context embedding model.
+A production chunk usually needs substantially more metadata:
 
-Jina AI introduced late chunking for long-context embedding models. **EMERGING** —
-useful when the embedding model supports it.
+```text
+document_id
+document_version
+chunk_id
+source
+section
+page / location
+parent_id
+ordinal
+updated_at
+tenant
+ACL / classification
+parser_version
+chunker_version
+embedding_version
+```
 
-## Content-type considerations
+![Chunk metadata inheritance](assets/chunk-metadata.svg)
 
-### Tables
+The chunk should inherit governance-relevant metadata from its source.
 
-Tables should not be split across chunks. A row without its headers loses meaning.
-Preserve: table title, all column headers, all row values, row identifier, source
-and location.
+Do not attempt to reconstruct provenance after retrieval.
 
-**Strategies:**
-- row-per-chunk with headers repeated in each chunk;
-- table-as-context: full table in one chunk, retrieved as a unit;
-- serialized key-value: `"Account: Acme Corp | Risk: $125,000 | As-of: 2024-01-15"`.
+---
 
-### Code
+# 9. Recursive splitting is a baseline—not the end state
 
-Code should be kept as a complete function or class wherever possible. A function
-signature without the body, or a body without the signature, creates incomplete
-evidence. If the codebase is large, consider symbol-aware splitting using AST
-parsing rather than character/token splitting.
+Recursive splitting works well as a general text baseline because it is:
 
-### Legal clauses and procedures
+- simple;
+- deterministic;
+- inexpensive;
+- easy to inspect; and
+- broadly applicable to prose.
 
-Numbered steps and legal clauses often have exceptions and conditions in the
-same or adjacent clause. Splitting a procedure between steps 3 and 4 breaks the
-evidence unit. Consider heading-aware or procedure-aware splitting that keeps all
-steps of a numbered list together.
+But it does not understand:
 
-### Long documents
+- Markdown hierarchy;
+- tables;
+- code syntax;
+- legal clause structure;
+- slide layout;
+- semantic topic changes;
+- parent/child relationships;
+- document-level context.
 
-For documents exceeding 10K tokens:
-1. Use hierarchical chunking: coarse-grained index for navigation, fine-grained
-   index for retrieval.
-2. Use parent/child with summary-based parents.
-3. Use a table of contents or summary for high-level routing.
+That leads to the next design question:
 
-Never simply truncate at a fixed character count and index the result as if it
-were complete.
+> Can the document's own structure provide better chunk boundaries?
 
-## The chunk contract
+---
 
-Every chunk entering the retrieval system should carry:
+# 10. Structure-aware chunking
 
-| Field | Why preserve it |
+For structured Markdown, headings often carry meaning.
+
+Example:
+
+```markdown
+# Incident Response
+
+## Database Failover
+
+Tier 2 approval is required...
+
+## Customer Communication
+
+Enterprise customers receive updates...
+```
+
+A heading-aware splitter can preserve:
+
+```text
+section = Database Failover
+```
+
+as metadata for the text beneath it.
+
+LangChain provides `MarkdownHeaderTextSplitter` for this pattern.
+
+A structure-aware pipeline may look like:
+
+```text
+Markdown document
+       ↓
+Heading hierarchy
+       ↓
+Sections
+       ↓
+Bound oversized sections
+       ↓
+Child chunks with heading metadata
+```
+
+This is often more useful than treating Markdown as an arbitrary stream of characters.
+
+---
+
+# 11. Sentence and paragraph chunking
+
+Narrative documents often have natural sentence or paragraph boundaries.
+
+Advantages:
+
+- readable evidence;
+- fewer broken sentences;
+- good fit for prose.
+
+Limitations:
+
+- sentences may be too small;
+- paragraphs may be too large;
+- headings may still be lost;
+- tables and code do not map cleanly to sentences.
+
+A useful variation is **sentence-window retrieval**:
+
+```text
+Index:
+sentence 7
+
+Retrieve:
+sentence 7
+
+Expand for context:
+sentences 5–9
+```
+
+This separates:
+
+> the unit optimized for retrieval
+
+from:
+
+> the unit optimized for generation.
+
+That distinction becomes increasingly important in advanced RAG systems.
+
+---
+
+# 12. Parent-child / small-to-big retrieval
+
+Another strategy is to index small units but return larger parents.
+
+```text
+Parent section
+│
+├── Child A
+├── Child B  ← retrieved
+├── Child C
+└── Child D
+
+retrieval hit: Child B
+        ↓
+context expansion
+        ↓
+Parent section
+```
+
+![Parent-child retrieval](assets/parent-child-chunking.svg)
+
+This attempts to combine:
+
+**small retrieval units**
+
+for precise matching
+
+with:
+
+**larger generation units**
+
+for complete context.
+
+It is useful when a narrow passage identifies the relevant section but the full section is needed to interpret the answer safely.
+
+---
+
+# 13. Semantic chunking
+
+Semantic chunking uses semantic signals—often embeddings—to detect changes in topic or meaning.
+
+A simplified approach:
+
+```text
+Sentence 1 ─┐
+Sentence 2  │ similar
+Sentence 3 ─┘
+             ↓ similarity drop
+Sentence 4 ─┐
+Sentence 5  │ new semantic region
+Sentence 6 ─┘
+```
+
+The chunks become variable-sized.
+
+This can help when:
+
+- documents contain weak formatting;
+- topic boundaries do not align with headings;
+- sections vary greatly in size.
+
+But semantic chunking adds:
+
+- preprocessing cost;
+- additional model dependencies;
+- threshold choices;
+- another configuration that must be evaluated.
+
+It is not automatically better than simpler splitters.
+
+LlamaIndex provides a maintained `SemanticSplitterNodeParser` implementation.
+
+---
+
+# 14. Contextual retrieval / contextualized chunks
+
+Sometimes a chunk is locally meaningful but ambiguous when removed from its document.
+
+Example:
+
+```text
+The limit is 30 days.
+```
+
+What limit?
+
+A contextualized representation might add:
+
+```text
+Context:
+This passage is from the refund eligibility section
+of Harborline's enterprise support policy.
+
+Chunk:
+The limit is 30 days.
+```
+
+Anthropic described a **Contextual Retrieval** approach that adds short chunk-specific context before embedding and BM25 indexing.
+
+The important idea is broader than one implementation:
+
+> retrieval representations can contain contextual information that is not necessarily shown verbatim to the user.
+
+This is an advanced optimization and should be evaluated against simpler baselines.
+
+---
+
+# 15. Late chunking
+
+Late chunking takes a different approach.
+
+Instead of independently embedding each isolated chunk:
+
+```text
+split document
+      ↓
+embed each chunk independently
+```
+
+the model first processes a longer document context and chunk representations are derived afterward.
+
+Conceptually:
+
+```text
+long document
+      ↓
+long-context embedding model
+      ↓
+contextual token representations
+      ↓
+pool by chunk boundaries
+      ↓
+chunk vectors
+```
+
+This can preserve more document-level context in each chunk representation.
+
+It requires compatible embedding models and is best treated as an advanced retrieval optimization rather than a beginner default.
+
+---
+
+# 16. Content-aware chunking
+
+Different content types need different boundaries.
+
+## Tables
+
+A table row without its headers may be meaningless.
+
+Bad:
+
+```text
+Enterprise | 30 minutes | P1
+```
+
+Better:
+
+```text
+Customer tier: Enterprise
+Update cadence: 30 minutes
+Severity: P1
+Source table: escalation SLA
+```
+
+Possible strategies include:
+
+- whole-table retrieval;
+- row-level chunks with repeated headers;
+- structured serialization;
+- separate structured-data retrieval.
+
+## Code
+
+Avoid splitting code arbitrarily in the middle of functions or classes.
+
+Prefer boundaries such as:
+
+```text
+module
+class
+method
+function
+symbol
+```
+
+AST-aware or language-aware parsing is usually more appropriate than generic character windows.
+
+## Procedures
+
+Keep steps and their conditions together.
+
+## Legal and policy text
+
+Preserve:
+
+- clause identifiers;
+- definitions;
+- exceptions;
+- scope;
+- references to adjacent clauses.
+
+## PDFs
+
+Before tuning chunk size, verify parsing quality.
+
+A sophisticated chunker cannot repair:
+
+- wrong reading order;
+- missing columns;
+- broken tables;
+- OCR corruption.
+
+---
+
+# 17. A practical chunking taxonomy
+
+![Chunking strategy taxonomy](assets/chunking-taxonomy.svg)
+
+| Strategy | Good starting point for | Main limitation |
+|---|---|---|
+| Fixed character/token | Baseline experiments | Arbitrary boundaries |
+| Recursive separator | General prose | Limited structural understanding |
+| Sentence/paragraph | Narrative text | Variable completeness |
+| Heading-aware | Markdown, policies, manuals | Oversized sections |
+| Parent-child | Precise retrieval + broad context | More storage/orchestration |
+| Semantic | Weakly structured mixed-topic prose | Extra indexing cost/configuration |
+| Contextualized chunks | Chunks needing document context | Added generation/indexing cost |
+| Late chunking | Long-context embedding workflows | Model/infrastructure requirements |
+| Table-aware | Tables | Content-specific implementation |
+| AST/symbol-aware | Source code | Language-specific parsing |
+
+Do not choose one strategy for every corpus.
+
+Enterprise RAG systems often use **multiple chunkers by content type**.
+
+---
+
+# 18. How to evaluate chunking
+
+Do not evaluate chunking by asking:
+
+> Do these chunks look reasonable?
+
+Evaluate the downstream behavior.
+
+For each candidate configuration, measure at least:
+
+### Retrieval recall
+
+Did relevant evidence appear in top-k?
+
+### Rank
+
+How early did the first useful evidence appear?
+
+Possible metrics include:
+
+- Recall@k;
+- MRR;
+- nDCG.
+
+### Evidence completeness
+
+Does the returned unit contain enough information to support the intended claim?
+
+### Redundancy
+
+How much duplicated content does overlap introduce?
+
+### Context cost
+
+How many tokens are required to assemble useful evidence?
+
+### Citation quality
+
+Can a user navigate from the result to a meaningful source location?
+
+### Index cost
+
+How many chunks and embeddings are produced?
+
+---
+
+# 19. A better experiment than "try 500 tokens"
+
+Create a small golden set:
+
+| Query | Required evidence |
 |---|---|
-| Stable `chunk_id` | Evaluation sets, traces, and citations survive re-runs. |
-| Source, section, page/location | A human can navigate to the evidence. |
-| `parent_id` | A small retrieved child retains source context. |
-| Version/hash and timestamps | Freshness and rollback can be audited. |
-| Tenant/ACL/classification | Filter before retrieval, never after a model sees text. |
-| Parser and chunking config | A result can be reproduced and compared. |
-| Ordinal within parent | Maintain document reading order for context assembly. |
+| What increased by 14%? | Cloud infrastructure costs + 14% |
+| What uptime was achieved? | uptime + 99.999% |
+| Why did costs increase? | distributed cluster / redundancy + cost increase |
 
-Child chunks must inherit access, classification, retention, and version metadata
-from their source. A vector database filter is useful only if those fields are
-complete and correctly propagated during parsing.
+Then compare configurations.
 
-## Evaluation: how to measure chunking quality
+Example:
 
-Chunking is not evaluated in isolation — it is evaluated through its effect on
-the full retrieval pipeline. The right set of metrics:
+```text
+A: 100 chars, 0 overlap
+B: 150 chars, 20 overlap
+C: 300 chars, 30 overlap
+D: recursive, 150 chars, 20 overlap
+E: heading-aware + bounded children
+```
 
-| Metric | What it measures | How to compute |
+Keep everything else fixed:
+
+```text
+same corpus
+same queries
+same embedding model
+same retriever
+same k
+same evaluation criteria
+```
+
+Change one chunking variable at a time.
+
+![Chunking evaluation loop](assets/chunking-evaluation-loop.svg)
+
+This turns chunking from folklore into an engineering experiment.
+
+---
+
+# 20. Failure patterns
+
+| Symptom | Possible chunking cause | Candidate experiment |
 |---|---|---|
-| **Recall@k** | Does a top-k retrieval return at least one chunk containing the answer evidence? | Fraction of golden queries where any expected chunk ID appears in top-k |
-| **MRR** | How early does the first relevant chunk appear? | Mean 1/rank of first relevant chunk across queries |
-| **Evidence completeness** | Does a single returned chunk contain all information needed to support the claim? | Manual or automated coverage check against golden claim components |
-| **Redundancy** | What fraction of context tokens are duplicated? | Character-overlap between retrieved chunks |
-| **Index size** | How many chunks and how many total tokens does the strategy produce? | Direct count |
-| **Context tokens** | How many tokens do the top-k chunks consume? | Token count of assembled context |
-| **Answer support rate** | What fraction of answers are supported by the returned context? | Claim-citation audit on golden queries |
+| Number retrieved without subject | Chunk too narrow / context lost | Larger chunk, overlap, heading context |
+| Rule retrieved without exception | Boundary split | Parent-child or structure-aware split |
+| Every result contains irrelevant text | Chunks too broad | Smaller child units |
+| Duplicate passages dominate top-k | Excessive overlap | Reduce overlap / deduplicate |
+| Table rows make no sense | Headers lost | Table-aware representation |
+| Code result lacks definition | Arbitrary text split | Symbol-aware splitting |
+| Citation opens a huge section | Retrieval unit too coarse | Smaller citable children |
+| Correct section never ranks | Representation lacks local context | Contextualized or hierarchical strategy |
 
-```python
-from examples.beginner.chunking_lab import scorecard
+Notice that not every retrieval failure is an embedding failure.
 
-questions = {
-    "approval boundary": {"restart", "approval"},
-    "enterprise cadence": {"enterprise", "30", "minutes"},
-}
-print(scorecard(children, questions))
+---
+
+# 21. Teaching implementation versus production implementation
+
+The notebook intentionally covers only the first comparison.
+
+| Notebook | Production extension |
+|---|---|
+| One short Markdown string | Real parser pipeline |
+| Character splitter | Baseline only |
+| Recursive splitter | General text baseline |
+| Character length | Token-aware budgeting where needed |
+| One chunk size | Evaluated configuration |
+| One overlap | Evaluated overlap |
+| Source metadata | Full provenance/version/ACL metadata |
+| Visual inspection | Golden retrieval dataset |
+| No retriever in this lab | End-to-end retrieval evaluation |
+| No content routing | Format-specific chunkers |
+| No parent expansion | Hierarchical retrieval |
+| No semantic splitter | Optional semantic segmentation |
+| No chunk versioning | Versioned ingestion/index configuration |
+
+This distinction is important: the README explains the design space, while the notebook deliberately demonstrates the foundational mechanics.
+
+---
+
+# 22. Practical exercises
+
+## Exercise 1 — Reproduce the boundary failure
+
+Run the notebook's naive splitter.
+
+Find the chunk containing:
+
+```text
+costs increased by 14%
 ```
 
-Term coverage is not relevance, and relevance is not faithful generation. It is
-a transparent early signal that a boundary cannot possibly support the intended
-claim. Later evaluation lessons measure retrieval rank, citations, and answer
-faithfulness separately.
+Does the chunk independently answer:
 
-**Important:** coverage does not prove retrieval rank. A term can appear in a
-chunk that is never returned in the top-k because the embedding or BM25 score
-is too low. Always run the full retrieval evaluation, not just the coverage check.
+> What increased by 14%?
 
-## Step-by-step build
+Explain why or why not.
 
-### 1. Start with the question, not a token count
+---
 
-For each question type, write down the smallest evidence needed:
+## Exercise 2 — Compare recursive splitting
 
-| Question | Evidence that must stay together | First strategy to test |
-|---|---|---|
-| "How often are enterprise customers updated?" | Customer segment + cadence | heading or sentence window |
-| "Can support restart a service?" | Action + approval boundary | heading or parent/child |
-| "Which SLA row was breached?" | Headers + row values | table-aware representation |
-| "What does this function return?" | signature + relevant branch | symbol/AST-aware chunks |
+Run the recursive splitter.
 
-### 2. Establish a predictable baseline
+Compare:
 
-Fixed windows make size and overlap explicit. They are useful as an experiment
-baseline, but a character boundary does not understand a qualification, table
-row, or code block.
+- chunk count;
+- chunk lengths;
+- readability;
+- retained section context;
+- duplicated text.
 
-```python
-from examples.beginner.chunking_lab import fixed_size, describe_chunks
+Does recursive splitting repair the original failure?
 
-chunks = fixed_size(policy_text, "harborline-support", size=180, overlap=35)
-print(describe_chunks(chunks))
-```
+---
 
-`describe_chunks` reports adjacent duplicate characters so the cost of overlap
-is observable. Do not call overlap "free recall."
+## Exercise 3 — Vary chunk size
 
-### 3. Preserve source structure when it carries meaning
+Test:
 
 ```python
-from examples.beginner.chunking_lab import by_heading_bounded
-
-children = by_heading_bounded(policy_text, "harborline-support", max_characters=140, overlap=20)
-for child in children:
-    print(child.chunk_id, child.section, child.parent_id)
+chunk_size=80
+chunk_size=150
+chunk_size=300
 ```
 
-### 4. Use sentence windows for narrative, not every format
+Keep overlap constant.
 
-Sentence windows avoid fragments and allow local overlap. They can lose title
-and hierarchy and should not be used to flatten tables, source code, or
-layout-sensitive PDFs.
+Record which configuration preserves:
 
-### 5. Measure coverage and cost together
+```text
+Cloud Infrastructure
+```
+
+and:
+
+```text
+costs increased by 14%
+```
+
+together.
+
+---
+
+## Exercise 4 — Vary overlap
+
+Try:
 
 ```python
-print(scorecard(children, questions))
+chunk_overlap=0
+chunk_overlap=20
+chunk_overlap=50
 ```
 
-## Experiment protocol
+Record:
 
-1. Freeze the corpus, golden questions, expected evidence locations, and budget.
-2. Run a fixed-window baseline and record chunk count, size, overlap, coverage,
-   retrieval rank, context size, citation, latency, and cost where applicable.
-3. Change **one** variable: size, overlap, strategy, parser, or parent expansion.
-4. Include direct, compound, paraphrased, no-answer, stale, and permission-
-   restricted questions.
-5. Inspect failures manually: source quality, extraction, boundary, retrieval,
-   context selection, or generation are distinct causes.
-6. Choose the smallest configuration that reliably improves the defined metric.
-   Version it with the index and evaluation report.
+- chunk count;
+- duplicated characters;
+- whether the key evidence survives;
+- how much redundant context is created.
 
-## Failure map
+---
 
-| Symptom | Likely cause | Safe response |
-|---|---|---|
-| Rule and exception split | fixed boundary is too small | test overlap, heading, or parent expansion |
-| Near-duplicate context | overlap is too large | deduplicate or lower overlap; measure quality impact |
-| Huge section ranks for every query | heading is too broad | bound children while retaining parent metadata |
-| Header separated from row values | table was flattened | use row/key-value/table-aware parsing |
-| Outdated source is cited | version/freshness missing | filter and expose index/source versions |
-| Restricted child is retrieved | ACL did not propagate | enforce inherited metadata before retrieval |
-| High Recall@k but low answer support | Chunk is retrieved but incomplete | parent expansion or larger chunk size |
-| Low Recall@k despite visible content | Chunk boundary hides key terms | smaller chunks, overlap, or semantic splitting |
+## Exercise 5 — Add heading-aware splitting
 
-## Production readiness checklist
+Use LangChain's `MarkdownHeaderTextSplitter`.
 
-- [ ] IDs, source/section locations, versions, and parser configuration persist.
-- [ ] Parsing is inspected for tables, code, OCR, and reading order.
-- [ ] Tenant/ACL/classification fields are inherited and filtered before search.
-- [ ] Overlap, duplicate retrieval, and context budgets are measured.
-- [ ] Golden questions cover qualifications, boundary crossings, no-answer, and
-      access-boundary cases.
-- [ ] Parent expansion and reranking are bounded, observable, and evaluated.
-- [ ] Chunking config is versioned alongside the index and embedding model.
-- [ ] Re-chunking procedure (when strategy changes) is documented and tested.
+Preserve the `## Cloud Infrastructure` heading as metadata.
 
-## Exercises and checkpoint
+Compare the resulting evidence representation with the recursive baseline.
 
-1. Reproduce the `restart`/`approval` split using fixed windows and no overlap.
-2. Find the smallest overlap or parent/child configuration that repairs it; then
-   quantify duplicated text.
-3. Add a long "Exception" section. Compare heading-aware and bounded-heading
-   chunks; which citation would a support user understand?
-4. Design a row-aware representation for a customer-SLA table. Which header,
-   row, version, location, and tenant fields must remain with the row?
-5. Why should chunking be evaluated with the retriever and question distribution,
-   rather than treated as static preprocessing?
-6. For the Harborline policy corpus, compute Recall@3 for heading-aware vs
-   fixed-size chunks across 10 golden questions. Which performs better and why?
+---
 
-## Next step
+## Exercise 6 — Design a production chunk record
 
-Continue to [citations and abstention](../04-citations-abstention/README.md),
-then revisit the experiment after adding embeddings and a vector store.
+Define a chunk schema containing at least:
 
-## References
+```text
+chunk_id
+document_id
+source
+section
+ordinal
+document_version
+updated_at
+tenant
+acl
+parser_version
+chunker_version
+```
 
-- Manning, Raghavan, and Schütze, [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/)
-- Chen et al., [Dense X Retrieval: What Retrieval Granularity Should We Use?](https://arxiv.org/abs/2312.06648) — proposition retrieval.
-- Anthropic, [Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval) — chunk context prepending.
-- LlamaIndex, [Node parsers and ingestion](https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers/)
-- LlamaIndex, [Sentence-window node parser](https://docs.llamaindex.ai/en/v0.10.20/api/llama_index.core.node_parser.SentenceWindowNodeParser.html)
-- LlamaIndex, [Semantic splitter](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/semantic_splitter/)
-- [RAG lifecycle in this repository](../../../docs/what-is-rag.md)
+Which fields are inherited?
+
+Which are generated during chunking?
+
+---
+
+# 23. Checkpoint
+
+Before moving on, you should be able to answer:
+
+1. Why is chunking part of retrieval design?
+2. What information can be lost through a bad boundary?
+3. What trade-off exists between small and large chunks?
+4. What does `chunk_overlap` do?
+5. Why can excessive overlap hurt?
+6. How does `RecursiveCharacterTextSplitter` work?
+7. Why is recursive character splitting **not** semantic chunking?
+8. Why should metadata survive splitting?
+9. When is heading-aware chunking preferable?
+10. What problem does parent-child retrieval address?
+11. Why should tables and code use content-aware boundaries?
+12. How would you experimentally choose a chunking configuration?
+
+---
+
+# 24. What comes next
+
+### [04 — Citations and Abstention](../04-citations-abstention/README.md)
+
+Once the system can retrieve meaningful evidence units, the next questions are:
+
+> **Can we prove which evidence supports the answer?**
+
+and:
+
+> **What should the system do when the evidence is insufficient?**
+
+Those are the foundations of trustworthy RAG behavior.
+
+---
+
+# References
+
+## LangChain splitters
+
+- LangChain — [Text splitters](https://docs.langchain.com/oss/python/integrations/splitters)
+- LangChain — [RecursiveCharacterTextSplitter](https://docs.langchain.com/oss/python/integrations/splitters/recursive_text_splitter)
+- LangChain — [MarkdownHeaderTextSplitter](https://python.langchain.com/api_reference/text_splitters/markdown/langchain_text_splitters.markdown.MarkdownHeaderTextSplitter.html)
+
+## Semantic and contextual chunking
+
+- LlamaIndex — [SemanticSplitterNodeParser](https://developers.llamaindex.ai/python/framework-api-reference/node_parsers/semantic_splitter/)
+- Anthropic — [Introducing Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval)
+- Jina AI — [Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models](https://arxiv.org/abs/2409.04701)
+
+## Retrieval evaluation
+
+- Manning, Raghavan & Schütze — [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/)
+- Thakur et al. — [BEIR](https://arxiv.org/abs/2104.08663)
+
+---
+
+# Key takeaway
+
+Chunking determines the evidence your retriever is capable of returning.
+
+A sophisticated model cannot compensate for evidence that preprocessing separated, stripped of context, or represented badly.
+
+So do not begin with:
+
+> **What chunk size is best?**
+
+Begin with:
+
+> **What information must remain together for my users' questions to be answered and cited correctly?**
+
+Then measure it.
+
+---
+
+# Deep Dive — Chunking and Document Representation
+
+Chunking is not a preprocessing detail. It defines the evidence units the retriever is allowed to find.
+
+## 1. Why chunking exists
+
+Documents are often longer than the useful retrieval unit. Searching an entire manual as one vector may blur many topics; splitting every sentence independently may destroy necessary context.
+
+Chunking therefore balances:
+
+```text
+retrieval specificity
+        ↕
+context completeness
+```
+
+## 2. Chunk-size trade-off
+
+Smaller chunks can improve precision because each representation covers fewer concepts.
+
+But they can:
+
+- lose definitions;
+- separate conditions from exceptions;
+- break tables;
+- remove useful neighboring context.
+
+Larger chunks preserve context but can dilute the signal and consume more prompt tokens.
+
+There is no universal optimum such as “500 tokens.”
+
+## 3. Overlap
+
+Overlap tries to reduce boundary loss:
+
+```text
+chunk 1: A B C D
+chunk 2:       C D E F
+```
+
+Benefits:
+
+- preserves evidence near boundaries.
+
+Costs:
+
+- increases index size;
+- creates duplicates;
+- can cause multiple nearly identical results;
+- increases downstream token usage.
+
+Treat overlap as a parameter to evaluate, not a default ritual.
+
+## 4. Fixed-size chunking
+
+Fixed character/token windows are:
+
+- simple;
+- reproducible;
+- fast.
+
+They ignore document structure and can split headings, paragraphs, code, tables, or logical arguments.
+
+They are useful as a baseline.
+
+## 5. Recursive / structure-aware splitting
+
+Recursive splitters try increasingly smaller separators such as sections, paragraphs, sentences, and then token limits.
+
+Structure-aware splitting can use:
+
+- Markdown headings;
+- HTML elements;
+- document sections;
+- code syntax;
+- PDF layout;
+- semantic units.
+
+The objective is not “smarter chunking” in the abstract; it is preserving useful evidence boundaries.
+
+## 6. Semantic chunking
+
+Semantic chunking attempts to detect topic shifts using embedding or model signals.
+
+Potential benefit:
+
+```text
+boundaries follow meaning rather than fixed length
+```
+
+Potential problems:
+
+- extra embedding/model cost;
+- unstable boundaries;
+- harder reproducibility;
+- domain dependence;
+- still requires maximum-size constraints.
+
+Always compare it with a simpler structure-aware baseline.
+
+## 7. Parent-child retrieval
+
+A powerful pattern separates the retrieval unit from the context unit.
+
+```text
+small child chunk
+      ↓ retrieve precisely
+parent section/document
+      ↓ return richer context
+```
+
+This can combine fine-grained retrieval with enough surrounding evidence for generation.
+
+It also introduces deduplication and context-budget decisions.
+
+## 8. Multi-representation retrieval
+
+Another approach represents a document through several views:
+
+```text
+title
+summary
+section
+chunk
+generated question
+```
+
+The retriever searches the representation best suited to discovery, then maps the result back to the original evidence.
+
+This is a more general idea than chunk-size tuning.
+
+## 9. Tables, code, and structured content
+
+Do not split all modalities like prose.
+
+A table may require:
+
+- header preservation;
+- row grouping;
+- table identity;
+- surrounding caption.
+
+Code may require:
+
+- function/class boundaries;
+- imports;
+- signatures;
+- module context.
+
+Document representation should follow the semantics of the source.
+
+## 10. Metadata belongs with chunks
+
+Every chunk should preserve source-level and chunk-level metadata:
+
+```text
+document_id
+chunk_id
+section
+page/span
+title
+version
+classification
+```
+
+Chunking that destroys provenance makes citation and authorization harder later.
+
+## 11. Lost-in-the-middle and context assembly
+
+Even when retrieval succeeds, many large chunks can create long prompts where useful evidence is harder for the generator to use.
+
+Chunking and context construction must therefore be evaluated together.
+
+## 12. Evaluate chunking through downstream retrieval
+
+Do not score chunking by visual neatness.
+
+Create labelled questions and compare configurations.
+
+Useful measures include:
+
+```text
+Recall@k
+MRR
+nDCG
+duplicate rate
+context tokens/query
+answer support
+```
+
+Also inspect failure cases manually.
+
+## 13. Experiment design
+
+A useful experiment matrix:
+
+| Strategy | Size | Overlap | Representation |
+|---|---:|---:|---|
+| fixed | 256 | 0 | chunk |
+| fixed | 512 | 64 | chunk |
+| recursive | 512 | 64 | structure-aware |
+| parent-child | 256 child | — | parent returned |
+
+Hold the embedding model and evaluation queries constant.
+
+## 14. Query-aware chunking?
+
+Be careful with terminology.
+
+Most production ingestion pipelines chunk before a specific user query exists. Query-time techniques such as sentence-window expansion, parent retrieval, contextual compression, or dynamic context assembly are often more accurately described as **query-aware context selection** rather than ordinary static chunking.
+
+Keeping these concepts separate makes architectures easier to reason about.
+
+## 15. Common anti-patterns
+
+Avoid:
+
+- selecting chunk size from a blog post without evaluation;
+- aggressive overlap that floods retrieval with duplicates;
+- dropping headings;
+- assigning new chunks no stable source identity;
+- splitting tables as arbitrary text;
+- changing chunking and embeddings simultaneously during an experiment;
+- evaluating only final answer fluency.
+
+## 16. Production decision rule
+
+Choose the simplest representation that achieves acceptable retrieval and evidence completeness on the real question distribution.
+
+Complex chunking should solve a measured failure mode.
+
+## Further study
+
+- LangChain/LlamaIndex text-splitting concepts as implementation examples
+- parent-document retrieval patterns
+- late chunking and contextualized document representation research
+- retrieval evaluation literature and BEIR

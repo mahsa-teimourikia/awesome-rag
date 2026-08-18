@@ -1,452 +1,1196 @@
-# 02 — First local RAG: turn a corpus into an auditable assistant
+# 02 — First Local RAG: Build an Inspectable Semantic Retrieval Pipeline
 
-**Level:** Beginner · **Time:** 2–3 hours · **Scenario:** Harborline Support  
-**Prerequisites:** [RAG foundations](../01-rag-foundations/README.md), Python,
-and a terminal
+**Level:** Beginner  
+**Estimated time:** 90–120 minutes  
+**Scenario:** Harborline Support Assistant  
+**Notebook:** [`02_first_local_rag.ipynb`](02_first_local_rag.ipynb)  
+**Prerequisite:** [01 — RAG Foundations](../01-rag-foundations/README.md)
 
-## The mission
+---
 
-In the first lesson, RAG was an evidence-system mental model. Here you build
-the smallest useful **local** RAG application: it loads a Markdown corpus,
-creates stable chunks, ranks evidence, assembles a bounded context, returns
-source identifiers, and declines an unsupported question. There is no hosted
-model or API key. That is intentional: the retrieval and policy boundary must
-be inspectable before a language model can make the output sound persuasive.
+## Why this lesson exists
 
-Harborline Support needs an assistant that answers questions about customer
-communications and production escalation. The assistant may help staff find a
-policy; it cannot infer an incident, invent an entitlement, or authorize an
-action. This is a realistic constraint: a RAG system is useful when it improves
-evidence access, not when it silently becomes the source of truth.
+Course 01 introduced the RAG architecture and the separation between **retrieval** and **generation**.
+
+Now we make retrieval real.
+
+In this lesson you build a small local semantic-retrieval pipeline using:
+
+- LangChain `Document` objects;
+- a local Hugging Face embedding model;
+- Chroma as a local vector store;
+- explicit similarity-search inspection;
+- source metadata for citations; and
+- a mock LLM so the retrieval path remains inspectable without an API key.
+
+The objective is not to build a production chatbot.
+
+It is to understand the first important engineering boundary in RAG:
+
+> **Before asking whether the model produced a good answer, verify that the system retrieved good evidence.**
+
+![Course 02 architecture](assets/local-rag-architecture.svg)
+
+---
 
 ## Learning objectives
 
-After this lesson you will be able to:
+After completing this lesson, you should be able to:
 
-- construct and audit a tiny document corpus before indexing it;
-- explain the practical data contract of a chunk, retrieval hit, context window,
-  citation, and abstention decision;
-- explain what embeddings are, how vectors represent meaning, and why query/document
-  asymmetry matters;
-- run an end-to-end local RAG pipeline with a reproducible trace;
-- distinguish retrieval score, answer support, source freshness, and caller
-  authorization;
-- explain the difference between retrieved candidates and the final model context;
-- use a golden set to tune `top_k`, context budget, and abstention threshold;
-- diagnose failures at the correct stage rather than prompt around them; and
-- know when to add BM25, embeddings, vector search, hybrid retrieval, or a
-  typed system query.
+- explain how text becomes an embedding and enters a vector store;
+- distinguish documents, embeddings, vector stores, and retrievers;
+- build a small local semantic-search index;
+- inspect retrieval results before generation;
+- interpret retrieval scores cautiously and understand that score semantics depend on the vector-store implementation and distance metric;
+- preserve source metadata through retrieval and context construction;
+- build a simple two-step RAG chain;
+- distinguish ingestion, retrieval, and generation failures;
+- explain why semantic similarity is not the same as factual correctness or confidence;
+- identify the major limitations of a toy local RAG system; and
+- know which problems should be solved in later lessons rather than hidden with prompt changes.
 
-## Notebook-first learning path
+---
 
-> **[Open the First Local RAG notebook →](../../../notebooks/beginner/01_first_local_rag.ipynb)**
+# 1. From a RAG diagram to a runnable retrieval system
 
-The notebook is the lesson: it combines concepts, executable implementation,
-retrieval traces, failure injection, evaluation, and design exercises. Run it
-from the repository root:
+A minimal semantic RAG pipeline has two phases.
 
-```bash
-make setup
-make notebooks
-```
-
-Open `notebooks/beginner/01_first_local_rag.ipynb` in JupyterLab. For a command
-line experience, run:
-
-```bash
-python curriculum/beginner/02-first-local-rag/lab.py
-```
-
-Try these three requests in order:
+### Indexing
 
 ```text
-Question> Who may restart production services?
-Question> How often do enterprise customers receive an update?
-Question> What is the capital of France?
+Documents
+   ↓
+Embedding model
+   ↓
+Vectors
+   ↓
+Vector store
 ```
 
-The first two should return evidence and stable citations. The last should
-abstain, even though a general language model may know the answer.
+### Query time
 
-## The runnable architecture
-
-```mermaid
-flowchart LR
-  subgraph prep[Prepare a local corpus]
-    D["Markdown source files"] --> P["Parse paragraphs + headings"]
-    P --> M["Chunk ID · source · section · ordinal"]
-    M --> V{"Corpus audit passes?"}
-  end
-  subgraph request[Answer a staff question]
-    Q["Question"] --> T["Normalize terms"]
-    V --> R["Rank visible chunks"]
-    T --> R
-    R --> H["Retrieval trace"]
-    H --> G{"Top score meets policy?"}
-    G -->|"yes"| C["Bounded labelled context"]
-    C --> A["Evidence answer + citations"]
-    G -->|"no"| X["Abstain + safe next step"]
-  end
+```text
+Question
+   ↓
+Query embedding
+   ↓
+Similarity search
+   ↓
+Retrieved documents
+   ↓
+Context
+   ↓
+LLM
+   ↓
+Answer
 ```
 
-The implementation lives in [`lab.py`](lab.py). It separates four concerns that
-should not be hidden in a single `ask()` call:
+The important idea is that retrieval can be inspected independently of generation.
 
-| Component | Responsibility | What to inspect |
-|---|---|---|
-| `load_chunks` | Load Markdown paragraphs with stable identity. | Heading, source, ordinal, and chunk text. |
-| `audit_corpus` | Surface empty or duplicate chunks before search. | Document/chunk counts and audit defects. |
-| `retrieve_with_trace` / `retrieve_bm25` | Rank evidence and expose why it matched. | Rank, score, and matching terms. |
-| `build_context` / `run_local_rag` | Make a bounded policy decision and return citations. | Retained evidence, threshold, budget, terminal decision. |
+![Indexing and query-time flow](assets/indexing-query-flow.svg)
 
-## Document ingestion and parsing
+If the correct evidence is not retrieved, changing the answer prompt is usually the wrong first intervention.
 
-Before any retrieval can happen, documents must be **parsed** into a usable form.
-This step is underappreciated: parsing failures propagate silently through every
-downstream stage.
+---
 
-**Common parsing challenges:**
+# 2. The Harborline scenario
 
-| Format | Challenge | Impact on RAG |
-|---|---|---|
-| Markdown | Heading detection, nested lists, code blocks | Loss of section context |
-| PDF | Column layout, reading order, embedded tables | Merged or split content |
-| HTML | Boilerplate, navigation, ads | Irrelevant content indexed |
-| Office docs (DOCX, XLSX) | Style-based headings, merged cells | Structure loss |
-| Scanned PDFs | OCR errors, confidence variation | Factual errors in index |
+Harborline operates a support organization with internal policies and operational documentation.
 
-**Ingestion pipeline contract:**
+Our tiny corpus contains three pieces of evidence:
 
-Every document entering the system should carry:
-- stable document ID (hash of content + source path)
-- source path and owner
-- version / last-modified timestamp
-- tenant / ACL attributes
-- parser name and version
-- ingestion timestamp
+1. an escalation policy describing who can approve a database failover;
+2. an incident-response procedure for payment API failures; and
+3. architecture documentation describing the payment database.
 
-These fields must survive into every chunk derived from the document. The
-chunking lab will show why — if these fields are absent, authorization,
-freshness checks, and citation tracing all fail.
+The question we want to answer is:
 
-**Deduplication:** the same document can appear in multiple sources. Decide at
-ingestion time whether to deduplicate (by content hash) or allow both versions
-with different metadata. Failing to dedup creates duplicate evidence, inflates
-context tokens, and can make citations ambiguous.
+> Who is allowed to trigger a DB failover?
 
-## What embeddings are and why they matter
+The relevant policy says that **Tier 2 must approve any database failover**.
 
-The baseline uses lexical overlap scoring. This is transparent and good for
-learning, but real systems almost always use **embeddings** — vector
-representations of text that capture semantic meaning beyond literal words.
+This is intentionally a small corpus. You should be able to inspect every source manually.
 
-**What an embedding is:**
+That gives us something production systems often lose:
 
-An embedding model maps a text string to a point in a high-dimensional vector
-space (e.g., 384, 768, or 1536 dimensions). Two semantically similar texts will
-be mapped to nearby points; dissimilar texts to distant points.
+> a known ground truth for understanding what retrieval is doing.
 
-```
-"Who may restart services?"  →  [0.23, -0.41, 0.87, ...]  (query vector)
-"Support cannot reboot without approval"  →  [0.25, -0.38, 0.91, ...]  (doc vector)
-→ cosine similarity ≈ 0.96  (very close)
+---
 
-"What is the capital of France?"  →  [0.71, 0.12, -0.33, ...]
-→ cosine similarity ≈ 0.12  (very distant)
+# 3. Use current LangChain integrations
+
+The original notebook used:
+
+```python
+from langchain_community.vectorstores import Chroma
 ```
 
-**Key concepts:**
+Current LangChain documentation uses the dedicated Chroma integration package:
 
-- **Cosine similarity**: the angle between two vectors. Ranges from -1 to 1.
-  Values close to 1 indicate high semantic similarity.
-- **Dot product**: cosine similarity × product of magnitudes. Used when vectors
-  are normalized to unit length (common practice), where dot product and cosine
-  similarity are equivalent.
-- **Normalization**: scaling a vector to unit length before similarity
-  computation. Required for fair comparison across different text lengths.
-- **Dimensions**: more dimensions can capture more nuance but cost more storage
-  and compute. Common choices: 384 (small), 768 (medium), 1536 (large).
-
-**Query/document asymmetry:**
-
-Many retrieval tasks use *asymmetric* embedding: the query is short ("who can
-restart?") while documents are long passages ("Support engineers who hold the
-incident-commander role may restart production services provided..."). Symmetric
-models (trained on sentence pairs) perform poorly on this mismatch.
-
-Retrieval-trained models like E5, GTE, and BGE use different encoding modes for
-queries and passages. `query_encode("who can restart?")` and
-`doc_encode("Support engineers...")` are not the same operation. Using the
-wrong mode for a query degrades recall before you even tune anything else.
-
-**Teaching limitation:** The baseline in this lesson uses lexical overlap, not
-embeddings. The [Retrieval Strategies](../../intermediate/01-retrieval-strategies/README.md)
-and [Local Qdrant](../../intermediate/06-qdrant-local/README.md) lessons
-introduce real embeddings with a vector store.
-
-## Vector representation and similarity search
-
-When embeddings are computed for all chunks and stored in a vector index,
-retrieval becomes a **nearest-neighbor search**: find the K vectors closest to
-the query vector.
-
-**Exact nearest neighbor (exact NN):** compare the query vector against every
-document vector. Guarantees the true top-K. Feasible for small corpora (< ~100K
-chunks) but scales as O(N × D) per query.
-
-**Approximate nearest neighbor (ANN):** uses indexing structures (e.g., HNSW)
-to find *approximate* top-K results much faster. Small recall loss (1–3% typical)
-in exchange for orders-of-magnitude speed improvement. Required at scale.
-
-**This lesson uses a list of chunks** (the simplest possible "index"). The
-[Local Qdrant](../../intermediate/06-qdrant-local/README.md) lesson replaces this
-with a real ANN index and shows the recall-latency trade-off.
-
-## Context construction: candidates ≠ final context
-
-A critical distinction this course teaches throughout:
-
-**Retrieved candidates** are the set of chunks returned by the retrieval stage
-(e.g., top-20 by BM25 or embedding score).
-
-**Final context** is the subset of candidates that actually enters the model's
-prompt (e.g., top-3 that fit within the token budget).
-
-These are never the same set. Between retrieval and context:
-
-```
-Retrieved candidates (top-20)
-    ↓ Reranking (optional) — reorder by relevance
-    ↓ Deduplication — remove near-duplicate chunks
-    ↓ Token budget — fit within max_tokens
-    ↓ Ordering — most relevant first or last (matters for generation)
-    ↓ Provenance labelling — attach source IDs to each passage
-Final context (top-3 labelled passages)
+```bash
+pip install -U langchain-core langchain-huggingface langchain-chroma sentence-transformers
 ```
 
-**Lost-in-middle effect:** language models tend to use evidence that appears
-at the beginning or end of a long context better than evidence in the middle.
-For multi-document contexts, ordering matters. This is an active research area;
-for now, put the most important evidence first.
+and:
 
-**Context budget enforcement** protects both latency and quality. More context
-is not better context — irrelevant chunks dilute the signal and increase
-hallucination risk.
+```python
+from langchain_chroma import Chroma
+```
 
-## Teaching implementation vs production implementation
+The Hugging Face integration remains available through:
 
-This lesson uses simplified implementations intentionally. When you graduate to
-production, every component needs a proper replacement:
+```python
+from langchain_huggingface import HuggingFaceEmbeddings
+```
 
-| Teaching implementation | Production implementation |
+Keeping provider integrations separate from the core framework reduces coupling and reflects the current LangChain package structure.
+
+> **Notebook note:** if the notebook still contains the older `langchain_community.vectorstores.Chroma` import, update it to `langchain_chroma.Chroma` when refreshing the notebook.
+
+---
+
+# 4. Documents are evidence records, not just strings
+
+The notebook represents each source as a LangChain `Document`:
+
+```python
+from langchain_core.documents import Document
+
+Document(
+    page_content=(
+        "Harborline Support Escalation Policy: "
+        "Tier 1 may reboot edge nodes. "
+        "Tier 2 must approve any database failover."
+    ),
+    metadata={
+        "source": "escalation_policy.md",
+        "section": "permissions",
+        "id": "chunk-01",
+    },
+)
+```
+
+There are two distinct parts.
+
+### Content
+
+`page_content` contains the text that can be embedded and retrieved.
+
+### Metadata
+
+`metadata` describes where the evidence came from.
+
+Even this tiny example preserves:
+
+- source;
+- section; and
+- chunk ID.
+
+A production system usually needs more:
+
+```text
+document_id
+document_version
+chunk_id
+source_uri
+section / page
+updated_at
+owner
+tenant
+ACL attributes
+parser_version
+embedding_version
+index_version
+```
+
+Why?
+
+Because retrieval is not enough.
+
+Eventually you need to answer:
+
+> Which exact version of which source supported this answer?
+
+---
+
+# 5. Embeddings
+
+An embedding model maps text into a numerical vector.
+
+Conceptually:
+
+```text
+"Who can approve a database failover?"
+                 ↓
+          embedding model
+                 ↓
+      [0.14, -0.52, 0.31, ...]
+```
+
+Documents are embedded too.
+
+The retrieval system then compares the query representation with document representations.
+
+![Embedding-space concept](assets/embedding-space.svg)
+
+Documents that the model represents as semantically related should be closer in the embedding space than unrelated documents.
+
+This allows semantic retrieval to match concepts even when the wording differs.
+
+For example:
+
+```text
+Query:
+"Who can trigger a DB failover?"
+
+Document:
+"Tier 2 must approve any database failover."
+```
+
+The wording is not identical, but the concepts are closely related.
+
+---
+
+# 6. Semantic search is not keyword search
+
+Lexical retrieval asks questions such as:
+
+> Which documents contain the same terms?
+
+Dense semantic retrieval asks approximately:
+
+> Which documents have representations closest to this query in the embedding space?
+
+This can help with:
+
+- synonyms;
+- paraphrases;
+- abbreviations;
+- conceptual similarity; and
+- wording differences.
+
+But semantic search introduces different failure modes.
+
+A passage can be **semantically similar but factually irrelevant**.
+
+For example, a query about authorization might retrieve architecture documentation because both discuss databases.
+
+Therefore:
+
+> Similarity is evidence for ranking—not proof of correctness.
+
+---
+
+# 7. Query/document asymmetry
+
+Information retrieval is often an **asymmetric** task.
+
+The query may be short:
+
+```text
+Who can approve a failover?
+```
+
+while the document is longer:
+
+```text
+Harborline Support Escalation Policy:
+Tier 1 may reboot edge nodes.
+Tier 2 must approve any database failover.
+```
+
+Modern Sentence Transformers exposes:
+
+```python
+model.encode_query(...)
+model.encode_document(...)
+```
+
+for retrieval tasks.
+
+Models that define query/document prompts or routing can use these methods to encode each side appropriately.
+
+Not every embedding model behaves differently for the two methods, but the distinction matters when selecting retrieval models.
+
+The notebook uses LangChain's embedding abstraction, which hides this lower-level detail. Later retrieval lessons should expose model-specific retrieval behavior more directly.
+
+---
+
+# 8. Build the local vector store
+
+For this lesson, Chroma runs locally and can be used without credentials.
+
+A current LangChain-style setup looks like:
+
+```python
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
+
+vectorstore = Chroma.from_documents(
+    documents=corpus,
+    embedding=embeddings,
+    collection_name="harborline-course-02",
+)
+```
+
+Then create a retriever:
+
+```python
+retriever = vectorstore.as_retriever(
+    search_kwargs={"k": 2}
+)
+```
+
+For this course, `k=2` means:
+
+> return two candidate documents for each query.
+
+It does **not** mean two documents are necessarily relevant.
+
+---
+
+# 9. Inspect retrieval before generation
+
+This is the most important exercise in the course.
+
+Instead of immediately calling an LLM:
+
+```python
+question = "Who is allowed to trigger a DB failover?"
+
+results = vectorstore.similarity_search_with_score(
+    question,
+    k=2,
+)
+
+for doc, score in results:
+    print(score)
+    print(doc.metadata)
+    print(doc.page_content)
+```
+
+You should inspect:
+
+- which source ranked first;
+- whether the correct evidence appears in the candidate set;
+- whether irrelevant evidence was also retrieved;
+- which metadata survived retrieval; and
+- what the score returned by your vector-store integration actually means.
+
+![Evidence inspection boundary](assets/evidence-boundary.svg)
+
+---
+
+# 10. Be careful with retrieval scores
+
+A common RAG mistake is to treat a retrieval score as:
+
+```text
+0.92 = 92% confidence that the answer is correct
+```
+
+That interpretation is generally wrong.
+
+Depending on the vector store and configuration, a returned value may represent:
+
+- cosine similarity;
+- cosine distance;
+- Euclidean distance;
+- inner product;
+- a transformed relevance score; or
+- another backend-specific quantity.
+
+Even when the score is a normalized similarity:
+
+> retrieval similarity is not answer confidence.
+
+The score tells you something about ranking under a particular retrieval representation.
+
+It does not prove that:
+
+- the source is authoritative;
+- the source is current;
+- the passage answers the question;
+- the caller may access the source;
+- the generated answer is faithful; or
+- the answer is factually correct.
+
+Always check the score semantics of the actual vector-store integration you deploy.
+
+---
+
+# 11. Candidate retrieval versus final context
+
+Retrieval produces **candidates**.
+
+Generation consumes **context**.
+
+These should be treated as different stages.
+
+```text
+Query
+  ↓
+Retrieve candidates
+  ↓
+Optional filtering
+  ↓
+Optional reranking
+  ↓
+Deduplicate
+  ↓
+Apply context budget
+  ↓
+Label provenance
+  ↓
+Final context
+```
+
+![Candidate-to-context pipeline](assets/candidate-context.svg)
+
+The notebook is intentionally simpler: it formats the retrieved documents directly.
+
+That is appropriate for three tiny documents.
+
+It is not the architecture you should blindly scale to thousands of chunks.
+
+Later courses introduce the missing stages.
+
+---
+
+# 12. Preserve provenance in the context
+
+The notebook formats documents like this:
+
+```python
+def format_docs_with_citations(docs):
+    return "\n\n".join(
+        f"[Citation: {d.metadata['source']}] {d.page_content}"
+        for d in docs
+    )
+```
+
+This is simple, but it teaches an important design principle:
+
+> Provenance must survive the retrieval-to-generation boundary.
+
+Without source labels, the generator may receive useful evidence while the application loses the ability to trace that evidence back to its origin.
+
+For production, prefer stable identifiers over display filenames alone.
+
+For example:
+
+```text
+[source_id=policy-1842]
+[version=2026-08-04]
+[chunk_id=policy-1842#permissions-03]
+```
+
+The UI can later translate these identifiers into human-friendly citations.
+
+---
+
+# 13. Construct the simple RAG chain
+
+The notebook connects:
+
+```text
+Question
+   ↓
+Retriever
+   ↓
+format_docs_with_citations
+   ↓
+Prompt
+   ↓
+LLM
+   ↓
+Answer
+```
+
+The prompt tells the generator to answer from the supplied context and include citations.
+
+Conceptually:
+
+```python
+prompt = ChatPromptTemplate.from_template(
+    """Answer the question using the context below.
+
+Context:
+{context}
+
+Question:
+{question}
+"""
+)
+```
+
+The notebook uses a fake LLM so that:
+
+- no API key is required;
+- the exercise is deterministic; and
+- attention stays on retrieval.
+
+This is useful for architecture training.
+
+It does **not** test whether a real model follows grounding or citation instructions.
+
+---
+
+# 14. What the fake LLM does—and does not—prove
+
+The notebook returns a predetermined response:
+
+```text
+Based on [Citation: escalation_policy.md],
+Tier 2 must approve any database failover.
+```
+
+This proves that the application can wire:
+
+```text
+retrieval → context → prompt → model interface
+```
+
+It does not prove:
+
+- answer correctness under arbitrary questions;
+- citation correctness;
+- groundedness;
+- abstention behavior;
+- prompt robustness;
+- model reliability; or
+- resistance to retrieved prompt injection.
+
+Those require real evaluation.
+
+Do not mistake a deterministic mock response for an evaluated RAG system.
+
+---
+
+# 15. Debug RAG by stage
+
+If an answer is wrong, inspect the system in order.
+
+![RAG debugging decision tree](assets/rag-debugging.svg)
+
+### Stage 1 — Source / ingestion
+
+Ask:
+
+> Does the required information exist in the indexed corpus?
+
+If no, retrieval cannot recover it.
+
+### Stage 2 — Retrieval
+
+Ask:
+
+> Did the correct evidence appear in the retrieved candidates?
+
+If no, investigate retrieval.
+
+Possible causes include:
+
+- poor chunk boundaries;
+- unsuitable embedding model;
+- weak query representation;
+- insufficient `k`;
+- metadata/filtering problems; or
+- domain vocabulary mismatch.
+
+### Stage 3 — Context construction
+
+Ask:
+
+> Did the correct evidence survive into the final prompt context?
+
+A correct candidate can still be lost through:
+
+- reranking;
+- truncation;
+- deduplication;
+- filtering; or
+- context budgeting.
+
+### Stage 4 — Generation
+
+Ask:
+
+> Given the correct context, did the model produce a supported answer?
+
+Only now should you focus primarily on:
+
+- prompting;
+- model choice;
+- structured output;
+- grounding instructions; or
+- generation-time verification.
+
+---
+
+# 16. Failure diagnosis example
+
+Suppose the user asks:
+
+> Who can approve a database failover?
+
+### Failure A
+
+Retrieved documents:
+
+```text
+1. architecture.md
+2. incident_response.md
+```
+
+The escalation policy is missing.
+
+This is a **retrieval failure**.
+
+Changing the generation prompt will not restore missing evidence.
+
+### Failure B
+
+Retrieved documents:
+
+```text
+1. escalation_policy.md
+2. architecture.md
+```
+
+but the final answer says:
+
+> Tier 1 approves database failovers.
+
+This is primarily a **generation/grounding failure**.
+
+The evidence was available.
+
+### Failure C
+
+The escalation policy was never indexed.
+
+This is an **ingestion/source-coverage failure**.
+
+The retriever cannot return evidence that does not exist.
+
+---
+
+# 17. Teaching implementation versus production implementation
+
+This course intentionally keeps the system small.
+
+| Course implementation | Production concern |
 |---|---|
-| List of chunks in memory | ANN index / vector database (Qdrant, pgvector, Elasticsearch) |
-| Lexical overlap scorer | Versioned embedding service (Sentence Transformers, OpenAI, Cohere) |
-| Single Python process | Distributed retrieval service with connection pooling |
-| Hard-coded Markdown corpus | Ingestion pipeline (parse, validate, chunk, embed, upsert) |
-| `print()` statements | Structured tracing (OpenTelemetry) |
-| Single function for retrieve+rank | Staged pipeline (filter → retrieve → fuse → rerank → build context) |
-| Simple score threshold | Calibrated abstention policy on held-out evaluation set |
-| In-memory context construction | Context service with token budgeting, dedup, and ordering |
-| Manual golden set | Versioned evaluation dataset with regression tracking |
-| No caching | Embedding cache, retrieval cache, semantic cache with tenant-safe keys |
+| Three manually created documents | Automated ingestion pipeline |
+| Pre-written chunks | Parsing + chunking strategy |
+| `all-MiniLM-L6-v2` teaching baseline | Embedding model selected through retrieval evaluation |
+| Local Chroma | Production vector/search infrastructure |
+| `k=2` | Tuned candidate depth |
+| Dense retrieval only | Lexical / dense / hybrid retrieval |
+| No metadata filtering | Retrieval-time filtering and ACL enforcement |
+| No reranker | Optional reranking |
+| Direct candidate → context | Context selection and budgeting |
+| Filename citation | Stable provenance |
+| Fake LLM | Evaluated production model |
+| No abstention gate | Explicit no-answer policy |
+| No golden dataset | Retrieval + generation evaluation |
+| No tracing | Observability |
+| No adversarial testing | RAG security testing |
 
-Each simplification in this lesson has a corresponding production upgrade in a
-later course. The goal here is to make every component *inspectable* — not to
-optimize it.
+The lesson is successful when you can explain every stage—not when the demo looks sophisticated.
 
-## Step-by-step build
+---
 
-### Step 1 — Inspect sources before writing retrieval code
+# 18. What not to do
 
-The local corpus is in
-[`examples/data/beginner-docs`](../../../examples/data/beginner-docs). Read the
-support handbook and knowledge policy first. Ask four data-engineering questions:
+### Do not choose an embedding model because it is popular
 
-1. Which document is canonical for each type of claim?
-2. Who owns it and how would you learn it changed?
-3. Which audience may view it?
-4. What metadata must survive parsing for an answer to be audited later?
+Evaluate it on your own query/document distribution.
 
-The starter `Chunk` stores a source, section, ordinal, and ID. A production
-record should commonly add document version/hash, created/updated timestamps,
-location, tenant/ACL information, retention state, extraction method, and index
-version. These are evidence-system fields—not model prompt decorations.
+### Do not tune only on a few hand-written examples
 
-```python
-from pathlib import Path
-from examples.beginner.first_local_rag import audit_corpus, load_chunks
+A retrieval configuration can look excellent on three questions and fail broadly.
 
-chunks = load_chunks(Path("examples/data/beginner-docs"))
-audit = audit_corpus(chunks)
-assert audit.ready
-print(audit)
-```
+### Do not treat `k` as a quality knob where larger is always better
 
-### Step 2 — Make chunking a deliberate choice
+Higher `k` improves candidate coverage in some cases but also increases noise and downstream cost.
 
-The baseline uses Markdown paragraphs because they make every result easy to
-inspect. It is a teaching unit, not a universal production chunking strategy.
-Chunk boundaries affect whether a returned passage contains the rule, exception,
-scope, and citation target needed for an answer. Do not solve a split-rule
-failure by simply increasing `top_k`: that can inject more unrelated context.
+### Do not interpret vector similarity as truth
 
-The next [Chunking lab](../03-chunking-lab/README.md) measures fixed windows,
-sentences, and heading-aware units. For now, record the baseline boundaries so
-you can compare future changes fairly.
+Similarity and authority are different dimensions.
 
-### Step 3 — Retrieve and read the trace
+### Do not let retrieved documents become instructions
 
-The first ranker is normalized lexical overlap. Its score says how much literal
-vocabulary matches, not whether a source is correct or authorized:
+Retrieved content is untrusted data. Later security lessons address prompt injection and retrieval poisoning.
 
-\[
-overlap(Q, D) = \frac{|Q \cap D|}{\max(|Q|, 1)}
-\]
+### Do not hide retrieval behind one large chain while debugging
 
-Use the trace to ask: Which terms drove the result? Which important term is
-missing? Is the first hit responsive or merely keyword-adjacent? Which heading
-or source makes the answer auditable?
+Keep the evidence boundary inspectable.
+
+---
+
+# 19. Practical exercises
+
+## Exercise 1 — Inspect the baseline
+
+Run:
 
 ```python
-from examples.beginner.first_local_rag import retrieve_with_trace
-
-for hit in retrieve_with_trace("Who may restart production services?", chunks):
-    print(hit.rank, hit.score, hit.matched_terms, hit.chunk.chunk_id)
+results = vectorstore.similarity_search_with_score(
+    "Who is allowed to trigger a DB failover?",
+    k=2,
+)
 ```
 
-### Step 4 — Compare rankers, but keep the same contract
+For every result record:
 
-BM25 improves on raw overlap by weighting rare terms and normalizing document
-length. Dense embeddings can improve semantic matching; Sentence Transformers
-documents the important distinction between short-query/long-passage
-**asymmetric** retrieval and symmetric similarity. A vector database such as
-Qdrant stores vectors alongside payload metadata and can filter during search.
-Those are useful upgrades only after the golden set identifies the failure they
-address.
+- rank;
+- score;
+- source;
+- section;
+- chunk ID; and
+- whether it contains answer-supporting evidence.
+
+---
+
+## Exercise 2 — Paraphrase the query
+
+Try:
+
+```text
+Which support tier authorizes a database switchover?
+```
+
+Compare it with:
+
+```text
+Who is allowed to trigger a DB failover?
+```
+
+Does semantic retrieval preserve the relevant result?
+
+This is one reason dense retrieval is useful.
+
+---
+
+## Exercise 3 — Introduce a distractor
+
+Add:
 
 ```python
-from examples.beginner.first_local_rag import retrieve_bm25
-
-bm25_hits = retrieve_bm25("How often do enterprise customers receive an update?", chunks)
-print([(hit.chunk.chunk_id, round(hit.score, 3)) for hit in bm25_hits])
+Document(
+    page_content=(
+        "Database Reliability Guide: failover testing is performed "
+        "quarterly in staging environments."
+    ),
+    metadata={
+        "source": "reliability.md",
+        "section": "testing",
+        "id": "chunk-04",
+    },
+)
 ```
 
-| Observed failure | Candidate improvement | What still needs testing |
+Rebuild the index.
+
+Ask the failover-authorization question again.
+
+Did the distractor change the ranking?
+
+Why?
+
+---
+
+## Exercise 4 — Change `k`
+
+Compare:
+
+```python
+k=1
+```
+
+```python
+k=2
+```
+
+and:
+
+```python
+k=4
+```
+
+Ask:
+
+- Did recall improve?
+- Did irrelevant context increase?
+- Which value would you choose based on one example?
+- Why is that choice unreliable without an evaluation set?
+
+---
+
+## Exercise 5 — Remove metadata
+
+Remove `source` from one document.
+
+What happens to citation construction?
+
+This demonstrates why provenance is part of the data model—not something to reconstruct after generation.
+
+---
+
+## Exercise 6 — Ask an unsupported question
+
+Try:
+
+```text
+How much does Harborline charge enterprise customers?
+```
+
+Observe what dense retrieval returns.
+
+Even though the corpus contains no answer, nearest-neighbor search still returns the nearest candidates.
+
+This is fundamental:
+
+> A nearest-neighbor retriever is not automatically a no-answer detector.
+
+Later courses introduce abstention and evaluation.
+
+---
+
+# 20. Checkpoint
+
+Before moving on, you should be able to answer:
+
+1. What is the difference between a document and its embedding?
+2. What responsibility belongs to the vector store?
+3. What does a retriever return?
+4. Why should retrieval be inspected before generation?
+5. Why is semantic similarity not factual confidence?
+6. What is asymmetric semantic search?
+7. Why must provenance metadata survive retrieval?
+8. What is the difference between retrieved candidates and final context?
+9. If the correct document is absent from the retrieved candidates, which stage should you investigate first?
+10. Why does an unsupported query still receive nearest-neighbor results?
+11. What does the fake LLM allow us to test?
+12. What does the fake LLM **not** allow us to test?
+
+---
+
+# 21. What comes next
+
+### [03 — Chunking Decisions](../03-chunking-lab/README.md)
+
+Course 02 manually provides already-formed documents.
+
+That hides one of the most consequential RAG decisions:
+
+> **What should the retrievable unit actually be?**
+
+The next lesson examines how chunk boundaries affect retrieval quality.
+
+### [04 — Citations and Abstention](../04-citations-abstention/README.md)
+
+After retrieval, the system must decide whether its evidence is sufficient and whether generated claims can be traced to supporting sources.
+
+---
+
+# References
+
+## Semantic retrieval
+
+- Sentence Transformers — [Semantic Search](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html)
+- Sentence Transformers — [Usage](https://www.sbert.net/docs/sentence_transformer/usage/usage.html)
+- Sentence Transformers — [Migration Guide: `encode_query` and `encode_document`](https://www.sbert.net/docs/migration_guide.html)
+
+## LangChain
+
+- LangChain — [Chroma integration](https://docs.langchain.com/oss/python/integrations/vectorstores/chroma)
+- LangChain — [Build a semantic search engine](https://docs.langchain.com/oss/python/langchain/knowledge-base)
+
+## Retrieval foundations
+
+- Karpukhin et al. — [Dense Passage Retrieval for Open-Domain Question Answering](https://arxiv.org/abs/2004.04906)
+- Reimers & Gurevych — [Sentence-BERT](https://arxiv.org/abs/1908.10084)
+
+---
+
+# Key takeaway
+
+The most important output of your first real RAG system is not the generated answer.
+
+It is the ability to inspect:
+
+```text
+question
+   ↓
+retrieved evidence
+   ↓
+context
+   ↓
+answer
+```
+
+Once that boundary is visible, you can measure and improve each stage independently.
+
+**Retrieve first. Inspect the evidence. Then generate.**
+
+---
+
+# Deep Dive — Building the First Local RAG System
+
+The goal of the first implementation is **inspectability**, not framework sophistication.
+
+A local RAG pipeline should let you see every important artifact from source document to final answer.
+
+## 1. Why start locally
+
+A local, small-corpus implementation removes infrastructure variables while you learn the mechanics.
+
+You should be able to print or inspect:
+
+```text
+documents
+chunks
+metadata
+vectors / representations
+query
+similarity scores
+top-k results
+constructed context
+final answer
+```
+
+If a framework hides all of these, it is a poor first learning environment.
+
+## 2. Minimal architecture
+
+```text
+documents
+   ↓
+chunk + metadata
+   ↓
+embed
+   ↓
+local index
+             query
+               ↓
+             embed
+               ↓
+       similarity search
+               ↓
+        top-k evidence
+               ↓
+       context construction
+               ↓
+              LLM
+```
+
+Keep indexing and query execution conceptually separate even if one notebook contains both.
+
+## 3. Document objects and provenance
+
+Represent documents explicitly rather than as anonymous strings.
+
+A useful teaching structure is:
+
+```python
+{
+    "text": "...",
+    "document_id": "...",
+    "chunk_id": "...",
+    "source": "...",
+    "section": "...",
+}
+```
+
+The exact schema can evolve, but source identity should exist from the beginning.
+
+## 4. Embedding pipeline
+
+The document and query must be encoded into compatible representation spaces.
+
+Important questions include:
+
+- Which embedding model?
+- What dimensionality?
+- Is normalization expected?
+- Which distance function does the index use?
+- Was the same representation model used for query and corpus?
+- How will model upgrades trigger re-indexing?
+
+A local lab can use a simple implementation, but learners should understand these production implications.
+
+## 5. Similarity metrics
+
+Common vector-search metrics include cosine similarity, dot product, and Euclidean distance.
+
+They are not interchangeable without considering model training and normalization.
+
+For normalized vectors:
+
+```text
+cosine similarity and dot-product ranking
+```
+
+can become closely related, but do not generalize this blindly to every embedding model.
+
+## 6. Exact vs approximate search
+
+A tiny local corpus can use exact similarity search.
+
+Production vector systems usually use approximate nearest-neighbor indexes such as HNSW to reduce search cost.
+
+This introduces another distinction:
+
+```text
+ANN recall
+```
+
+versus:
+
+```text
+semantic relevance
+```
+
+The beginner lab should not conflate infrastructure approximation with retrieval quality.
+
+## 7. Candidate inspection
+
+Do not immediately feed retrieved passages into the LLM.
+
+Inspect them first.
+
+For each query, ask:
+
+```text
+Did we retrieve the expected passage?
+What score did it receive?
+What irrelevant passage outranked it?
+Was the problem the embedding, chunk, or query?
+```
+
+This habit is foundational for production debugging.
+
+## 8. Context construction
+
+A naive implementation may concatenate top-k chunks.
+
+Even here, notice potential problems:
+
+- repeated chunks;
+- arbitrary ordering;
+- context overflow;
+- missing titles;
+- lost source IDs.
+
+Later courses improve this, but source labels should be preserved from day one.
+
+## 9. Grounded generation
+
+A basic prompt should establish a bounded evidence contract:
+
+```text
+Use the supplied evidence.
+Do not invent missing facts.
+If the evidence is insufficient, say so.
+```
+
+Prompt instructions help but are not a complete safety mechanism. Later courses add explicit abstention and verification.
+
+## 10. Deterministic baseline before frameworks
+
+A valuable first implementation can be built with:
+
+- Python data structures;
+- an embedding model;
+- NumPy/scikit-learn-style similarity;
+- a simple generation call.
+
+Why?
+
+Because learners can see the mechanism.
+
+Afterward, libraries and vector databases can replace components without changing the conceptual architecture.
+
+## 11. What frameworks abstract
+
+RAG frameworks commonly abstract:
+
+```text
+document loaders
+text splitters
+embeddings
+vector stores
+retrievers
+prompt templates
+chains / graphs
+```
+
+These abstractions are useful in production, but only after you understand the underlying contracts.
+
+## 12. Debugging tree
+
+When an answer is wrong:
+
+```text
+1. Is the source in the corpus?
+2. Is the correct chunk present?
+3. Is metadata/provenance correct?
+4. Is the correct chunk retrieved?
+5. Is its rank high enough?
+6. Did context construction retain it?
+7. Did generation use it?
+8. Is the claim actually supported?
+```
+
+Do not change the prompt before checking retrieval.
+
+## 13. Basic evaluation set
+
+Create a tiny labelled set immediately:
+
+| Query | Expected evidence | Answerable? |
 |---|---|---|
-| Exact terms retrieve poorly | BM25 / better text normalization | Ranking and source coverage |
-| Synonyms or abbreviations miss | Dense or hybrid retrieval | Recall, precision, and domain drift |
-| Good candidate is below noisy ones | Rerank a limited candidate set | Latency and ranking improvement |
-| Corpus is large | ANN/vector database | Recall-speed trade-off and payload filters |
-| Text is stale or wrong | Source governance | No ranker can repair it |
-| Account value/action is needed | Authenticated API or SQL | Retrieval is often the wrong tool |
+| Q1 | chunk A | yes |
+| Q2 | chunk C | yes |
+| Q3 | none | no |
 
-### Step 5 — Build context, not a document dump
+This is already enough to compare changes to chunking, embeddings, or top-k.
 
-The answer component should receive a small, labelled evidence set. Context
-budgeting protects latency and cost, keeps citations meaningful, and makes
-truncation observable. It is not a license to omit a rule's exception.
+## 14. Reproducibility
 
-```python
-from examples.beginner.first_local_rag import build_context_pack
+Record:
 
-pack = build_context_pack(retrieve_with_trace("Who may restart production services?", chunks), max_characters=420)
-print(pack.text)
-print(pack.citations, pack.truncated)
+```text
+embedding model/version
+corpus version
+chunking configuration
+top-k
+generation model
+prompt version
 ```
 
-In a provider-backed system, pass `pack.text` as untrusted retrieved data with
-explicit instructions: answer only from the evidence, cite every factual claim,
-and say when the evidence is insufficient. Do not let retrieved documents act
-as system instructions.
+Otherwise two notebook runs may appear comparable while using different systems.
 
-### Step 6 — Declare a no-answer contract
+## 15. When to move beyond the local baseline
 
-`run_local_rag` returns `answer` or `abstain`, a retrieval threshold, the
-context budget, hits, context, and citations. This makes the decision inspectable
-and replaces a vague "the model seemed uncertain" rule.
+Move to a vector database when you need scale, filtering, persistence, ANN indexing, multi-vector search, or operational capabilities.
 
-```python
-from examples.beginner.first_local_rag import run_local_rag
+Move to hybrid retrieval when lexical and dense retrieval show complementary failure patterns.
 
-result = run_local_rag("What is the capital of France?", chunks, min_score=0.20)
-assert result.decision == "abstain"
-print(result.answer)
-```
+Move to reranking when candidate recall is good but ordering is weak.
 
-For a real support product, define the action after abstention: ask a narrower
-question, link a status page, route to an owner, or state that the source corpus
-does not contain the answer. Never use an abstention threshold as an access
-control mechanism.
+The next architectural step should always correspond to a measured problem.
 
-### Step 7 — Evaluate before you "upgrade"
+## Further study
 
-Build a golden set of supported, unsupported, paraphrased, ambiguous, stale, and
-permission-restricted questions. For each, record expected chunk IDs and terminal
-behavior. Then track retrieval hit/recall, Precision@k, MRR, abstention accuracy,
-latency, context size, and citation correctness. Retrieval quality and generated
-answer faithfulness remain separate metrics.
-
-The [BEIR benchmark](https://arxiv.org/abs/2104.08663) is a useful research
-reference for heterogeneous zero-shot retrieval evaluation. It is not a
-substitute for a domain-specific Harborline golden set.
-
-## Debugging guide
-
-| Symptom | Likely boundary | What to inspect first | Unsafe shortcut |
-|---|---|---|---|
-| No result for an obvious policy | Source/parse/lexical mismatch | Source exists, tokens, chunk text, trace | Let an LLM guess |
-| Wrong source ranks first | Retrieval | Terms, BM25/dense candidates, metadata filter | Raise `top_k` blindly |
-| Answer loses the exception | Chunk/context | Chunk boundary and budget truncation | Add more unrelated documents |
-| Correct citation but outdated policy | Source governance | Version, timestamp, index freshness | Treat citation as freshness proof |
-| Restricted text reaches prompt | Authorization | Filter placement and logs | Filter only after generation |
-| Helpful-looking answer has no evidence | Generation/policy | Claim-to-citation audit | Lower threshold |
-
-## Exercises
-
-1. **Corpus audit:** add a deliberately empty Markdown paragraph or duplicate
-   chunk ID in a fixture; make the audit fail before retrieval runs.
-2. **Vocabulary failure:** add a policy that uses a synonym, then compare overlap
-   and BM25. Explain why neither may solve a pure synonym mismatch.
-3. **Context budget:** set `max_characters` to 180 and identify which evidence
-   is retained, which is excluded, and whether the answer is still supportable.
-4. **Decision policy:** create five golden cases and choose a threshold that
-   balances false answers against false abstentions for incident support.
-5. **Production design:** sketch how caller identity, tenant/ACL fields, source
-   versions, and retrieval traces would travel through a vector database.
-6. **Embedding sketch:** for a synonym failure ("reboot" vs "restart"), explain
-   why an embedding model might resolve it but a BM25 ranker cannot. What
-   domain shift risk would you need to test for the embedding approach?
-
-## Production readiness checklist
-
-- [ ] Canonical sources, owners, freshness, and retention are defined.
-- [ ] Parser name, version, and ingestion timestamp are recorded per document.
-- [ ] Chunk IDs and source versions survive parsing and retrieval.
-- [ ] Caller authorization filters candidates before vector/keyword ranking.
-- [ ] Context has a budget, retained IDs, and traceable citations.
-- [ ] Abstention has a documented safe next step.
-- [ ] A golden set covers happy paths, no-answer cases, failures, and access
-      boundaries.
-- [ ] Retrieval, answer, and safety metrics are monitored independently.
-
-## Continue
-
-- [Chunking lab](../03-chunking-lab/README.md) — test the unit that retrieval
-  returns.
-- [Citations and abstention](../04-citations-abstention/README.md) — verify
-  evidence-backed answers.
-- [Intermediate retrieval strategies](../../intermediate/01-retrieval-strategies/README.md)
-  — introduce embeddings, hybrid retrieval, and reranking from a measured
-  baseline.
-
-## References
-
-- Lewis et al., [Retrieval-Augmented Generation](https://arxiv.org/abs/2005.11401)
-- Manning, Raghavan, and Schütze, [Introduction to Information Retrieval](https://nlp.stanford.edu/IR-book/)
-- Thakur et al., [BEIR](https://arxiv.org/abs/2104.08663)
-- Sentence Transformers, [Semantic Search documentation](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html)
-- Sentence Transformers, [Asymmetric Semantic Search](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html#asymmetric-semantic-search)
-- Qdrant, [Collections, vectors, and payload filtering](https://qdrant.tech/documentation/overview/)
-- Liu et al., [Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172)
-- NIST, [Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+- Dense Passage Retrieval
+- HNSW approximate nearest-neighbor search
+- Current vector-database semantic-search tutorials
+- BEIR retrieval evaluation

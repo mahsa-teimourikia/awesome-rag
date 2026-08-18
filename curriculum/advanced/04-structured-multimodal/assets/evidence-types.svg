@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390">
+<rect width="1200" height="390" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Do not blur evidence types</text>
+<text x="55" y="82" font-size="16" fill="#475569">Computed facts, extracted observations, and model inferences need different confidence and citation semantics.</text>
+<rect x="115" y="155" width="270" height="150" rx="18" fill="#F0FDF4" stroke="#64748B" stroke-width="2"/><text x="250" y="200" text-anchor="middle" font-size="19" font-weight="700" fill="#1F2937">Computed</text><text x="250" y="245" text-anchor="middle" font-size="14" fill="#475569">exact code / SQL</text><rect x="480" y="155" width="270" height="150" rx="18" fill="#EEF2FF" stroke="#64748B" stroke-width="2"/><text x="615" y="200" text-anchor="middle" font-size="19" font-weight="700" fill="#1F2937">Observed</text><text x="615" y="245" text-anchor="middle" font-size="14" fill="#475569">OCR / visible region</text><rect x="845" y="155" width="270" height="150" rx="18" fill="#FFF7ED" stroke="#64748B" stroke-width="2"/><text x="980" y="200" text-anchor="middle" font-size="19" font-weight="700" fill="#1F2937">Inferred</text><text x="980" y="245" text-anchor="middle" font-size="14" fill="#475569">model interpretation</text>
+</g></svg>
