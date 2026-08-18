@@ -751,6 +751,35 @@ legend { margin-bottom: 20px; font-size: clamp(1.15rem, 2.2vw, 1.35rem); line-he
 .option { grid-template-columns: 24px minmax(0, 1fr); gap: 14px; padding: 16px; font-size: 1rem; line-height: 1.5; }
 .option input { width: 20px; height: 20px; }
 
+/* Keep the assessment action together with its explanation on wide screens. */
+.submit-panel {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(20px, 4vw, 52px);
+  padding: clamp(24px, 4vw, 44px);
+}
+
+.submit-panel > div {
+  min-width: 0;
+  max-width: 620px;
+}
+
+.submit-panel h2 {
+  max-width: 18ch;
+}
+
+.submit-panel p {
+  max-width: 54ch;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.submit-panel .primary-button {
+  min-width: 220px;
+  justify-self: end;
+  white-space: nowrap;
+}
+
 @media (max-width: 620px) {
   .quiz-hero-content .hero-stats { grid-template-columns: 1fr; gap: 12px; }
   .section-heading { flex-direction: column; align-items: stretch; gap: 14px; }
@@ -760,6 +789,7 @@ legend { margin-bottom: 20px; font-size: clamp(1.15rem, 2.2vw, 1.35rem); line-he
   .question-meta { align-items: flex-start; flex-direction: column; }
   .option { padding: 14px; font-size: .98rem; }
   legend { font-size: 1.12rem; }
+  .submit-panel .primary-button { width: 100%; justify-self: stretch; }
 }
 
 @media (max-width: 900px) {
