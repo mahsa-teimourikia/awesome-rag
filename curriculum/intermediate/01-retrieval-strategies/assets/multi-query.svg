@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<rect width="1200" height="420" fill="white"/>
+<defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Multi-query expansion</text>
+<text x="55" y="82" font-size="16" fill="#475569">Generate bounded alternative phrasings to improve candidate recall.</text>
+<rect x="80" y="180" width="220" height="80" rx="15" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="190" y="227" text-anchor="middle" font-size="16" font-weight="700" fill="#312E81">User query</text><line x1="300" y1="220" x2="430" y2="220" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="440" y="145" width="280" height="150" rx="15" fill="#FAF5FF" stroke="#A855F7" stroke-width="2"/><text x="580" y="180" text-anchor="middle" font-size="17" font-weight="700" fill="#6B21A8">Query variants</text><text x="580" y="212" text-anchor="middle" font-size="13" fill="#475569">vendor for Atlas DB</text><text x="580" y="236" text-anchor="middle" font-size="13" fill="#475569">company supplying Atlas</text><text x="580" y="260" text-anchor="middle" font-size="13" fill="#475569">vector DB supplier</text><line x1="720" y1="220" x2="860" y2="220" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="870" y="180" width="250" height="80" rx="15" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/><text x="995" y="227" text-anchor="middle" font-size="16" font-weight="700" fill="#14532D">Retrieve + deduplicate</text>
+</g></svg>

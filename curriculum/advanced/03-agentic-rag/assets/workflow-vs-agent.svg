@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430">
+<rect width="1200" height="430" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Workflow vs agent</text>
+<text x="55" y="82" font-size="16" fill="#475569">Choose the least autonomous architecture that reliably solves the task.</text>
+<rect x="100" y="145" width="430" height="220" rx="18" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/><text x="315" y="188" text-anchor="middle" font-size="20" font-weight="700" fill="#14532D">Deterministic workflow</text><text x="315" y="230" text-anchor="middle" font-size="14" fill="#475569">Known evidence path</text><text x="315" y="260" text-anchor="middle" font-size="14" fill="#475569">Predictable · testable · lower variance</text><text x="315" y="310" text-anchor="middle" font-size="13" fill="#64748B">Use when the sequence is already known.</text><rect x="670" y="145" width="430" height="220" rx="18" fill="#FAF5FF" stroke="#A855F7" stroke-width="2"/><text x="885" y="188" text-anchor="middle" font-size="20" font-weight="700" fill="#6B21A8">Bounded agent</text><text x="885" y="230" text-anchor="middle" font-size="14" fill="#475569">Dynamic next evidence source</text><text x="885" y="260" text-anchor="middle" font-size="14" fill="#475569">Flexible · costlier · harder to evaluate</text><text x="885" y="310" text-anchor="middle" font-size="13" fill="#64748B">Use when findings genuinely determine the next step.</text>
+</g></svg>

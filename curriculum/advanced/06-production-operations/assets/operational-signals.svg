@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390">
+<rect width="1200" height="390" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Operational signals are different</text>
+<text x="55" y="82" font-size="16" fill="#475569">A service can be ready while its corpus is stale or its answer quality has regressed.</text>
+<rect x="65" y="155" width="235" height="130" rx="16" fill="#EEF2FF" stroke="#64748B" stroke-width="2"/><text x="182" y="195" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Readiness</text><text x="182" y="235" text-anchor="middle" font-size="13" fill="#475569">Can dependencies serve?</text><rect x="345" y="155" width="235" height="130" rx="16" fill="#FFF7ED" stroke="#64748B" stroke-width="2"/><text x="462" y="195" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Freshness</text><text x="462" y="235" text-anchor="middle" font-size="13" fill="#475569">Is evidence current?</text><rect x="625" y="155" width="235" height="130" rx="16" fill="#F0FDF4" stroke="#64748B" stroke-width="2"/><text x="742" y="195" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Offline quality</text><text x="742" y="235" text-anchor="middle" font-size="13" fill="#475569">Should we promote?</text><rect x="905" y="155" width="235" height="130" rx="16" fill="#FAF5FF" stroke="#64748B" stroke-width="2"/><text x="1022" y="195" text-anchor="middle" font-size="17" font-weight="700" fill="#1F2937">Online behavior</text><text x="1022" y="235" text-anchor="middle" font-size="13" fill="#475569">Is production healthy?</text>
+</g></svg>

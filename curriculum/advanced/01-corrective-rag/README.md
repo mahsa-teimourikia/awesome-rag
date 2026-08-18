@@ -1,312 +1,316 @@
-# 01 — Corrective RAG: recover from retrieval failure without guessing
+# Advanced 01 — Corrective RAG: Bounded Recovery After Retrieval Failure
 
-**Level:** Advanced
-
-**Time:** 2–3 hours
-**Prerequisites:** complete the [intermediate path](../../intermediate/README.md), especially retrieval, reranking, evaluation, and security.
-
-## Why this module exists
-
-Ordinary RAG assumes the top retrieved passages are useful. In production, that assumption breaks: the query may be underspecified, the corpus may be stale, an exact identifier may defeat semantic search, access filtering may remove the only relevant document, or a plausible-but-wrong passage may outrank the right one. Generating from those passages is not grounded—it is confidently conditioned on poor evidence.
-
-**Corrective RAG (CRAG)** makes retrieval quality an explicit decision point. The original CRAG paper adds a lightweight retrieval evaluator that grades the retrieved knowledge, uses that grade to choose a retrieval action, can supplement limited corpora with web search, and decomposes/recomposes documents to retain salient evidence. It is a plug-in corrective layer around a RAG pipeline, not a guarantee that an answer exists. [Yan et al., 2024](https://arxiv.org/abs/2401.15884)
-
-This training uses a realistic scenario: **Northstar Cloud’s security-support assistant** must answer operational questions about API-key rotation. A mistaken answer could lead to a failed rotation or an insecure shortcut, so the system must return a cited plan only when it has authorized evidence. Otherwise it must ask for clarification or abstain.
-
-## Outcome
-
-By the end, you can design and implement a bounded corrective retrieval controller that:
-
-1. grades retrieval before generation;
-2. separates **strong**, **ambiguous**, and **weak** evidence;
-3. chooses a constrained recovery route—rewrite, alternate retriever, or approved external search;
-4. keeps an auditable trace of every route, score, latency, and terminal decision;
-5. applies authorization before retrieval and never treats retrieved text as instructions; and
-6. evaluates recovery quality, abstention, cost, and tail latency against a non-corrective baseline.
-
-## Start with the notebook
-
-Open [`corrective_rag.ipynb`](corrective_rag.ipynb). It is the main practical training artifact: concept explanations, diagrams, deterministic implementation, failure fixtures, experiments, and exercises are together in one place. Reusable code lives in [`lab.py`](lab.py).
-
-```mermaid
-flowchart TD
-  Q[Authorized user question] --> P[Primary retrieval]
-  P --> G[Grade retrieval set]
-  G -->|Strong| F[Filter / cite / generate]
-  G -->|Ambiguous or weak| R[Bounded rewrite + retrieve]
-  R --> G2[Grade recovered set]
-  G2 -->|Strong| F
-  G2 -->|Still weak| A[Authorized alternate retriever]
-  A --> G3[Grade alternate set]
-  G3 -->|Strong| F
-  G3 -->|Weak or budget exhausted| X[Clarify, abstain, or escalate]
-  F --> V[Verify answer support]
-  V -->|Unsupported| X
-  V -->|Supported| O[Answer with citations + trace]
-```
+**Level:** Advanced  
+**Estimated time:** 2–3 hours  
+**Notebook:** [`01_corrective_rag.ipynb`](01_corrective_rag.ipynb)  
+**Prerequisite:** complete the intermediate retrieval and evaluation track
 
 ---
 
-## 1. The mental model: correction is a control policy
+## Why this lesson exists
 
-A normal retrieval pipeline is usually:
-
-`query → retrieve top-k → generate`
-
-A corrective pipeline adds a controller:
-
-`query → retrieve → evaluate evidence → choose next permitted action → verify → answer or abstain`
-
-The controller must be designed like any other production policy. It needs inputs, thresholds, a bounded action set, a budget, audit logs, and safe terminal states. A score by itself is not a policy: cosine similarity, BM25 score, reranker score, and LLM judge output are different signals with different scales. Calibrate the decision thresholds on held-out data for your corpus and risk level.
-
-| Grade | Interpretation | Typical permitted action | Do not do |
-| --- | --- | --- | --- |
-| Strong | Evidence covers the question and passes authorization filters. | Generate a cited answer; optionally run answer-support verification. | Treat score as proof without inspecting calibration. |
-| Ambiguous | Some relevant evidence exists, but a key term, constraint, or source is missing. | Rewrite, query another representation, widen *within policy*, or rerank. | Append every retrieved passage to the prompt. |
-| Weak | No authorized evidence sufficiently supports the task. | Ask a clarifying question, use a pre-approved alternate source, or abstain. | Retry indefinitely or invent a fallback answer. |
-
-### Retrieval evaluator comparison
-
-The grading signal is as important as the routing table. Different evaluator designs make different accuracy-cost-latency trade-offs:
-
-| Evaluator type | How it works | Accuracy | Latency | Cost | When to use |
-| --- | --- | --- | --- | --- | --- |
-| Similarity threshold | Compare query-document cosine similarity to a threshold | Low — sensitive to embedding domain shift | Negligible | Negligible | Prototype / fast baseline only |
-| Lexical heuristic | Required-term coverage, keyword overlap | Medium for narrow domains | Very low | Very low | Domain-specific exact-term requirements |
-| Cross-encoder | Joint query-document encoding (full attention) | High | Medium (50–200ms per candidate set) | Low-medium | Production default for most pipelines |
-| Small classifier | Binary relevant/not-relevant trained on domain examples | Medium-high if well-trained | Low | Low | High-throughput systems with labeled training data |
-| LLM judge | Structured relevance prompt to a language model | High for nuanced judgment | High (LLM latency) | High | High-stakes decisions; calibrated against human labels |
-
-The training code uses transparent query-term coverage (lexical heuristic) so routing behavior is directly observable. In production, replace or augment it with a calibrated cross-encoder or small classifier. Maintain a held-out calibration set and version the evaluator alongside the corpus and policy.
-
-### CRAG, Adaptive RAG, and Self-RAG are related but not identical
-
-- **Corrective RAG** focuses on assessing a retrieved set and correcting low-quality evidence with different retrieval actions and document refinement. [CRAG paper](https://arxiv.org/abs/2401.15884)
-- **Adaptive RAG** is the broader engineering pattern of routing a request among retrieval strategies based on task complexity, quality, cost, or risk. A CRAG evaluator can be one router input.
-- **Self-RAG** trains a model to decide when to retrieve and to critique retrieval/generation with reflection tokens. It is a model-training and decoding approach, rather than simply a controller around an off-the-shelf model. [Asai et al., 2024](https://arxiv.org/abs/2310.11511)
-- **Agentic RAG** gives a model more autonomy to plan tools and retrieval routes. Use it only when the value of dynamic planning exceeds the cost and control burden; a finite corrective graph is usually easier to evaluate and secure.
-
-## 2. Step-by-step: build a corrective controller
-
-### Step 1 — define the evidence contract before choosing a score
-
-For the Northstar scenario, an answer about key rotation must contain: an authorized runbook, a staged replacement action, a verification step, and a revocation step. The retrieval evaluator is not deciding whether text “sounds useful”; it is deciding whether candidates support that contract.
-
-```python
-required_concepts = {"create", "deploy", "verify", "revoke"}
-allowed_sources = {"internal-runbooks"}
-max_attempts = 4
-```
-
-In a production system, derive this contract from the task schema, user permissions, and a policy version. Do not put it only in a model prompt.
-
-### Step 2 — retrieve broadly, but filter access first
-
-Filtering after retrieval can leak document titles, scores, or snippets into logs and model context. Apply tenant, role, source, retention, and document-status filters at the retrieval boundary. In the example implementation, `authorized()` is deliberately called before every retriever.
-
-```python
-permitted = authorized(documents, policy)
-candidates = primary_retriever(query, permitted)
-```
-
-This small example uses lexical retrieval for inspection. In production, the primary route might be hybrid dense+sparse retrieval, metadata filtering, then a cross-encoder or late-interaction reranker. Qdrant’s [hybrid-search and reranking tutorial](https://qdrant.tech/documentation/advanced-tutorials/reranking-hybrid-search/) is a useful reference for the retrieve-wide/rerank-narrow pattern.
-
-### Step 3 — grade the *set*, not only the top score
-
-Top-1 similarity can be high for a document that matches a noun but lacks the required procedure. A set grader can combine:
+A fixed RAG pipeline often assumes:
 
 ```text
-retrieval_quality = f(
-  query_intent_coverage,
-  passage_relevance,
-  source_authority,
-  freshness,
-  diversity / redundancy,
-  permission_validity
-)
+retrieve → generate
 ```
 
-The training code uses transparent query-term coverage, intentionally not a probability. That allows learners to observe a threshold changing a route. In a real system, replace or augment it with a calibrated cross-encoder, a small classifier, or a structured LLM judge. Maintain a held-out calibration set, measure false accepts and false abstains, and record the evaluator version in traces.
+That assumption fails when retrieval is empty, irrelevant, stale, incomplete, or filtered down by authorization.
 
-### Threshold calibration: use a confusion matrix
-
-A threshold is not a universal constant — it is a product-risk policy calibrated on held-out data for your specific corpus and risk level.
-
-**Confusion matrix for retrieval quality classification:**
-
-|  | Predicted: Strong | Predicted: Weak/Abstain |
-|---|---|---|
-| **Actually: Strong evidence** | True Accept (TA) | False Abstain (FA) |
-| **Actually: Weak evidence** | False Accept (FA) | True Abstain (TA) |
-
-- **False Accept (FA):** system accepts weak evidence and generates an answer → risk of unsupported or incorrect answer.
-- **False Abstain (TA):** system abstains on strong evidence → user receives no answer despite the system having it.
-
-For a security-support assistant:
-- False Accepts are more costly (incorrect security guidance)
-- False Abstains are annoying but safe
-- → Set threshold conservatively (higher), accepting more False Abstains
-
-For a low-stakes FAQ assistant:
-- False Abstains reduce utility significantly
-- False Accepts are recoverable with citation checking
-- → Set threshold permissively (lower), accepting some False Accepts
-
-**Calibration procedure:**
-1. Build a labeled evaluation set with at least 100–200 cases: 50% answerable, 25% unanswerable, 25% ambiguous.
-2. Run the evaluator at multiple threshold values.
-3. Plot FA rate vs TA rate (ROC curve).
-4. Choose the operating point that reflects your domain's cost asymmetry.
-5. Measure both FA and TA rates on a held-out set — not the calibration set.
-6. Record the chosen threshold, the calibration set version, and the evaluation date in the policy configuration.
-
-### Step 4 — recover with a finite route table
-
-```mermaid
-stateDiagram-v2
-  [*] --> Primary
-  Primary --> Accept: strong
-  Primary --> Rewrite: ambiguous / weak
-  Rewrite --> Accept: strong
-  Rewrite --> Alternate: retry budget remains
-  Alternate --> Accept: strong
-  Alternate --> Abstain: weak or unauthorized
-  Accept --> Verify
-  Verify --> Answer: supported
-  Verify --> Abstain: unsupported
-  Abstain --> [*]
-  Answer --> [*]
-```
-
-Every edge needs a budget and reason. The provided `CorrectionPolicy` exposes `max_rewrites`, `max_attempts`, permitted sources, and thresholds. The reference implementation never spins until it finds a match.
-
-```python
-result = corrective_retrieve(
-    question,
-    corpus,
-    policy=CorrectionPolicy(max_rewrites=2, max_attempts=4),
-    primary_retriever=hybrid_retriever,
-    alternate_retriever=approved_archive_retriever,
-)
-if not result.answerable:
-    return "I do not have enough authorized evidence to answer."
-```
-
-### Step 5 — document decomposition and recomposition
-
-The CRAG paper’s decompose-then-recompose idea addresses another common failure: a relevant document can contain a few useful statements wrapped in irrelevant or distracting material. Chunk-level extraction should preserve provenance:
+**Corrective RAG (CRAG)** adds an explicit evidence-quality decision after retrieval:
 
 ```text
-document → candidate spans → relevance/authority filter → compact evidence bundle
-         → source document ID + chunk ID + revision + score
+retrieve
+   ↓
+grade evidence
+   ↓
+accept / recover / abstain
 ```
 
-Do not summarize away the document identity. A generator must be able to cite the source span, and an evaluator must be able to check the claim against the span. For regulated or high-risk domains, preserve a snapshot or content hash so later audits can reconstruct the evidence.
+The notebook demonstrates this twice:
+
+1. a transparent Python controller; and
+2. a LangGraph `StateGraph` with conditional routing.
+
+![Corrective RAG control loop](assets/corrective-control-loop.svg)
+
+The important idea is not "always fall back to web search." It is:
+
+> **When evidence is inadequate, choose only from a bounded, policy-approved recovery set.**
 
 ---
 
-## 3. Recovery routes: when each route is appropriate
+## Learning objectives
 
-| Route | Trigger | Example | Guardrails |
-| --- | --- | --- | --- |
-| Reformulate | Intent is clear but vocabulary differs. | “credential replacement” → “API key rotation runbook.” | Limit variants; do not change user intent or tenant scope. |
-| Hybrid / rerank | Exact tokens or semantic nuance may be missed. | Search a key ID with sparse retrieval and procedure wording with dense retrieval. | Tune candidate depth and reranker budget. |
-| Alternate internal retriever | A different approved index owns the evidence. | Product runbook index → incident postmortem index. | Explicit source allowlist and access policy per route. |
-| Fresh external retrieval | Internal corpus is allowed to be incomplete and policy permits it. | Public SDK documentation version check. | Domain allowlist, SSRF protection, attribution, prompt-injection handling, cache/retention policy. |
-| Clarify | The user omitted a critical parameter. | “Rotate a key” without service or environment. | Ask the smallest question that disambiguates. |
-| Abstain / escalate | Evidence remains weak or action is high-risk. | No approved runbook for a legacy service. | Make the terminal outcome useful: explain the missing evidence and handoff path. |
+After this lesson you should be able to:
 
-External search is not a magic recovery route. It can introduce stale pages, poisoned instructions, conflicting policies, privacy leakage, and unsupported source authority. Treat external text as untrusted data; never let it alter system instructions or tool permissions. For a detailed defense model, use the repository’s [security and authorization lab](../../../labs/security-and-authorization/README.md).
+- explain why retrieval quality is a control decision;
+- distinguish corrective routing from ordinary reranking;
+- define strong, weak, and insufficient evidence states;
+- build a finite recovery graph;
+- separate internal retrieval failure from source unavailability;
+- explain why external search is not a universally safe fallback;
+- define retry, latency, and cost budgets;
+- preserve route/evidence traces;
+- distinguish Corrective RAG from Adaptive RAG and Agentic RAG; and
+- evaluate whether correction improves outcomes over a fixed baseline.
 
-## 4. Evaluation: prove correction helps
+---
 
-Corrective RAG is justified only if it improves a measured objective. Evaluate the same task set with a fixed RAG baseline and a corrective controller. Include easy, ambiguous, stale, access-restricted, adversarial, and no-answer cases.
+# 1. What the notebook actually implements
 
-| Dimension | Useful measures | Why it matters |
-| --- | --- | --- |
-| Retrieval | Recall@k, nDCG, evidence coverage, authorized-recall | Did recovery find permitted supporting evidence? |
-| Routing | grade confusion matrix, false-accept rate, false-abstain rate, route distribution | Is the evaluator calibrated for this corpus? |
-| Generation | claim support, citation correctness, answer relevance | Did better retrieval translate into a grounded answer? |
-| Operations | p50/p95 latency, attempts/query, reranker cost, cost/success | Correction can improve quality while harming tail latency. |
-| Safety | cross-tenant leakage, unauthorized-source attempts, injection-follow rate | A “recovery” route must not widen trust boundaries. |
+The course folder contains:
 
-Use two budgets: a **per-query** cap (attempts, tokens, time) and a **fleet** cap (external search volume, reranker concurrency, cost). Alert on route-distribution shifts: a sudden jump in fallback traffic often indicates broken ingestion, an embedding regression, stale documents, or a changed query mix.
-
-### Fixed RAG vs CRAG vs Adaptive RAG vs Self-RAG: explicit comparison
-
-These are related but not identical designs. Choose based on what the evaluation demonstrates is needed, not on what sounds most sophisticated.
-
-| Dimension | Fixed RAG | Corrective RAG (CRAG) | Adaptive RAG | Self-RAG |
-| --- | --- | --- | --- | --- |
-| **Retrieval decision** | Always retrieves, fixed K | Evaluates quality; routes to recovery | Routes by task complexity/query type | Model decides when to retrieve |
-| **Recovery mechanism** | None | Rewrite → alternate retriever → abstain | Route to different strategy | Reflection tokens guide retrieval |
-| **Evaluator** | None | External policy + evaluator | Complexity classifier | Trained reflection tokens in model |
-| **Auditability** | High (deterministic) | High (explicit route table and trace) | Medium (classifier decision visible) | Low (internal model state) |
-| **Latency** | Lowest | Medium (correction adds calls) | Low-medium (routing may be cheap) | Medium (reflection tokens) |
-| **Security** | External auth filter | External auth filter required at every route | External auth filter required | Auth must be enforced externally; model cannot be trusted to enforce policy |
-| **Use when** | Simple, well-covered queries; high throughput | Corpus is incomplete, heterogeneous, or queries vary in complexity | Different query types need different retrieval strategies | Research/exploration; not recommended for production security-critical systems |
-| **Research reference** | Lewis et al., 2020 | Yan et al., 2024 | Various | Asai et al., 2024 |
-
-**Key decision criterion:** add correction only if evaluation shows that uncorrected retrieval failures are costly and correction measurably improves outcomes at acceptable latency and cost. Do not add CRAG because it is architecturally interesting.
-
-## 5. Production-ready architecture
-
-```mermaid
-flowchart LR
-  U[User + identity] --> P[Policy / tenant filter]
-  P --> R1[Primary hybrid retrieval]
-  R1 --> E[Retrieval evaluator]
-  E -->|strong| D[Decompose + evidence bundle]
-  E -->|weak| C[Corrective router]
-  C --> R2[Approved alternate index]
-  C --> W[Approved external search]
-  R2 --> E
-  W --> S[Sanitize / authorize / cite]
-  S --> E
-  D --> G[Constrained generation]
-  G --> V[Claim / citation verification]
-  V --> O[Response + trace]
-  V --> H[Abstain / human handoff]
+```text
+README.md
+01_corrective_rag.ipynb
 ```
 
-### Operational checklist
+There is no `lab.py`, and the notebook is not named `corrective_rag.ipynb`.
 
-- [ ] Calibrate each threshold on a versioned evaluation set; never copy a threshold across corpora without testing.
-- [ ] Log query hash or approved redacted form, route, grades, candidate IDs, policy version, model/retriever versions, latency, and terminal reason.
-- [ ] Separate “no result,” “result not authorized,” “insufficient evidence,” and “generation unsupported” in telemetry.
-- [ ] Make retries idempotent and bounded. Cache retriever results per request where safe.
-- [ ] Apply authorization before retrieval and again before sending selected evidence to a model.
-- [ ] Require citations for factual claims and verify citations point to the evidence bundle, not merely to a related document.
-- [ ] Test indirect prompt injection in external pages and retrieved documents.
-- [ ] Define an operator kill switch for external fallback and a safe degraded mode: internal-only + abstention.
+The notebook first implements:
 
-## 6. Technology choices
+```text
+Retrieve → Grade → Web-search mock → Final context
+```
 
-The course implementation uses Python and deterministic lexical retrieval so the routing behavior is visible. In a production stack, choose components by boundary rather than brand:
+with `ManualCRAG`.
 
-| Need | Suitable technologies | Decision notes |
-| --- | --- | --- |
-| Explicit, resumable corrective graph | [LangGraph](https://langchain-ai.github.io/langgraph/) | Good when state, conditional edges, persistence, and human interrupts must be visible. |
-| Composable pipeline routing | [Haystack routers and joiners](https://docs.haystack.deepset.ai/reference/joiners-api) | Useful for typed pipeline components and conditional routing. |
-| Retrieval / query engines | [LlamaIndex](https://docs.llamaindex.ai/) or custom adapters | Keep policy and evaluation outside framework-specific prompts. |
-| Hybrid retrieval and reranking | [Qdrant hybrid search](https://qdrant.tech/documentation/search/text-search/hybrid-search/) or an equivalent search stack | Prefetch broadly, then rerank a small candidate set; measure p95 latency. |
-| Retrieval and answer evaluation | [Ragas](https://docs.ragas.io/) plus task-specific labels | Metrics are diagnostic signals, not automatic approval to deploy. |
-| Traces and inspection | [OpenTelemetry](https://opentelemetry.io/) compatible tracing | Trace routes and evidence IDs, with redaction and retention controls. |
+It then implements a LangGraph graph:
 
-## Exercises
+```text
+retrieve
+   ↓
+grade_documents
+   ├─ relevant → generate
+   └─ weak     → web_search → generate
+```
 
-1. **Calibrate the route gate.** Add ten labeled Northstar questions. Sweep `strong_threshold` and graph false accepts versus false abstains. Which threshold fits a security-support assistant, and why?
-2. **Implement an alternate route.** Add an approved “release notes” corpus. Demonstrate an `ALTERNATE` result, then prove a disallowed source cannot be retrieved.
-3. **Add a document-span extractor.** Return spans rather than whole documents. Preserve document ID, revision, and span offsets in the generated citation.
-4. **Fault injection.** Remove the key-rotation runbook, add a distractor that mentions “rotate,” and verify the controller abstains rather than using the distractor.
-5. **Production review.** Write a runbook for a spike in `alternate` routes. Include dashboards, likely causes, owner, rollback, and customer-impact communication.
+The "web search" in the notebook is a **mock function returning a fixed string**. It does not perform real internet retrieval.
+
+---
+
+# 2. Correction is a policy, not "try again"
+
+A production controller needs:
+
+```text
+allowed routes
+route-specific authorization
+max attempts
+max elapsed time
+max cost
+terminal states
+reason codes
+```
+
+![Finite recovery policy](assets/recovery-policy.svg)
+
+A useful terminal state is often:
+
+```text
+insufficient_authorized_evidence
+```
+
+rather than another unbounded retry.
+
+---
+
+# 3. Grade evidence, not model confidence
+
+A retrieval grade should answer:
+
+> Is the available evidence sufficient for this task?
+
+Possible signals include:
+
+- candidate relevance;
+- coverage of required concepts;
+- source authority;
+- freshness;
+- authorization;
+- conflict;
+- redundancy.
+
+Do not interpret a single similarity score or reranker score as calibrated answer confidence.
+
+For high-risk systems, tune decision thresholds on labelled validation data and separately measure:
+
+- false accept: weak evidence accepted;
+- false abstain: strong evidence rejected.
+
+---
+
+# 4. Recovery routes
+
+| Failure | Candidate recovery |
+|---|---|
+| Vocabulary mismatch | rewrite query |
+| Exact identifier missed | lexical/hybrid retriever |
+| Relevant result poorly ranked | reranker |
+| Wrong internal index queried | approved alternate internal source |
+| Missing critical parameter | clarification |
+| Internal corpus legitimately incomplete | approved external source |
+| Evidence remains weak | abstain / escalate |
+
+A recovery route must not silently widen:
+
+- tenant scope;
+- data classification;
+- network access;
+- tool permissions.
+
+---
+
+# 5. External retrieval is a trust-boundary change
+
+The notebook's web-search node is useful pedagogically because it makes routing visible.
+
+In production, external retrieval introduces additional risks:
+
+- source authority;
+- stale or poisoned content;
+- indirect prompt injection;
+- egress/privacy exposure;
+- SSRF-style tool risks;
+- retention and citation requirements.
+
+Therefore:
+
+> "Internal retrieval failed" does **not** automatically imply "search the web."
+
+The route must be explicitly permitted for the task and data class.
+
+---
+
+# 6. LangGraph update
+
+The notebook's `StateGraph` approach remains a valid low-level control-flow pattern in LangGraph v1.
+
+LangGraph v1 kept the graph primitives—state, nodes, edges, conditional edges—as stable core APIs.
+
+For agent construction, however, the old `langgraph.prebuilt.create_react_agent` API used later in this curriculum is deprecated in LangGraph v1 in favor of LangChain's `create_agent`.
+
+This CRAG notebook uses `StateGraph` directly, so the core orchestration idea remains current.
+
+---
+
+# 7. Important notebook limitation: retry state is not enforced
+
+The notebook defines:
+
+```python
+retries: int
+```
+
+in `GraphState`.
+
+But the graph does **not** increment or enforce that field.
+
+So the current notebook demonstrates conditional recovery, but not a complete bounded retry loop.
+
+A production implementation should explicitly implement something like:
+
+```text
+attempt += 1
+if attempt >= MAX_ATTEMPTS:
+    abstain
+```
+
+Do not claim loop protection merely because a `retries` field exists.
+
+---
+
+# 8. Corrective vs Adaptive vs Agentic RAG
+
+![RAG routing patterns](assets/routing-patterns.svg)
+
+### Corrective RAG
+
+Decision happens **after evidence retrieval**:
+
+```text
+Did retrieval succeed?
+```
+
+### Adaptive RAG
+
+Decision happens **before or around retrieval strategy selection**:
+
+```text
+Which route should this query use?
+```
+
+### Agentic RAG
+
+The system grants a model more runtime discretion to choose among tools/steps.
+
+These patterns can be combined, but should not be conflated.
+
+---
+
+# 9. Evaluate the controller
+
+Compare fixed RAG and corrective RAG on the same dataset.
+
+Measure:
+
+- answerable-query success;
+- unsupported-answer rate;
+- false-abstention rate;
+- retrieval recovery rate;
+- attempts per query;
+- route distribution;
+- p95 latency;
+- cost per supported answer;
+- unauthorized-route attempts.
+
+Correction is worthwhile only when the quality/risk improvement justifies added latency and complexity.
+
+---
+
+# 10. Exercises
+
+1. Replace the mock relevance test with three evidence grades: `strong`, `weak`, `empty`.
+2. Add an explicit `attempts` counter and terminate after two recovery attempts.
+3. Add a clarification route rather than always using external search.
+4. Add a lexical fallback for exact identifiers.
+5. Record the selected route and evidence IDs in state.
+6. Create one case where web retrieval is forbidden by policy.
+7. Compare fixed RAG and CRAG on 20 labelled cases.
+
+---
+
+# 11. Checkpoint
+
+1. What failure does Corrective RAG address?
+2. Why is a recovery route different from a retry?
+3. Why is external search not a default fallback?
+4. What should a retrieval grader measure?
+5. Why is a reranker score not truth confidence?
+6. Which LangGraph concept does the notebook use?
+7. Does the notebook currently enforce its `retries` state?
+8. How would you prove correction is worth the extra cost?
+
+---
+
+## What comes next
+
+### [Advanced 02 — GraphRAG](../02-graphrag/README.md)
+
+Move from correcting retrieval failures to retrieving explicit relationships across multiple evidence items.
+
+---
 
 ## References
 
-- [Corrective Retrieval Augmented Generation — Yan et al.](https://arxiv.org/abs/2401.15884) — primary CRAG paper and the central source for retrieval evaluation, corrective actions, and document decomposition.
-- [Official CRAG implementation](https://github.com/HuskyInSalt/CRAG) — research code; evaluate its assumptions before adapting it to a production system.
-- [Self-RAG — Asai et al.](https://arxiv.org/abs/2310.11511) — adaptive retrieval and self-reflection through learned reflection tokens.
-- [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks — Lewis et al.](https://arxiv.org/abs/2005.11401) — foundational RAG formulation.
-- [LangGraph’s self-reflective RAG tutorial](https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_self_rag/) — an implementation-oriented reference for conditional retrieval graphs.
-- [Qdrant hybrid search and reranking tutorial](https://qdrant.tech/documentation/advanced-tutorials/reranking-hybrid-search/) — practical hybrid retrieval and reranking design.
-- [RAGAS documentation](https://docs.ragas.io/) — evaluation tooling and metric definitions.
+- Yan et al. — [Corrective Retrieval Augmented Generation](https://arxiv.org/abs/2401.15884)
+- Asai et al. — [Self-RAG](https://arxiv.org/abs/2310.11511)
+- LangGraph — [v1 migration guide](https://docs.langchain.com/oss/python/migrate/langgraph-v1)
+- LangGraph — [What's new in v1](https://docs.langchain.com/oss/python/releases/langgraph-v1)
+
+---
+
+## Key takeaway
+
+**Corrective RAG is a bounded evidence-recovery controller. If recovery cannot establish sufficient authorized evidence within policy and budget, the correct outcome is abstention—not another guess.**

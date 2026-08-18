@@ -1,242 +1,307 @@
-# 04 — Structured and multimodal RAG: tables, images, OCR, and cited evidence
+# Advanced 04 — Structured and Multimodal RAG: Deterministic Data, OCR, and Visual Evidence
 
-**Level:** Advanced
-
-**Time:** 2–3 hours
-
-**Prerequisites:** [Agentic RAG](../03-agentic-rag/README.md), structured outputs, retrieval evaluation, and basic data validation.
-
-## Why structured and multimodal RAG needs different controls
-
-Not all evidence is prose. A support renewal-risk assistant may need to calculate a total from customer rows, read a chart annotation from a dashboard, inspect an invoice scan, and cite an approved policy paragraph. Text similarity alone cannot safely perform arithmetic, preserve units, validate a date, locate an OCR observation, or enforce row-level access control.
-
-This module uses the **NovaTech renewal-risk investigation**: identify high-risk accounts from a typed CSV, verify a migration warning in a dashboard screenshot/OCR region, and prepare a cited support brief. The result must distinguish **computed table facts**, **visible OCR observations**, and **inferences that require review**.
-
-## Outcome
-
-You will be able to route evidence by modality; validate schemas, units, and permissions; calculate on typed data; preserve row/cell and visual-region provenance; gate uncertain OCR; combine evidence without double-counting; and evaluate multimodal answers for numeric correctness, grounding, citations, and safety.
-
-Open [`structured_multimodal.ipynb`](structured_multimodal.ipynb). It is the complete guided lab. The deterministic reusable functions are in [`lab.py`](lab.py). For a larger scenario, see [NovaTech Multimodal Evidence](../../../notebooks/enterprise/10_multimodal_evidence.ipynb).
-
-```mermaid
-flowchart TD
-  Q["Question + identity"] --> C{"Evidence type and operation"}
-  C -->|"filter / aggregate"| T["Typed table / SQL boundary"]
-  C -->|"layout, chart, scan"| V["Image, PDF, or OCR parser"]
-  C -->|"policy / narrative"| X["Text retrieval"]
-  T --> S["Schema, units, permissions, row citations"]
-  V --> O["Confidence gate + region citation"]
-  X --> P["Passage citations"]
-  S --> E["Evidence bundle"]
-  O --> E
-  P --> E
-  E --> G["Constrained answer + verification"]
-```
-
-## 1. Step-by-step evidence routing
-
-### Step 1 — classify the operation, not only the modality
-
-| User request | Correct first boundary | Why |
-|---|---|---|
-| "What is the total renewal risk for Acme?" | Typed filter + aggregation | The answer is a calculation over authorized rows. |
-| "Which account has the chart warning?" | Image/OCR region retrieval | The evidence is a visual observation with coordinates. |
-| "What does the renewal policy require?" | Text retrieval | A cited paragraph supplies the answer. |
-| "Should we contact Acme?" | Combine typed result + visual evidence + policy | The system must state what is computed, observed, and inferred. |
-
-Never use an LLM to silently substitute for a deterministic aggregation. Do math and filters in code/SQL, then provide the result and citations to the model.
+**Level:** Advanced  
+**Estimated time:** 2–3 hours  
+**Notebook:** [`04_structured_multimodal.ipynb`](04_structured_multimodal.ipynb)  
+**Prerequisite:** Agentic RAG, evidence provenance, evaluation
 
 ---
 
-## Part A: Structured Data RAG
+## Why this lesson exists
 
-### Text-to-SQL: validation over generation
+Not every RAG question should be answered from embedded prose.
 
-When user queries require structured data retrieval, a natural-language-to-SQL
-approach must be tightly controlled:
+Examples:
 
-**What the model may generate:** a SQL template that a validated query builder populates.
-
-**What the model must never do:** execute arbitrary SQL against production tables.
-
-**Validation requirements:**
-- Prepared statements with parameter binding (no string interpolation)
-- Allowlisted table names and column references
-- Query timeout and result size limit
-- Tenant predicate enforced by database role or view (not appended as a WHERE clause by the LLM)
-- Row-level security (RLS) applied at the database layer
-
-```python
-# Wrong: LLM generates raw SQL
-sql = llm.complete(f"Write SQL for: {user_query}")
-results = db.execute(sql)  # SQL injection risk; no tenant enforcement
-
-# Correct: LLM generates a structured query specification
-query_spec = llm.complete_structured(
-    f"Extract filter parameters for: {user_query}",
-    schema=QuerySpec,
-)
-results = validated_query_builder.run(query_spec, tenant_id=caller.tenant_id)
+```text
+"What is the total risk for Acme?"
 ```
 
-### Semantic layer
+requires deterministic aggregation.
 
-A **semantic layer** sits between the application and the raw database, providing:
-- a curated set of metrics, dimensions, and business logic
-- row-level security and tenant isolation enforced in one place
-- consistent definitions across reports and RAG answers
-
-For structured data RAG, a semantic layer is preferable to exposing raw tables directly. Tools: dbt Semantic Layer, Cube, Looker LookML, or a custom metric store.
-
-**Key property:** the semantic layer ensures that "renewal risk" means the same thing whether queried by the RAG system, a BI dashboard, or a scheduled report.
-
-### Step 2 — validate data before it becomes evidence
-
-Validate required columns, types, null handling, currency/locale, timestamp timezone, unit conversions, allowed categorical values, and row-level permissions. A valid JSON response is not proof that the underlying data is semantically valid.
-
-```python
-errors = validate_table_rows(rows, {"account", "risk_usd", "currency", "as_of"})
-if errors:
-    raise ValueError(f"schema drift: {errors}")
+```text
+"What warning appears in this dashboard region?"
 ```
 
-For SQL, use prepared statements, tenant predicates enforced by the database role or view, a query timeout, result limit, and an allowlisted query API. Do not allow a model to compose arbitrary SQL against production data.
+requires visual/OCR evidence.
 
-### Row-level security
-
-Row-level security (RLS) ensures that a tenant can only see their own rows, enforced
-at the database level — not by WHERE clauses that an LLM might omit:
-
-```sql
--- PostgreSQL RLS policy
-CREATE POLICY tenant_isolation ON renewals
-  USING (tenant_id = current_setting('app.current_tenant'));
+```text
+"What does the policy require?"
 ```
 
-**Why this matters for RAG:** if the RAG system retrieves structured data by constructing
-SQL, it must not bypass RLS. Bind the tenant ID at the database connection level, not
-as a model-generated WHERE clause. A model-generated WHERE clause can be dropped or
-modified; an RLS policy cannot.
+requires text retrieval.
+
+A robust system routes each operation to the appropriate evidence boundary.
+
+![Modality routing](assets/modality-routing.svg)
 
 ---
 
-## Part B: Multimodal RAG
+## Learning objectives
 
-### Step 3 — treat OCR and vision as uncertain observations
+After this lesson you should be able to:
 
-OCR text must carry asset ID, page, bounding box, extraction engine/version, confidence, and source checksum. A low-confidence token should trigger review, not a fabricated reading. Charts additionally require axis/unit/legend interpretation; a visual estimate is not a financial calculation.
+- separate deterministic computation from model interpretation;
+- preserve row/cell provenance for structured facts;
+- treat OCR as uncertain extracted evidence;
+- retain page/region locators for visual citations;
+- explain when OCR is sufficient and when a vision model adds value;
+- avoid arbitrary code execution as a default data-query mechanism;
+- separate visual observation from model inference;
+- route queries by operation and modality; and
+- evaluate numeric, OCR, visual, and text evidence differently.
 
-```text
-OCR evidence: dashboard.svg, page 1, bbox=(80,290,760,45), confidence=0.98
-Table evidence: renewals.csv, row=acme-17, risk_usd=125000, currency=USD
-```
+---
 
-### VLM-based interpretation
+# 1. What the notebook actually implements
 
-For complex images (charts, diagrams, annotated screenshots), an OCR engine may not
-capture the full semantic content. A **vision-language model (VLM)** can provide
-richer interpretation:
-
-- identifying chart type, axes, labels, and data trends
-- interpreting handwritten annotations or non-standard layouts
-- describing relative spatial relationships between elements
-
-**Critical constraint:** VLM interpretation is an **inference**, not an observation.
-It must be:
-- labeled as model-generated, not as a factual measurement
-- qualified with the confidence level of the interpretation
-- routed for human review when it contributes to a material recommendation
-- never used to derive a numeric result that should come from a calculation
+The folder contains:
 
 ```text
-OCR measurement: "bar at position x=3 reaches height y=125" (observation)
-VLM interpretation: "the chart shows Acme's renewal risk is approximately $125K" (inference)
+README.md
+04_structured_multimodal.ipynb
 ```
 
-### Modality-aware reranking
+There is no `lab.py` and no enterprise notebook at the path referenced by the old README.
 
-When retrieval returns a mix of structured rows, OCR regions, and text passages, a
-standard text-similarity reranker cannot correctly compare across modalities.
+The notebook demonstrates:
 
-**Modality-aware reranking:**
-1. Route each candidate to the appropriate evidence model (table summary, OCR summary, text passage)
-2. Score each within its modality
-3. Apply modality weights from a query classification (a calculation query should weight table evidence above text evidence)
-4. Fuse scores with RRF or an ensemble policy
+1. deterministic Python aggregation over `TableRow`;
+2. OCR regions with confidence and bounding boxes;
+3. `create_pandas_dataframe_agent`;
+4. a mocked multimodal message.
 
-The evidence bundle should preserve modality labels so the generator knows what
-evidence type each citation represents.
+---
 
-### Step 4 — compose an evidence bundle, then verify claims
+# 2. Deterministic computation first
 
-Keep modality-specific citations separate. A table citation identifies rows/cells; a visual citation identifies page/region; a text citation identifies document/chunk. The answer generator may summarize them together, but a verifier must check that every material claim maps to an evidence object of the right modality.
-
-**Evidence bundle structure:**
+The strongest part of the notebook is:
 
 ```python
-EvidenceBundle(
-    table_evidence=[TableCitation(row_id="acme-17", column="risk_usd", value=125000, as_of="2024-01-15")],
-    visual_evidence=[OCRCitation(asset_id="dashboard.svg", page=1, bbox=(80,290,760,45), confidence=0.98)],
-    text_evidence=[TextCitation(chunk_id="policy-7", source="renewal-policy-v3")],
-    vlm_inferences=[VLMInference(asset_id="dashboard.svg", interpretation="...", requires_review=True)],
-)
+total = sum(...)
 ```
 
-## 2. Implementation patterns
+with exact cited rows.
 
-The reference implementation demonstrates:
+For numeric questions:
 
-- `filter_rows()` and `summarize_rows()` for deterministic typed filtering/aggregation;
-- `aggregate_with_citations()` for row-level provenance;
-- `validate_table_rows()` for schema drift before aggregation;
-- `search_ocr_regions()` with a confidence threshold; and
-- `citations_are_known()` to prevent dangling citations.
+```text
+authorized rows
+    ↓
+validate schema / units
+    ↓
+deterministic filter & calculation
+    ↓
+result + row provenance
+    ↓
+optional natural-language explanation
+```
 
-In production, use typed contracts such as Pydantic/JSON Schema, a governed warehouse or semantic layer for tables, an OCR/document pipeline for visual sources, and a vector/text index for narrative documents. Keep extraction adapters behind a stable evidence model.
+Do not ask an LLM to independently calculate a material financial result when code/SQL can calculate it exactly.
 
-## 3. Evaluation and production readiness
+---
 
-| Layer | Measures | Failure to catch |
-| --- | --- | --- |
-| Structured data | schema-valid rate, numeric accuracy, unit/currency correctness, row-level recall | Correct math over the wrong rows. |
-| OCR/vision | field accuracy, region IoU/locator correctness, confidence calibration | A plausible transcription with no recoverable location. |
-| Retrieval | modality-route accuracy, source coverage, authorized recall | Querying text when a table calculation is required. |
-| Answer | claim support, citation-modality correctness, abstention quality | Mixing observation and inference. |
-| Operations | parser latency, OCR cost/page, schema-drift alerts, retry rate | Quiet degradation after a data/source change. |
-| Security | tenant leakage, malicious document instructions, file-type/size abuse | Allowing external content to change policy or tool scope. |
+# 3. Important correction: Pandas code agents are not the default "safe math" architecture
 
-Production checklist:
+The notebook says:
 
-- [ ] Enforce identity and tenant filters at every table, asset, and text boundary.
-- [ ] Preserve source snapshot/checksum, revision, and locators for audit/replay.
-- [ ] Gate low-confidence OCR and ambiguous chart interpretation for human review.
-- [ ] Validate units, locale, timezone, and numeric ranges before arithmetic.
-- [ ] Separate deterministic results from model narrative; show assumptions and missing fields.
-- [ ] Test scanned PDFs, rotated pages, tables with merged cells, schema drift, prompt injection, and cross-tenant assets.
-- [ ] Cache parsers safely and version extraction models/prompts; never cache evidence across identities.
+> use `create_pandas_dataframe_agent` for safe math
 
-## 4. Technology choices
+but then enables:
 
-| Capability | Use when | Technologies to evaluate |
-| --- | --- | --- |
-| Typed structured outputs | A model must return a validated plan or claim object | JSON Schema / Pydantic and provider structured-output features. |
-| Tables and SQL | Exact filtering, aggregation, and permissions matter | Warehouse/SQL views or semantic layer; deterministic query service. |
-| OCR/layout | PDFs, forms, and dashboards carry material evidence | Cloud OCR/document AI or local OCR behind a versioned adapter. |
-| Vision-language understanding | Images need semantic interpretation beyond OCR | Multimodal model, but retain image/region provenance and review uncertainty. |
-| Multimodal retrieval | Text, image, and table sources may all be candidates | Hybrid index with modality-aware metadata and reranking. |
+```python
+allow_dangerous_code=True
+```
 
-## Exercises
+This agent can execute generated Python.
 
-1. Add `currency` and `as_of` fields, reject mixed currencies without an approved conversion rate, and cite every affected row.
-2. Add a low-confidence OCR region; prove it cannot support an automated recommendation.
-3. Add a chart with an unlabeled axis. What can the system safely say, and what must it ask a human to verify?
-4. Add two tenants with the same account name; demonstrate row and asset isolation.
-5. Build a claim verifier requiring a table row for numeric claims and a visual locator for dashboard observations.
-6. Compare text-only RAG and modality-aware routing over a labeled renewal-risk dataset.
+That is not a safe default production boundary.
+
+For production, prefer:
+
+- predefined aggregation functions;
+- validated query specifications;
+- parameterized SQL;
+- semantic-layer APIs;
+- allowlisted dataframe operations.
+
+Use code execution only in a genuinely isolated sandbox with strict resource, network, filesystem, and credential controls.
+
+![Structured data boundary](assets/structured-data-boundary.svg)
+
+---
+
+# 4. OCR is useful, not obsolete
+
+The notebook frames the choice too strongly as:
+
+```text
+legacy OCR bad → pass raw images to VLM
+```
+
+The better decision is operation-dependent.
+
+OCR is often preferable when you need:
+
+- text extraction;
+- searchable text;
+- stable coordinates;
+- deterministic field pipelines;
+- lower cost.
+
+Vision-language models add value when interpretation depends on:
+
+- layout;
+- chart structure;
+- spatial relationships;
+- visual annotations;
+- non-textual elements.
+
+A robust multimodal pipeline may use both.
+
+---
+
+# 5. OCR provenance
+
+An OCR result should carry:
+
+```text
+asset_id
+page
+bounding_box
+text
+confidence
+engine/version
+source checksum
+```
+
+A number without a location is difficult to verify.
+
+Low-confidence extraction should trigger:
+
+```text
+review
+re-extraction
+alternate parser
+abstention
+```
+
+—not a fabricated value.
+
+---
+
+# 6. Observation vs inference
+
+Distinguish:
+
+### Observation
+
+```text
+OCR region contains "$5M"
+```
+
+### Inference
+
+```text
+This likely represents Q3 revenue.
+```
+
+### Deterministic result
+
+```text
+SUM(authorized rows) = $140,000
+```
+
+![Evidence types](assets/evidence-types.svg)
+
+The answer should not blur these categories.
+
+---
+
+# 7. Structured data security
+
+For SQL/dataframe access:
+
+- enforce tenant scope outside model-generated text;
+- prefer database row-level security or trusted views;
+- bind parameters;
+- allowlist operations;
+- limit rows/time;
+- audit query/result IDs.
+
+A model-generated `WHERE tenant = ...` clause is not a security boundary.
+
+---
+
+# 8. Visual claims need visual locators
+
+For images/PDFs, retain:
+
+```text
+asset ID
+page/frame
+bounding box or region ID
+source version
+```
+
+If a multimodal model creates an interpretation, label it as model-derived rather than pretending it is a measured database fact.
+
+---
+
+# 9. Evaluation by modality
+
+| Evidence type | Primary checks |
+|---|---|
+| Structured rows | row selection, arithmetic, units, authorization |
+| OCR | transcription accuracy, confidence calibration, region locator |
+| Image/chart | interpretation accuracy, locator, numeric caution |
+| Text | retrieval quality, claim support, citations |
+| Combined | no double-counting, provenance completeness |
+
+---
+
+# 10. Exercises
+
+1. Add EUR and USD rows and block aggregation without an explicit conversion policy.
+2. Add a low-confidence OCR amount and route it to review.
+3. Replace the dataframe agent with a typed aggregation function.
+4. Define a `QuerySpec` for allowed filters and aggregations.
+5. Add an image-derived claim and require a region locator.
+6. Label each final claim as `computed`, `observed`, or `inferred`.
+7. Add two tenants with the same account name and prove row isolation.
+
+---
+
+# 11. Checkpoint
+
+1. Why should deterministic calculations happen outside the LLM?
+2. Why is `allow_dangerous_code=True` not a production safety guarantee?
+3. When is OCR preferable to a VLM?
+4. What must an OCR citation contain?
+5. What is the difference between observation and inference?
+6. Where should row-level authorization be enforced?
+7. How should numeric visual estimates be treated?
+8. Why are modality-specific evaluation metrics necessary?
+
+---
+
+## What comes next
+
+### [Advanced 05 — Adaptive RAG](../05-adaptive-rag/README.md)
+
+Route requests to the cheapest reliable retrieval/data path instead of sending every question through one pipeline.
+
+---
 
 ## References
 
-- [RAG foundational paper — Lewis et al.](https://arxiv.org/abs/2005.11401)
-- [Pydantic documentation](https://docs.pydantic.dev/) — typed validation boundary.
-- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework) — governance and risk framing.
-- [NovaTech Multimodal Evidence notebook](../../../notebooks/enterprise/10_multimodal_evidence.ipynb) — repository scenario continuation.
+- Pydantic — [Models](https://docs.pydantic.dev/latest/concepts/models/)
+- PostgreSQL — [Row Security Policies](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
+- LangChain experimental Pandas agent — use only with explicit code-execution risk controls
+- NIST — [AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
+
+---
+
+## Key takeaway
+
+**Multimodal RAG is not "send everything to a vision model." Route calculations, extracted observations, visual interpretation, and narrative retrieval through different evidence contracts.**

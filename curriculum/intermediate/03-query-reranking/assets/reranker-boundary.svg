@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<rect width="1200" height="420" fill="white"/>
+<defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/></marker></defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Reranker boundary</text>
+<text x="55" y="82" font-size="16" fill="#475569">Reranking only operates on documents supplied by first-stage retrieval.</text>
+<rect x="95" y="165" width="310" height="110" rx="16" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/><text x="250" y="205" text-anchor="middle" font-size="17" font-weight="700" fill="#14532D">Relevant candidate present</text><text x="250" y="235" text-anchor="middle" font-size="14" fill="#475569">reranker can promote it</text><rect x="795" y="165" width="310" height="110" rx="16" fill="#FEF2F2" stroke="#EF4444" stroke-width="2"/><text x="950" y="205" text-anchor="middle" font-size="17" font-weight="700" fill="#991B1B">Relevant candidate absent</text><text x="950" y="235" text-anchor="middle" font-size="14" fill="#475569">reranker cannot recover it</text><text x="600" y="350" text-anchor="middle" font-size="15" fill="#475569">Diagnose candidate recall before tuning second-stage ranking.</text>
+</g></svg>

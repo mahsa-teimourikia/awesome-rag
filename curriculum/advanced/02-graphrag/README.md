@@ -1,238 +1,346 @@
-# 02 — GraphRAG: entity-aware retrieval for relationship-heavy questions
+# Advanced 02 — GraphRAG: Relationship Retrieval and Provenance
 
-**Level:** Advanced
+**Level:** Advanced  
+**Estimated time:** 2–3 hours  
+**Notebook:** [`02_graphrag.ipynb`](02_graphrag.ipynb)  
+**Prerequisite:** Corrective RAG and retrieval evaluation
 
-**Time:** 2–3 hours
+---
 
-**Prerequisites:** [Corrective RAG](../01-corrective-rag/README.md), retrieval evaluation, and basic graph concepts.
+## Why this lesson exists
 
-## Why GraphRAG?
+Text retrieval is strongest when a small number of passages directly contains the answer.
 
-Text retrieval is excellent when a single passage answers a question. It is weaker when the question requires **relationships across documents**: “Which customer-facing service depends on a component affected by this release?”, “What connects this incident to a policy exception?”, or “What themes recur across the corpus?” A GraphRAG system represents entities, relations, provenance, and sometimes community summaries so retrieval can return a bounded subgraph instead of a bag of chunks.
+Some questions instead depend on explicit relationships:
 
-This module uses a Northstar Cloud incident scenario. Checkout conversion drops after a payments deployment. Learners trace the relationship among a deployment, a service, a dependency, affected regions, and an owning team—then decide what evidence is sufficient for an incident recommendation.
+```text
+Project Atlas
+   ↓ depends_on
+VectorDB-X
+   ↓ supplied_by
+Acme Systems
+   ↓ must_comply_with
+Regulation R-17
+```
 
-Microsoft Research’s GraphRAG work distinguishes **local search** for entity/relationship questions from **global search** over hierarchical community reports for corpus-wide questions. [Edge et al., 2024](https://arxiv.org/abs/2404.16130) The original RAG formulation remains useful; a graph is an additional retrieval index, not a universal replacement for passages. [Lewis et al., 2020](https://arxiv.org/abs/2005.11401)
+The notebook demonstrates this with:
 
-## Outcome
+1. a manual fact graph containing provenance; and
+2. a NetworkX directed graph with a shortest-path query.
 
-You will be able to:
+![Graph retrieval path](assets/graph-path.svg)
 
-1. decide when a graph index is justified rather than using vector search alone;
-2. design an entity/relation/provenance schema for an operational question;
-3. retrieve tenant-authorized, bounded neighborhoods and paths;
-4. linearize graph facts for generation while retaining fact-level citations;
-5. evaluate entity resolution, relation quality, path faithfulness, retrieval recall, and operational cost; and
-6. operate a graph index with versioning, access controls, freshness controls, and safe failure modes.
+Graph-based retrieval can help when the relationship structure itself is the evidence.
 
-## Start with the notebook
+It is not a universal replacement for chunk, lexical, or vector retrieval.
 
-[`graph_rag.ipynb`](graph_rag.ipynb) is the practical training artifact. It contains the scenario, diagrams, a deterministic graph implementation, local retrieval, path finding, tenant isolation, failure fixtures, evaluation, and production exercises. Reusable code is in [`lab.py`](lab.py).
+---
 
-```mermaid
-flowchart LR
-  D[Documents / events] --> X[Entity + relation extraction]
-  X --> R[Entity resolution + schema validation]
-  R --> G[Versioned property graph]
-  Q[Question + identity] --> S[Resolve seed entities]
-  G --> N[Bounded authorized neighborhood or path]
-  N --> P[Fact context + provenance]
-  P --> V[Claim / citation verification]
-  V --> A[Grounded answer or abstention]
+## Learning objectives
+
+After this lesson you should be able to:
+
+- model relationships as typed graph edges;
+- explain why edge provenance matters;
+- retrieve a bounded multi-hop path;
+- distinguish graph traversal from vector similarity;
+- recognize entity-resolution failures;
+- preserve edge direction when relation semantics require it;
+- explain local vs global GraphRAG at a conceptual level;
+- combine graph facts with supporting source text; and
+- evaluate path correctness before answer fluency.
+
+---
+
+# 1. What the notebook actually implements
+
+The folder contains only:
+
+```text
+README.md
+02_graphrag.ipynb
+```
+
+There is no `lab.py`, and the notebook is not named `graph_rag.ipynb`.
+
+The manual section defines:
+
+```python
+Fact(id, subject, predicate, object, source)
+```
+
+which is a good teaching representation because each relationship retains a source.
+
+The NetworkX section then creates a `DiGraph` with relationship labels.
+
+---
+
+# 2. A graph fact needs provenance
+
+A useful relationship record is more than:
+
+```text
+A → B
+```
+
+Prefer:
+
+```text
+fact_id
+subject_id
+relation_type
+object_id
+source_document_id
+source_span
+source_version
+tenant
+validity
+extraction_version
+```
+
+![Fact anatomy](assets/fact-anatomy.svg)
+
+Without provenance, a generated relationship claim cannot be reliably audited or retracted.
+
+---
+
+# 3. Entity resolution is a first-class problem
+
+These may refer to the same entity:
+
+```text
+Acme Systems
+Acme Systems Inc.
+ACME
+```
+
+Or they may not.
+
+Graph quality depends heavily on:
+
+- canonical IDs;
+- aliases;
+- tenant scope;
+- entity type;
+- merge/split decisions.
+
+A wrong merge creates false paths.
+
+A missed merge breaks valid paths.
+
+---
+
+# 4. Direction matters
+
+The notebook finds the shortest path using:
+
+```python
+G.to_undirected()
+```
+
+This is a useful way to demonstrate connectivity, but it is a **teaching simplification**.
+
+For directional predicates such as:
+
+```text
+SUPPLIED_BY
+OWNS
+DEPENDS_ON
+MUST_COMPLY_WITH
+```
+
+turning the graph undirected can permit paths that are connected but semantically invalid.
+
+Production traversal should preserve direction rules or explicitly define which relations are safely traversable in reverse.
+
+---
+
+# 5. Notebook provenance limitation
+
+The manual `Fact` objects contain `source`.
+
+The later NetworkX triplets are:
+
+```python
+(subject, relation, target)
+```
+
+and the edge only stores:
+
+```python
+label=relation
+```
+
+So the NetworkX section **drops source provenance**.
+
+That is an important limitation.
+
+A better edge would include:
+
+```python
+G.add_edge(
+    subject,
+    target,
+    relation=relation,
+    source="vendor_list.csv",
+    fact_id="f2",
+)
+```
+
+Then path context can carry citations.
+
+---
+
+# 6. Local GraphRAG
+
+Microsoft GraphRAG's current query engine distinguishes several search modes.
+
+**Local Search** combines knowledge-graph data with related raw text chunks for entity-focused questions.
+
+That general architecture is close to the kind of question in this notebook:
+
+```text
+How is Project Atlas connected to R-17?
+```
+
+Current Microsoft GraphRAG also provides **Global Search**, **DRIFT Search**, and a basic vector-RAG comparison path.
+
+Those features are not implemented in this notebook.
+
+---
+
+# 7. Global and DRIFT search are different problems
+
+### Global Search
+
+Uses generated community reports in a map-reduce workflow for corpus-level questions such as:
+
+```text
+What are the major themes across the dataset?
+```
+
+### DRIFT Search
+
+Combines community-level context with iterative local exploration.
+
+Do not present "GraphRAG" as one traversal algorithm.
+
+Different question shapes need different graph retrieval modes.
+
+---
+
+# 8. Hybrid graph + text retrieval
+
+A practical architecture often looks like:
+
+```text
+query
+  ↓
+semantic/lexical seed retrieval
+  ↓
+resolve entities
+  ↓
+bounded graph expansion
+  ↓
+supporting source passages
+  ↓
+answer with fact + text provenance
+```
+
+![Hybrid graph retrieval](assets/hybrid-graph-text.svg)
+
+The graph explains connections.
+
+The source passages provide human-verifiable evidence.
+
+---
+
+# 9. Bound graph traversal
+
+Unbounded graph expansion creates:
+
+- irrelevant context;
+- high-degree hub explosions;
+- leakage across access boundaries;
+- latency;
+- difficult citations.
+
+Control:
+
+```text
+max hops
+max facts
+allowed relation types
+tenant filter
+minimum confidence
+time budget
 ```
 
 ---
 
-## 1. The mental model
+# 10. Evaluation
 
-A property graph stores nodes and typed edges with properties. For retrieval, a useful minimum fact is:
+Evaluate graph stages separately:
 
-```text
-(subject) -[relation {source, revision, confidence, tenant, timestamps}]-> (object)
-```
-
-The metadata is not decoration. A graph fact without source, revision, tenant, extraction confidence, and update policy is difficult to cite, audit, delete, or authorize.
-
-| Question shape | Best first retrieval | Why |
-| --- | --- | --- |
-| “What is the rotation procedure?” | Chunk/vector/hybrid RAG | A single runbook passage is usually sufficient. |
-| “Which service depends on a component changed by this deployment?” | Local GraphRAG | Requires a short evidence path across entities. |
-| “What are the recurring failure themes across all incident reports?” | Global/community GraphRAG | Needs corpus-level aggregation, not a local neighborhood. |
-| “What did the customer say yesterday?” | Metadata-filtered text retrieval | Graph construction is often unnecessary overhead. |
-
-### Do not confuse GraphRAG with a graph database
-
-A graph database is storage and query infrastructure. GraphRAG is a retrieval-and-generation design that may use a graph database, a graph library, or a graph projected from other stores. The hard engineering work is extraction quality, entity resolution, schema governance, provenance, authorization, and evaluation—not merely writing Cypher.
-
-### Property graph vs knowledge graph vs labeled-property graph
-
-| Term | What it means | RAG implication |
-|---|---|---|
-| **Property graph** | Nodes and edges with arbitrary key-value properties | Flexible schema; properties carry provenance metadata |
-| **Labeled-property graph (LPG)** | Property graph where nodes/edges have typed labels (Neo4j, TinkerPop model) | Types enable schema validation and typed traversal |
-| **Knowledge graph** | A graph where facts represent world-knowledge assertions (subject-predicate-object triples) | Often RDF-based; assertions have truth claims; may use SPARQL |
-| **RAG graph index** | A property graph or LPG built for retrieval, not general world knowledge | Optimized for bounded, authorized, provenance-carrying traversal |
-
-For production RAG, use a **labeled-property graph** model: typed node and edge labels, required properties (source, revision, tenant, confidence), and a versioned schema. Avoid ad-hoc graph construction without governance.
-
-## 2. Step-by-step: model the incident domain
-
-### Step 1 — start from questions, then design a minimal schema
-
-For the Northstar incident assistant, begin with the questions you must answer:
-
-```text
-Deployment → changed → Service
-Service → depends_on → Component
-Service → serves → Region
-Service → owned_by → Team
-Incident → affects → Service
-```
-
-Avoid creating generic `RELATED_TO` edges because they make graph traversal ambiguous and hard to evaluate. Use a controlled relation vocabulary, direction semantics, cardinality expectations, and an owner for every relation type.
-
-### Step 2 — extract candidates, then resolve and validate
-
-LLM extraction can be useful, but extracted triples are proposals, not facts. A robust pipeline is:
-
-```mermaid
-flowchart TD
-  C[Chunk + document metadata] --> E[Extract entity / relation candidates]
-  E --> V[Schema / type / confidence validation]
-  V --> M[Entity resolution]
-  M --> H{Human or rule review?}
-  H -->|accepted| W[Write versioned facts]
-  H -->|rejected| L[Quarantine + error labels]
-  W --> I[Index + embeddings + community summaries]
-```
-
-Entity resolution deserves dedicated tests. “Payments API,” “payments-api,” and “Payment Service” may be the same entity; “Atlas” may be a service in one tenant and a product in another. Merge only with evidence, keep canonical IDs and aliases, and preserve original mentions.
-
-### Relation confidence and provenance per edge
-
-Every edge in a production graph should carry:
-
-| Property | Why it matters |
+| Stage | Measure |
 |---|---|
-| `source_doc_id` | Which document the relation was extracted from |
-| `source_span` | The exact text span supporting the relation |
-| `extraction_model` | Which model/prompt produced the extraction |
-| `confidence` | A calibrated score from the extraction model |
-| `ingestion_timestamp` | When the relation was added |
-| `tenant_id` | Authorization scope |
-| `revision` | Version of the source document at extraction time |
-| `is_active` | Whether the relation is current or retracted |
+| Entity extraction | precision / recall |
+| Entity resolution | merge/split error |
+| Relation extraction | relation correctness |
+| Path retrieval | path recall / precision |
+| Provenance | source coverage |
+| Answer | claim-to-fact support |
+| Security | unauthorized node/edge exposure |
+| Operations | traversal latency / fan-out |
 
-A graph fact without confidence and source span cannot be safely cited. A graph fact without tenant and revision cannot be safely authorized or retracted. When a source document is updated, all relations extracted from it must be retractable — design your schema with `is_active` and `superseded_at` fields on edges.
+A fluent multi-hop answer does not prove the graph path is valid.
 
-### Step 3 — authorize before traversal
+---
 
-Graph edges can leak information even when node text is hidden: an edge can reveal that a customer, project, or incident exists. Apply tenant/role/source filters during seed resolution and every traversal step. The example’s `GraphPolicy` enforces permitted tenants, minimum confidence, hop count, and maximum facts before facts reach model context.
+# 11. Exercises
 
-```python
-evidence = graph.retrieve(
-    question,
-    GraphPolicy(max_hops=2, max_facts=12, permitted_tenants=frozenset({"northstar"})),
-)
-```
+1. Add source metadata to every NetworkX edge.
+2. Remove `to_undirected()` and define valid directional traversal.
+3. Add aliases for `Acme Systems Inc`.
+4. Add a same-named entity in another tenant.
+5. Introduce a high-degree hub and enforce a fact budget.
+6. Compare graph retrieval to dense text retrieval on relationship vs lookup questions.
+7. Produce a cited path where each edge maps back to a source.
 
-### Step 4 — retrieve the smallest sufficient subgraph
+---
 
-Unlimited traversal creates irrelevant context, cost, and accidental leakage. Use task-specific depth limits and fact budgets. A two-hop path may prove `deployment → service → component`; a six-hop exploration should be an explicit investigation workflow with a budget, not the default answer path.
+# 12. Checkpoint
 
-The reference implementation returns `GraphEvidence`: selected facts, resolved seeds, hop bound, truncation state, and a terminal reason. `linearize()` includes fact IDs and source revisions so generation and verification can cite the same evidence.
+1. When does a graph add value over passage retrieval?
+2. Why is relation provenance important?
+3. What can go wrong during entity resolution?
+4. Why can undirected traversal be semantically unsafe?
+5. What provenance does the current NetworkX section lose?
+6. What is Microsoft GraphRAG Local Search?
+7. How does Global Search differ?
+8. Why should graph traversal be bounded?
 
-### Community detection for global-search GraphRAG
+---
 
-For corpus-level questions ("what are the recurring failure themes?"), communities of related entities are detected and summarized:
+## What comes next
 
-**Common community detection algorithms:**
-- **Leiden algorithm** (Traag et al.): state of the art; fast and high-quality; used in Microsoft GraphRAG
-- **Louvain algorithm**: widely available; good quality; faster than Leiden for very large graphs
-- **Label propagation**: very fast; lower quality for RAG purposes
+### [Advanced 03 — Agentic RAG](../03-agentic-rag/README.md)
 
-**Community summary pipeline:**
-1. Detect communities at multiple resolutions (coarse to fine)
-2. Generate a text summary of each community from its entities and relations
-3. Index community summaries alongside the fact graph
-4. For global queries: retrieve and map-reduce over community summaries
-5. For local queries: use entity-neighborhood traversal, not community summaries
+Move from a bounded graph query to runtime tool selection while retaining explicit permission boundaries.
 
-**Cost warning:** community detection and summary generation are expensive. Recompute only when the graph has changed significantly. Monitor recomputation cost — it is often the dominant indexing expense in GraphRAG.
-
-### Step 5 — separate local, global, and hybrid retrieval
-
-- **Local GraphRAG:** seed on resolved entities; expand a small neighborhood or find paths. Best for specific relationship questions.
-- **Global GraphRAG:** retrieve hierarchical community reports and use map-reduce-style synthesis. Best for “what are the major themes?” queries; Microsoft GraphRAG documents this [global-search approach](https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md).
-- **Hybrid GraphRAG:** use vector or lexical retrieval to identify seed entities/documents, then graph expansion to connect evidence. This is often the practical default.
-
-Graph traversal does not remove the need for chunks. Store source chunks or spans beside graph facts, then retrieve both a relationship path and the supporting text for nuanced claims.
-
-## 3. Evaluation: test the graph before the answer
-
-| Layer | What to measure | Failure signal |
-| --- | --- | --- |
-| Extraction | entity/relation precision and recall, schema violations | Confident but false edges poison every downstream path. |
-| Resolution | canonical-ID accuracy, merge/split error rate, alias coverage | A wrong merge creates cross-entity hallucination; a missed alias breaks seed resolution. |
-| Retrieval | seed recall, path recall, subgraph precision, authorized recall | The correct path is absent, too broad, or crosses a tenant. |
-| Path faithfulness | fraction of generated relationship claims supported by selected facts | Answer claims a relationship not represented by the evidence. |
-| Generation | claim support, citation correctness | Answer invents an intermediate entity not in the evidence. |
-| Operations | index freshness, p95 traversal latency, facts/context, cost/query | Graph fan-out grows or stale facts dominate. |
-| Security | cross-tenant path attempts, source leakage, injection in source chunks | Authorization after traversal is too late. |
-
-Create fixtures for a known two-hop path, a missing entity, an ambiguous alias, an unauthorized tenant edge, a stale fact, a cycle, and a high-degree hub. Your release gate should require both answer quality and graph safety.
-
-## 4. Production architecture and operations
-
-```mermaid
-flowchart LR
-  A[Raw documents + events] --> B[Extraction queue]
-  B --> C[Validation / resolution]
-  C --> D[Versioned graph store]
-  C --> E[Source chunk store]
-  U[User identity] --> F[Policy-aware query service]
-  F --> D
-  F --> E
-  D --> G[Bounded graph evidence]
-  E --> H[Supporting passages]
-  G --> I[Answer context + citations]
-  H --> I
-  I --> J[Verifier / audit trace]
-```
-
-Production requirements:
-
-- version nodes and facts; support retraction, tombstones, and source re-ingestion;
-- record extraction model, prompt, schema, confidence, source span, and ingestion timestamp;
-- restrict graph query language access—never expose arbitrary Cypher/Gremlin generated by a model without a constrained API and parameter validation;
-- bound hop count, fan-out, result size, and query time; cache safe, identity-scoped results;
-- monitor entity/edge growth, community recomputation cost, stale-source rate, extraction rejection rate, and authorization denials;
-- keep an explain view: selected seed entities, edges, source citations, filters, truncation, and final answer claims;
-- maintain a safe degraded mode: fall back to authorized text retrieval or abstain when the graph index is stale/unavailable.
-
-## 5. Technology choices
-
-| Need | Technology | When to use it |
-| --- | --- | --- |
-| Corpus-level local/global GraphRAG | [Microsoft GraphRAG](https://microsoft.github.io/graphrag/) | Community reports and global thematic questions; account for indexing cost. |
-| Property graph + retrieval adapters | [Neo4j GraphRAG for Python](https://neo4j.com/docs/neo4j-graphrag-python/current/index.html) | When Cypher, a mature graph database, graph/vector retrieval, and operational controls fit your stack. |
-| Graph index in an application framework | [LlamaIndex PropertyGraphIndex](https://llamaindex.openml.io/python/framework/module_guides/indexing/lpg_index_guide/) | When you need orchestration around property-graph extraction and custom retrievers. |
-| Explicit stateful routing | [LangGraph](https://langchain-ai.github.io/langgraph/) | For bounded investigation, human review, retries, and persistence around graph retrieval. |
-| Hybrid retrieval | Graph store plus vector/sparse search | Use text retrieval to find seeds and supporting passages; graph paths explain connections. |
-
-## Exercises
-
-1. Add an `owns` → `operates` → `depends_on` two-hop incident question and prove its exact provenance chain.
-2. Add the same entity name in two tenants; confirm resolution and traversal cannot cross the tenant policy.
-3. Create a high-degree “platform” node. Add a fan-out budget and show the system reports truncation rather than silently returning arbitrary facts.
-4. Build a source-span store and require every generated relationship claim to cite a fact plus a source span.
-5. Compare local graph retrieval with hybrid text retrieval on 20 labeled Northstar questions. Which questions truly benefit from a graph?
-6. Design a global-search workflow for “What themes explain checkout incidents this quarter?” Include community-refresh policy, cost, and verification steps.
+---
 
 ## References
 
-- [From Local to Global: A Graph RAG Approach to Query-Focused Summarization](https://arxiv.org/abs/2404.16130) — primary Microsoft GraphRAG paper.
-- [Microsoft GraphRAG documentation](https://microsoft.github.io/graphrag/) and [global search design](https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md).
-- [Neo4j GraphRAG for Python](https://neo4j.com/docs/neo4j-graphrag-python/current/index.html) — maintained implementation and retriever options.
-- [LlamaIndex PropertyGraphIndex guide](https://llamaindex.openml.io/python/framework/module_guides/indexing/lpg_index_guide/).
-- [Retrieval-Augmented Generation — Lewis et al.](https://arxiv.org/abs/2005.11401).
+- Edge et al. — [From Local to Global: A Graph RAG Approach](https://arxiv.org/abs/2404.16130)
+- Microsoft GraphRAG — [Query overview](https://microsoft.github.io/graphrag/query/overview/)
+- Microsoft GraphRAG — [Local Search](https://microsoft.github.io/graphrag/query/local_search/)
+- Microsoft GraphRAG — [Global Search](https://microsoft.github.io/graphrag/query/global_search/)
+- Microsoft GraphRAG — [DRIFT Search](https://microsoft.github.io/graphrag/query/drift_search/)
+- NetworkX — [Documentation](https://networkx.org/documentation/stable/)
+
+---
+
+## Key takeaway
+
+**GraphRAG is valuable when relationships are the retrieval problem. A graph path is only trustworthy when its entities, directions, and source-backed edges are trustworthy.**

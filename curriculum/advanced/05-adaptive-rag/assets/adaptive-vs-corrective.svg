@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<rect width="1200" height="420" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Adaptive + Corrective RAG</text>
+<text x="55" y="82" font-size="16" fill="#475569">The two controllers solve different failure boundaries and can be composed.</text>
+<rect x="120" y="155" width="370" height="180" rx="18" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="305" y="200" text-anchor="middle" font-size="20" font-weight="700" fill="#312E81">Adaptive RAG</text><text x="305" y="240" text-anchor="middle" font-size="14" fill="#475569">Before retrieval</text><text x="305" y="275" text-anchor="middle" font-size="14" fill="#475569">Which route should run?</text><rect x="710" y="155" width="370" height="180" rx="18" fill="#FFF7ED" stroke="#F97316" stroke-width="2"/><text x="895" y="200" text-anchor="middle" font-size="20" font-weight="700" fill="#7C2D12">Corrective RAG</text><text x="895" y="240" text-anchor="middle" font-size="14" fill="#475569">After retrieval</text><text x="895" y="275" text-anchor="middle" font-size="14" fill="#475569">Was the evidence sufficient?</text><line x1="490" y1="245" x2="700" y2="245" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/>
+</g></svg>

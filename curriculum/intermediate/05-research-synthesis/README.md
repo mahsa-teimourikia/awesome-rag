@@ -1,278 +1,307 @@
-# 05 — Evidence-first research synthesis
+# Intermediate 05 — Research Synthesis: Map, Reduce, Refine, and Preserve Disagreement
 
 **Level:** Intermediate  
-**Time:** 2–3 hours  
-**Prerequisites:** [RAG evaluation and release gates](../04-evaluation/README.md)
+**Estimated time:** 2–3 hours  
+**Notebook:** [`05_research_synthesis.ipynb`](05_research_synthesis.ipynb)  
+**Prerequisite:** [RAG Evaluation](../04-evaluation/README.md)
+
+---
+
+## Why this lesson exists
+
+Lookup RAG asks for one answer from a small evidence set.
+
+Research synthesis asks a broader question across many sources, often with:
+
+- multiple claims;
+- duplicate evidence;
+- different source authority;
+- contradictory findings;
+- temporal differences;
+- incomplete coverage.
+
+The actual notebook teaches two synthesis patterns:
+
+- **Map-Reduce**;
+- **Refine**;
+
+and intentionally includes conflicting evidence.
+
+![Synthesis patterns](assets/synthesis-patterns.svg)
+
+The old README documented a much larger research workflow and referenced `research_synthesis.ipynb` and `lab.py`, neither of which matches the folder. This README aligns the runnable material with `05_research_synthesis.ipynb` while preserving the production design lessons.
+
+---
 
 ## Learning objectives
 
-After this lesson you will be able to:
+After this lesson you should be able to:
 
-- explain why research synthesis requires different retrieval and composition
-  strategies than a single-document lookup;
-- design a bounded question decomposition that produces diverse evidence views
-  without unconstrained scope expansion;
-- select evidence by source authority, independence, and temporal relevance;
-- build a claim-evidence map that makes every assertion traceable before prose is written;
-- detect and explicitly represent temporal conflicts, contradictions, and evidence gaps;
-- apply calibrated language proportional to the strength of evidence;
-- evaluate a synthesis for coverage, redundancy, source diversity, claim support,
-  citation completeness, and abstention correctness; and
-- define which claims require human review before a synthesis is shared.
+- explain when synthesis differs from lookup RAG;
+- implement the conceptual Map-Reduce pattern;
+- explain the Refine pattern;
+- compare parallel and sequential synthesis costs;
+- preserve source IDs through intermediate claims;
+- detect conflicting evidence rather than forcing consensus;
+- explain why claim-level provenance matters;
+- recognize citation laundering and duplicated source evidence; and
+- evaluate synthesis for support, conflict coverage, and evidence gaps.
 
-## Outcome
+---
 
-Design a research-style RAG workflow that decomposes a question, retrieves diverse
-evidence, preserves source provenance, separates findings from limitations, represents
-uncertainty, and produces a reviewable cited synthesis.
+# 1. Map-Reduce
 
-## Guided notebook
+Map:
 
-Open [`research_synthesis.ipynb`](research_synthesis.ipynb). The reusable, credential-free implementation is [`lab.py`](lab.py).
-
-```mermaid
-flowchart LR
-  Q[Research question] --> P[Question plan]
-  P --> R[Retrieve focused evidence views]
-  R --> D[Deduplicate + preserve provenance]
-  D --> C[Claim-evidence map]
-  C --> X[Findings, limitations, unknowns]
-  X --> S[Cited synthesis or abstention]
+```text
+document 1 → relevant claims
+document 2 → relevant claims
+document 3 → relevant claims
+...
 ```
 
-## Why synthesis needs a different workflow
+Reduce:
 
-A research question is usually broader than a lookup. Asking only one query can
-anchor retrieval to its first framing; concatenating the top passages can amplify
-duplicates, hide conflict, and turn absence of evidence into a confident conclusion.
-Synthesis should be treated as an evidence-management task before it becomes a
-writing task.
-
-The core difference between lookup RAG and synthesis RAG:
-
-| Dimension | Lookup RAG | Synthesis RAG |
-|---|---|---|
-| Query count | One | Multiple focused views |
-| Evidence relationship | Independent, ranking-based | Structured: supporting, conflicting, uncertain |
-| Provenance need | Source ID per answer | Source ID per claim |
-| Conflict handling | N/A (single source) | Explicit representation of disagreement |
-| Gap handling | Abstain | Record open question |
-| Output form | Single grounded answer | Claim-evidence map → cited synthesis |
-| Human review trigger | High-risk individual claims | All synthesis outputs above a risk threshold |
-
----
-
-## Step 1: Bound and decompose the question
-
-Record *before retrieval*:
-- the decision the synthesis supports
-- the intended audience and their authorized scope
-- scope boundaries (product, region, time window, tenant)
-- definitions of key terms
-- what counts as credible evidence for this question
-
-Then plan several focused retrieval *views* from different angles:
-
-| View | Purpose | Example query |
-|---|---|---|
-| Direct evidence | Primary claims and findings | "hybrid retrieval precision improvements" |
-| Limitations and counterevidence | Scope constraints and trade-offs | "hybrid retrieval limitations and failure cases" |
-| Operational trade-offs | Cost, latency, complexity | "hybrid retrieval latency cost production" |
-| Temporal range | Time-bound evidence | "hybrid retrieval performance 2023 2024" |
-| Conflicts and disagreements | Where sources disagree | "BM25 vs dense retrieval conflicting results" |
-| Open questions | Areas without evidence | "hybrid retrieval sparse corpora" |
-
-**Key constraint:** an LLM query planner must return structured output and cannot
-invent sources, relax access policy, or generate new evidence. The question plan
-must be inspectable and logged.
-
----
-
-## Step 2: Select evidence deliberately by authority
-
-Not all evidence is equal. Source quality depends on the claim being made.
-
-### Authority ranking
-
-| Source type | Best for | Limitations |
-|---|---|---|
-| Primary research (peer-reviewed) | Factual claims about measured phenomena | May be narrow, domain-specific, or dated |
-| Official standards and specifications | Compliance and definitional claims | May lag current practice |
-| System documentation (official) | Implementation and operational claims | May not reflect deployed reality |
-| Operational records (dated) | Incident and performance claims | Specific to one environment |
-| Secondary explainers / blog posts | Orientation and background | Should not be sole evidence for a high-impact claim |
-| Community forums | Known patterns and workarounds | Unvalidated; wide variance in quality |
-
-**Principle:** prefer primary research, official standards, original system
-documentation, and dated operational records for factual claims. Use secondary
-sources for orientation, not as the only evidence behind a high-impact conclusion.
-
-### Evidence fields to capture per source
-
-| Field | Purpose |
-|---|---|
-| Source ID + stable URL | Traceability and reproducibility |
-| Title, author, publisher | Attribution |
-| Publication/update date | Temporal validity |
-| Version identifier | Distinguishes document revision |
-| Authority level | Informs confidence weighting |
-| Access scope (tenant/ACL) | Authorizes use in synthesis |
-| Exact supporting span | The specific text that supports the claim |
-| Retrieval timestamp | When evidence was retrieved (may differ from publication date) |
-
----
-
-## Step 3: Build a claim-evidence map before writing prose
-
-The most important structural discipline in research synthesis: **build the
-claim-evidence map before writing any prose**. Do not start with a conclusion
-and then find supporting sources — that reverses the evidence direction.
-
-### Claim types
-
-| Claim type | How to represent | Example |
-|---|---|---|
-| **Finding** | State narrowly with source IDs and confidence | "Hybrid retrieval improves Recall@10 by 8–15% on BEIR [source-1, source-2]" |
-| **Limitation** | Qualify the finding with scope constraints | "The improvement is smaller on short-document corpora [source-2]" |
-| **Conflict** | Show both supported views; compare scope, method, date | "Source-3 reports no improvement on synonym-heavy queries; source-4 shows 12% gain — different corpora" |
-| **Open question** | Record as unknown; request research or abstain | "No evidence found for sparse multilingual corpora; this requires further investigation" |
-
-### Handling temporal conflicts
-
-Sources from different dates may make contradictory claims. This is not the same
-as a logical contradiction — it often reflects real change over time.
-
-**Detection:** compare `publication_date` of conflicting sources. If dates differ
-significantly, the conflict may be temporal, not logical.
-
-**Representation options:**
-1. Report both findings with dates: "Source-1 (2022) reports X; source-2 (2024) reports Y — this may reflect model improvements"
-2. Prefer the more recent source with explicit date qualification
-3. Request updated evidence before drawing a conclusion
-
-**Never silently average or ignore a temporal conflict.** A synthesis that
-presents a 2022 finding as current is a freshness failure that looks like a
-factual claim.
-
-### Handling logical contradictions
-
-When sources make directly contradictory factual claims:
-
-1. Verify the sources are making the same claim (same corpus, same metric, same conditions)
-2. Compare scope, methodology, and sample size
-3. If the conflict cannot be resolved: present both positions, state the disagreement explicitly, and either request expert review or abstain on the conflicting point
-
-**Citation laundering:** one common failure is citing Source B, which itself only
-cites Source A, without noting that both trace to the same underlying evidence.
-Two citations to the same primary study are one data point, not two independent
-confirmations.
-
-### Evidence clustering
-
-When many sources make the same point, grouping them by claim rather than by source
-prevents the synthesis from amplifying a single well-cited result into an apparent
-consensus:
-
-```
-Claim: "Hybrid retrieval outperforms BM25 on semantic queries"
-  Supporting: [source-1, source-3, source-7]
-  Constraining: [source-4 — only on English corpora]
-  Contradicting: [source-9 — no improvement on technical jargon]
-  Gaps: [no evidence for low-resource languages]
+```text
+all mapped claims
+      ↓
+synthesis
 ```
 
+![Map-reduce](assets/map-reduce.svg)
+
+Advantages:
+
+- map calls can run in parallel;
+- irrelevant documents can be filtered during mapping;
+- per-source claims remain visible.
+
+Risks:
+
+- many model calls;
+- reduce step may lose provenance;
+- duplicates can appear as false consensus;
+- conflicts may be silently collapsed.
+
 ---
 
-## Step 4: Draft with provenance and calibrated language
+# 2. Refine
 
-### Calibrated language
+Refine is sequential:
 
-Use language that is proportional to evidence strength. Systematic overstatement
-is a synthesis failure even when every cited source is real.
-
-| Evidence quality | Appropriate language |
-|---|---|
-| Strong consensus, multiple independent primary sources | "shows", "demonstrates", "establishes" |
-| Single high-quality study or strong signal with one source | "suggests", "indicates", "finds" |
-| Mixed or limited evidence | "may", "appears to", "some evidence suggests" |
-| Expert opinion, single source, or secondary only | "according to [source]", "one analysis argues" |
-| Not established in indexed corpus | "is not established in available evidence", "remains an open question" |
-
-### Provenance near the claim
-
-Citations must appear adjacent to the specific claim they support, not collected
-in a footnotes section. A paragraph containing three factual claims with one
-collective footnote is not a properly cited synthesis.
-
-```
-❌  "Hybrid retrieval improves precision and reduces latency, with some
-     trade-offs in complexity. [source-1, source-2, source-3]"
-
-✓   "Hybrid retrieval improves Recall@10 by 8–15% on BEIR benchmarks
-     [source-1]. This improvement is smaller on sparse corpora [source-2].
-     Operational latency increases by 30–80ms at p95 when a reranker is added
-     [source-3]."
+```text
+doc 1 → draft
+doc 2 + draft → updated draft
+doc 3 + draft → updated draft
+...
 ```
 
-### Source content is data
+Advantages:
 
-Never let retrieved text alter the synthesis policy. The question plan, scope,
-and authorization constraints were set before retrieval. Retrieved content is
-evidence to be evaluated — it cannot expand scope, relax access control, or
-change the reviewer requirement.
+- coherent running narrative;
+- each document can update prior conclusions.
 
----
+Risks:
 
-## Step 5: Evaluate the synthesis path
+- sequential latency;
+- order sensitivity;
+- earlier evidence may be forgotten;
+- later documents can dominate.
 
-| Dimension | What to measure | Failure signal |
-|---|---|---|
-| Source diversity | Fraction of sources that are independent | All evidence traces to one primary study |
-| Citation completeness | Fraction of claims with at least one citation | Assertions without provenance |
-| Claim support | Fraction of claims supported by cited evidence | Claims that overstate or misrepresent sources |
-| Conflict coverage | Are all detected conflicts explicitly represented? | Conflicts silently averaged or ignored |
-| Evidence gaps | Are open questions recorded? | Absence of evidence treated as evidence of absence |
-| Abstention accuracy | Does the synthesis decline unanswerable synthesis questions? | Confident synthesis built on thin or conflicting evidence |
-| Temporal currency | Are time-sensitive claims qualified with dates? | Recent-looking synthesis citing old evidence |
-| Human review trigger | Are high-impact outputs routed for review? | Synthesis with legal/financial/medical impact released without review |
+Refine is not automatically "better" because it is sequential.
 
 ---
 
-## Practical patterns and failure modes
+# 3. The notebook's conflict example
 
-| Pattern | Value | Guardrail |
-|---|---|---|
-| Multi-view retrieval | Reduces single-framing bias | Cap query count; authorize all queries before running |
-| Claim-evidence map | Makes citations reviewable before prose | Every claim has supporting IDs or an explicit uncertainty label |
-| Counterevidence retrieval | Surfaces limitations | Do not force false balance where evidence is genuinely one-sided |
-| Source diversity check | Avoids amplifying one study as a consensus | Verify independence, not just count |
-| Temporal conflict detection | Prevents outdated evidence from appearing current | Compare publication dates; prefer recent and state the difference |
-| Human review gate | Handles high-impact nuance | Use a versioned rubric; resolve disagreements; log decisions |
+Engineering says:
 
-Avoid: citation laundering, source-count voting (more sources ≠ stronger claim),
-generated references, hidden conflicts, broad conclusions from narrow evidence,
-mixing tenant scopes, and confusing retrieval recency with source authority.
+```text
+P99 latency = 45ms
+```
+
+QA says:
+
+```text
+P99 latency spikes to 800ms under load
+```
+
+A good synthesis should not choose one without explanation.
+
+It should represent:
+
+```text
+Engineering reports 45ms under its conditions.
+QA observed 800ms under stress.
+The sources conflict because test conditions differ or require further review.
+```
+
+![Conflict handling](assets/conflict-handling.svg)
 
 ---
 
-## Checkpoint
+# 4. Claim-evidence map before prose
 
-1. Why is a counterargument retrieval view useful even when initial evidence seems unanimous?
-2. What metadata is required to determine whether two conflicting sources disagree
-   logically or temporally?
-3. When should a limitation become an open question rather than a qualifying clause?
-4. Why is deduplication (removing duplicate chunks) not the same as source diversity?
-5. A synthesis cites 12 sources. On inspection, 10 cite the same primary study.
-   What is this failure called, and how would you detect it?
-6. Which claims in your application domain require human review regardless of
-   automated evaluation scores?
-7. What is the correct response when two primary sources make directly contradictory
-   factual claims about the same phenomenon?
+A stronger production pattern is:
+
+```text
+claim
+supporting sources
+contradicting sources
+scope
+date
+confidence / review status
+```
+
+Example:
+
+```text
+Claim: Atlas reduces AWS cost by 30%
+Supporting: finance_memo.md
+Contradicting: none
+Status: single-source finding
+```
+
+Do this before writing polished prose.
+
+That reduces the temptation to generate a conclusion first and backfill citations afterward.
+
+---
+
+# 5. Source independence
+
+Ten citations do not mean ten independent confirmations.
+
+If nine secondary sources all cite one benchmark, the synthesis still has one underlying evidence source.
+
+Track:
+
+- primary source;
+- derivative sources;
+- publication/update date;
+- methodology;
+- scope.
+
+This prevents **citation laundering** and source-count voting.
+
+---
+
+# 6. Temporal disagreement
+
+Two sources may disagree because they describe different time periods.
+
+Preserve dates.
+
+A safe synthesis can say:
+
+```text
+The 2024 test reported X, while the 2026 production report found Y.
+```
+
+Do not present the older result as current without qualification.
+
+---
+
+# 7. Map-Reduce cost correction
+
+The notebook reflection gives a simplified latency example where 50 parallel map calls take one second total.
+
+That is a conceptual illustration, not a production guarantee.
+
+Actual latency depends on:
+
+- concurrency limits;
+- provider rate limits;
+- batch scheduling;
+- token lengths;
+- retries;
+- reduce input size.
+
+Parallelism reduces wall-clock latency only within infrastructure limits.
+
+---
+
+# 8. Modern synthesis design
+
+For large corpora, avoid simply sending every source through an LLM.
+
+Use:
+
+```text
+question planning
+      ↓
+focused retrieval views
+      ↓
+deduplication
+      ↓
+claim extraction
+      ↓
+conflict / gap analysis
+      ↓
+synthesis
+```
+
+Synthesis is an evidence-management workflow, not merely a long summarization prompt.
+
+---
+
+# 9. Evaluation
+
+Measure:
+
+- claim support;
+- citation completeness;
+- conflict coverage;
+- source diversity;
+- duplicate-source rate;
+- temporal qualification;
+- evidence-gap reporting;
+- cost and latency.
+
+A polished report that hides a material conflict is a failure even if every sentence sounds reasonable.
+
+---
+
+# 10. Exercises
+
+1. Change the order of documents in a refine workflow; predict order effects.
+2. Add a second finance source that merely repeats the same original claim.
+3. Add a newer QA report and identify temporal vs logical conflict.
+4. Preserve source IDs in mapped claims.
+5. Create a reducer that must output `conflicts` separately from `findings`.
+6. Compare Map-Reduce and Refine on latency, cost, provenance, and conflict handling.
+
+---
+
+# 11. Checkpoint
+
+1. Why is synthesis different from lookup RAG?
+2. What is the Map phase?
+3. What is the Reduce phase?
+4. Why can Refine be order-sensitive?
+5. What should happen when sources conflict?
+6. What is citation laundering?
+7. Why is source count not the same as evidence strength?
+8. What must be preserved before prose generation?
+
+---
+
+## What comes next
+
+### [Intermediate 06 — Local Qdrant](../06-qdrant-local/README.md)
+
+Move from framework-level retrieval to a vector database with explicit collection and payload semantics.
+
+---
 
 ## References
 
-- Lewis et al., [Retrieval-Augmented Generation](https://arxiv.org/abs/2005.11401) — original RAG formulation.
-- Es et al., [Ragas](https://arxiv.org/abs/2309.15217) — evaluation dimensions across retrieval and generation.
-- NIST, [Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) — governance and risk context.
-- Gao et al., [RAG survey](https://arxiv.org/abs/2312.10997) — systems and evaluation overview.
-- Anthropic, [Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval) — multi-view evidence retrieval.
+- Lewis et al. — [RAG](https://arxiv.org/abs/2005.11401)
+- Gao et al. — [RAG Survey](https://arxiv.org/abs/2312.10997)
+- NIST — [AI RMF Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+
+---
+
+## Key takeaway
+
+**A synthesis should expose the structure of the evidence—including disagreement—before it produces polished prose.**

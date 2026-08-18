@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<rect width="1200" height="420" fill="white"/>
+<defs>
+  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
+  </marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Adaptive retrieval routing</text>
+<text x="55" y="82" font-size="16" fill="#475569">Select a bounded strategy before paying the cost of the wrong pipeline.</text>
+<rect x="65" y="165" width="180" height="75" rx="14" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/><text x="155" y="208" text-anchor="middle" font-size="15" font-weight="700" fill="#312E81">Query</text><line x1="245" y1="202" x2="370" y2="202" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="380" y="150" width="220" height="105" rx="15" fill="#FFF7ED" stroke="#F97316" stroke-width="2"/><text x="490" y="190" text-anchor="middle" font-size="17" font-weight="700" fill="#7C2D12">Router / policy</text><text x="490" y="220" text-anchor="middle" font-size="13" fill="#475569">select strategy</text><line x1="600" y1="202" x2="670" y2="150" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="680" y="115" width="190" height="70" rx="14" fill="#F0FDF4" stroke="#64748B" stroke-width="2"/><text x="775" y="157" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">Direct</text><line x1="600" y1="202" x2="670" y2="240" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="680" y="205" width="190" height="70" rx="14" fill="#ECFEFF" stroke="#64748B" stroke-width="2"/><text x="775" y="247" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">Internal</text><line x1="600" y1="202" x2="920" y2="150" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="930" y="115" width="190" height="70" rx="14" fill="#FAF5FF" stroke="#64748B" stroke-width="2"/><text x="1025" y="157" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">External</text><line x1="600" y1="202" x2="920" y2="240" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="930" y="205" width="190" height="70" rx="14" fill="#EEF2FF" stroke="#64748B" stroke-width="2"/><text x="1025" y="247" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">Structured / graph</text>
+</g></svg>
