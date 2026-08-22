@@ -467,10 +467,17 @@ The notebook formats documents like this:
 
 ```python
 def format_docs_with_citations(docs):
-    return "\n\n".join(
-        f"[Citation: {d.metadata['source']}] {d.page_content}"
-        for d in docs
-    )
+    formatted_chunks = []
+    for i, d in enumerate(docs, start=1):
+        chunk = (
+            f"<EVIDENCE id=\"E{i}\">\n"
+            f"Title: {d.metadata['title']}\n"
+            f"Section: {d.metadata['section']}\n"
+            f"Content:\n{d.page_content}\n"
+            f"</EVIDENCE>"
+        )
+        formatted_chunks.append(chunk)
+    return "\n\n".join(formatted_chunks)
 ```
 
 This is simple, but it teaches an important design principle:
@@ -500,9 +507,9 @@ The notebook connects:
 ```text
 Question
    ↓
-Retriever
+Retrieve candidates
    ↓
-format_docs_with_citations
+Format evidence context
    ↓
 Prompt
    ↓
