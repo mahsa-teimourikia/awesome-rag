@@ -237,9 +237,9 @@ An important distinction:
 
 > An embedding similarity score measures something about retrieval similarity. It is not the probability that an answer is correct.
 
-The notebook uses **fake embeddings** only to keep the example deterministic and credential-free.
+The notebook uses a **deterministic teaching retriever** to map questions directly to specific mock documents.
 
-They are a testing mechanism, not a production retrieval model.
+This is a teaching simplification to keep the example deterministic and credential-free. It does not perform actual semantic search.
 
 Real retrieval systems require an embedding model chosen and evaluated for the target corpus and query distribution.
 
@@ -304,13 +304,27 @@ The notebook uses a simple function:
 
 ```python
 def format_docs(docs):
-    return "\n\n".join(
-        f"[Source: {d.metadata['source']}]\n{d.page_content}"
-        for d in docs
-    )
+    formatted_chunks = []
+    for i, d in enumerate(docs, start=1):
+        chunk = (
+            f"<EVIDENCE id=\"E{i}\">\n"
+            f"Title: {d.metadata['title']}\n"
+            f"Section: {d.metadata['section']}\n"
+            f"Content:\n{d.page_content}\n"
+            f"</EVIDENCE>"
+        )
+        formatted_chunks.append(chunk)
+    return "\n\n".join(formatted_chunks)
 ```
 
-Notice that the source identifier is preserved.
+Notice that the source identifiers and metadata are preserved.
+
+There are three concepts to distinguish here:
+1. **Factual grounding:** The retrieved text provides the facts to answer the question.
+2. **Provenance:** Identifies where the text came from (e.g., `document_id`, `chunk_id`, `source`).
+3. **Citation:** A reference in the generated answer (e.g., `[E1]`) mapping a claim back to the evidence.
+
+Not all operational provenance metadata needs to be sent to the LLM. Only **generator-useful metadata** (like title, section, or version) should be placed in the prompt. **Pipeline/operational metadata** (like tenant, ACL, or chunk ID) can be maintained locally and mapped back via the Evidence ID.
 
 That is deliberate.
 
@@ -443,11 +457,11 @@ Do not interpret every implementation choice as a production recommendation.
 | Notebook | Production concern |
 |---|---|
 | Three documents | Real ingestion pipeline |
-| Fake embeddings | Evaluated embedding model |
+| Teaching retriever | Evaluated embedding model |
 | In-memory vector store | Persistent search infrastructure |
 | `k=1` retrieval | Tuned candidate retrieval |
 | Simple prompt | Versioned generation policy |
-| Source filename | Stable provenance model |
+| Simple evidence ID mapping | Stable provenance architecture |
 | No chunking | Structure-aware chunking |
 | No authorization enforcement | Retrieval-time ACL filtering |
 | No reranker | Optional reranking stage |
@@ -637,15 +651,20 @@ Consider:
 
 > Why might increasing `k` sometimes make an answer worse rather than better?
 
-### Exercise 4 — Inspect provenance
+### Exercise 4 — Inspect context formatting
 
-Remove the source labels from `format_docs`.
+Consider these four levels of context formatting:
 
-Compare the resulting context.
+**A.** Content only
+**B.** Content + filename (`policy.md`)
+**C.** Content + Evidence ID + Title + Section
+**D.** Content + Evidence ID + Title + Section + Version/Date
 
-Ask:
-
-> What information would you need to support reliable citations in a production system?
+Ask yourself:
+1. Does the factual answer change between these? (Factual grounding)
+2. Can the answer be traced to its source? (Provenance & Citation)
+3. Can conflicting documents be distinguished? (Generator-visible metadata)
+4. Which metadata actually helps the LLM interpret the text, and which only helps operational traceability (like Tenant ID)?
 
 ### Exercise 5 — Identify the authoritative source
 
