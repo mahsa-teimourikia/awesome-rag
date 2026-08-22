@@ -1,11 +1,11 @@
 # Full quiz implementation
 
 The canonical learning experience is now the **RAG Field Guide** at
-<https://mahsa-teimourikia.github.io/awsome-rag/>. It includes the curriculum,
+<https://mahsa-teimourikia.github.io/awesome-rag/>. It includes the curriculum,
 lesson material, labs, references, and per-lesson checkpoints.
 
 This directory contains the dependency-light full knowledge check published at
-<https://mahsa-teimourikia.github.io/awsome-rag/quiz/>. The main Learning Hub
+<https://mahsa-teimourikia.github.io/awesome-rag/quiz/>. The main Learning Hub
 uses focused checkpoints inside each lesson; this page remains useful when a
 learner wants one larger quiz across foundations, ingestion, retrieval,
 generation, security, evaluation, and operations.

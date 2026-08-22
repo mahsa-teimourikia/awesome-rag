@@ -732,3 +732,68 @@ footer a { color:var(--accent-dark); }
   .path-filters label, .path-filters input, .path-filters select { width:100%; }
   .footer-brand { align-items:flex-start; text-align:left; }
 }
+
+/* Focus the standalone knowledge check on readable questions and review. */
+.quiz-hero-content { max-width: 860px; }
+.quiz-hero-content .hero-copy { max-width: 720px; }
+.quiz-hero-content .hero-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 820px; }
+.quiz-context { grid-column: 1 / -1; }
+.progress-panel { grid-column: 1; }
+.quiz-column { grid-column: 2; min-width: 0; max-width: 860px; }
+.quiz-intro { max-width: 720px; margin: 14px 0 0; color: var(--muted); line-height: 1.65; }
+.quiz-guidance { display: grid; gap: 5px; margin: 0 0 22px; padding: 16px 18px; color: var(--muted); background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; }
+.quiz-guidance strong { color: var(--ink); font-size: .9rem; }
+.question-card { padding: 30px; }
+.question-meta { margin-bottom: 18px; }
+.question-meta > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+legend { margin-bottom: 20px; font-size: clamp(1.15rem, 2.2vw, 1.35rem); line-height: 1.42; }
+.option-list { gap: 12px; }
+.option { grid-template-columns: 24px minmax(0, 1fr); gap: 14px; padding: 16px; font-size: 1rem; line-height: 1.5; }
+.option input { width: 20px; height: 20px; }
+
+/* Keep the assessment action together with its explanation on wide screens. */
+.submit-panel {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(20px, 4vw, 52px);
+  padding: clamp(24px, 4vw, 44px);
+}
+
+.submit-panel > div {
+  min-width: 0;
+  max-width: 620px;
+}
+
+.submit-panel h2 {
+  max-width: 18ch;
+}
+
+.submit-panel p {
+  max-width: 54ch;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.submit-panel .primary-button {
+  min-width: 220px;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .quiz-hero-content .hero-stats { grid-template-columns: 1fr; gap: 12px; }
+  .section-heading { flex-direction: column; align-items: stretch; gap: 14px; }
+  .section-heading .text-button { align-self: flex-start; }
+  .quiz-intro { font-size: .96rem; }
+  .question-card { padding: 20px; border-radius: 14px; }
+  .question-meta { align-items: flex-start; flex-direction: column; }
+  .option { padding: 14px; font-size: .98rem; }
+  legend { font-size: 1.12rem; }
+  .submit-panel .primary-button { width: 100%; justify-self: stretch; }
+}
+
+@media (max-width: 900px) {
+  .quiz-context,
+  .progress-panel,
+  .quiz-column { grid-column: 1; }
+}

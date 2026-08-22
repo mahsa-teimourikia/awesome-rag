@@ -53,11 +53,11 @@ See [RAG foundations](curriculum/beginner/01-rag-foundations/README.md) for the 
 
 ## Start here
 
-**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awsome-rag/)**
+**[Open the RAG Learning Hub →](https://mahsa-teimourikia.github.io/awesome-rag/)**
 
 The Hub is the recommended starting point. Choose a level, select a lesson, and work through its **Learn → Lab → Checkpoint** tabs. Each lesson pairs a concise theory summary and primary references with a notebook, reusable implementation, practical exercises, and an interactive knowledge check.
 
-If you prefer GitHub navigation, use the [curriculum index](curriculum/README.md). Take the [full knowledge check](https://mahsa-teimourikia.github.io/awsome-rag/quiz/) before or after the course to measure broad understanding.
+If you prefer GitHub navigation, use the [curriculum index](curriculum/README.md). Take the [full knowledge check](https://mahsa-teimourikia.github.io/awesome-rag/quiz/) before or after the course to measure broad understanding.
 
 ## Curriculum roadmap
 
@@ -82,7 +82,7 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
 | Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
 
-The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awsome-rag/) links these modules.
+The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awesome-rag/) links these modules.
 
 ## Run locally
 
@@ -276,8 +276,8 @@ Requirements:
 - GNU Make (already present on most macOS/Linux development environments).
 
 ```bash
-git clone https://github.com/mahsa-teimourikia/awsome-rag.git
-cd awsome-rag
+git clone https://github.com/mahsa-teimourikia/awesome-rag.git
+cd awesome-rag
 make setup-learner
 make test
 make notebook-check

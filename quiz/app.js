@@ -5,7 +5,7 @@ import { lessonContent } from "./content.js";
 
 const storageKey = "awesome-rag-quiz-selections-v1";
 const repositoryContentBase =
-  "https://github.com/mahsa-teimourikia/awsome-rag/blob/main/";
+  "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/";
 
 function resourceHref(path) {
   return `${repositoryContentBase}${path.replace(/^\.\.\//, "")}`;
@@ -325,8 +325,12 @@ function toggleReview() {
     ? "Hide correct answers"
     : "View correct answers";
 
-  questions.forEach((question) => {
+  // A lesson checkpoint renders only a subset of the complete question bank.
+  // Review only rendered questions; iterating the whole bank dereferences cards
+  // that are not present and aborts the toggle handler.
+  activeQuestions().forEach((question) => {
     const card = document.querySelector(`[data-question-id="${question.id}"]`);
+    if (!card) return;
     const reviewPanel = card.querySelector(".review-panel");
     const selected = new Set(selections[question.id] ?? []);
     reviewPanel.hidden = !showingReview;
