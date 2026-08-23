@@ -30,7 +30,7 @@ Those are the problems of **citation** and **abstention**.
 
 ![Evidence to decision architecture](assets/evidence-to-decision.svg)
 
-This lesson starts with the simple mechanism implemented in the notebook: source labels in context, explicit citation instructions, and an `INSUFFICIENT_EVIDENCE` abstention signal. It then explains how this teaching pattern should evolve into structured, validated citation and answerability controls in production.
+This lesson starts with a basic string sentinel (`INSUFFICIENT_EVIDENCE`) to demonstrate how a model can change application behavior. It then quickly evolves into the production pattern: using structured Pydantic models to enforce citation validity and answerability controls.
 
 ---
 
@@ -249,18 +249,12 @@ render or block
 The notebook implements:
 
 ```python
-class AbstentionGuardrail(StrOutputParser):
-    def parse(self, text: str) -> str:
-        cleaned = text.strip()
+fake_response = "INSUFFICIENT_EVIDENCE"
 
-        if "INSUFFICIENT_EVIDENCE" in cleaned:
-            return (
-                "System Abstention: The retrieved context "
-                "does not contain the answer. "
-                "Please escalate to a human."
-            )
-
-        return cleaned
+if "INSUFFICIENT_EVIDENCE" in fake_response:
+    print("Application Action: Abstain and escalate to human.")
+else:
+    print("Application Action: Render answer.")
 ```
 
 This demonstrates an important architectural pattern:
