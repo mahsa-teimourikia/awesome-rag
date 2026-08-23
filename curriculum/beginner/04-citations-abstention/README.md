@@ -168,8 +168,8 @@ RULES:
    to answer the question, reply with exactly:
    INSUFFICIENT_EVIDENCE
 
-2. If you can answer the question, cite the source in
-   brackets at the end of the sentence.
+2. If you can answer the question, cite the evidence ID in
+   brackets at the end of the sentence. Example: [E1]
 ```
 
 This introduces two useful behaviors:
@@ -373,10 +373,10 @@ within 30 minutes of a confirmed P1 incident.
 Then the model can return:
 
 ```text
-chunk-01
+[E1]
 ```
 
-and the application can resolve that ID to:
+and the application can resolve that ID using an `evidence_map` to:
 
 - source;
 - section;
@@ -771,11 +771,7 @@ Render answer
 Abstain / escalate
 ```
 
-The notebook implements only a small subset of this architecture.
-
-That is intentional.
-
-The purpose is to learn the contract before adding more machinery.
+The notebook implements the core logic of this architecture (using mock model responses to test the application control flow).
 
 ---
 
@@ -783,19 +779,14 @@ The purpose is to learn the contract before adding more machinery.
 
 | Notebook | Production evolution |
 |---|---|
-| Source filename in prompt | Stable evidence IDs + resolvable provenance |
-| Prompt asks for citations | Structured claim/evidence output |
-| `INSUFFICIENT_EVIDENCE` string | Typed answerability decision |
-| Substring parser | Schema validation |
+| Request-local ID (`E1`) | Stable evidence IDs + resolvable provenance |
+| `RAGDecision` (Pydantic) | Typed answerability decision and structured schema |
 | Fake LLM | Evaluated production model |
-| Two pre-retrieved docs | Real authorized retrieval |
-| No citation-ID validation | Deterministic evidence validation |
-| No claim-support audit | Claim-level evaluation |
-| No source freshness | Version/effective-date policy |
-| No conflicts | Conflict detection/resolution |
+| Pre-retrieved docs | Real authorized retrieval |
+| Deterministic evidence validation | Advanced semantic claim-support audit |
+| Conflict demonstration | Conflict resolution policy (e.g. by freshness or version) |
 | No ACL demonstration | Retrieval-time authorization |
-| One abstention state | Explicit reason taxonomy |
-| No evaluation set | Answerable + unanswerable benchmark |
+| Small manual scenarios | Automated evaluation set |
 
 ---
 
@@ -856,28 +847,19 @@ Use a fake model response:
 
 ```text
 Enterprise customers receive an update within
-30 minutes [Source: customer_policy.md].
+30 minutes [E99].
 ```
 
-But `customer_policy.md` was never provided.
+But `E99` was never provided.
 
-Write a deterministic check that rejects citations not present in the retrieved evidence.
+Run the notebook's validation check to see how it deterministically rejects citations not present in the retrieved evidence.
 
 ---
 
-## Exercise 5 — Use chunk IDs
+## Exercise 5 — Experiment with Validation
 
-Change context formatting to include:
-
-```text
-[Evidence ID: chunk-01]
-```
-
-instead of relying only on filenames.
-
-Have the model return evidence IDs.
-
-Resolve them to source names only after validation.
+Modify the notebook's `RAGDecision` so that it returns `decision="answer"` but omits the `citations` list.
+Run the pipeline. Observe how the application handles an answer that lacks mandatory evidence.
 
 ---
 
