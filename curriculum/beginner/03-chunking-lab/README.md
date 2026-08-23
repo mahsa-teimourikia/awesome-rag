@@ -714,8 +714,6 @@ A sophisticated chunker cannot repair:
 
 # 17. A practical chunking taxonomy
 
-![Chunking strategy taxonomy](assets/chunking-taxonomy.svg)
-
 | Strategy | Good starting point for | Main limitation |
 |---|---|---|
 | Fixed character/token | Baseline experiments | Arbitrary boundaries |
@@ -841,25 +839,22 @@ Notice that not every retrieval failure is an embedding failure.
 
 # 21. Teaching implementation versus production implementation
 
-The notebook intentionally covers only the first comparison.
+The notebook implements a compact evaluation loop to demonstrate chunking effects.
 
 | Notebook | Production extension |
 |---|---|
 | One short Markdown string | Real parser pipeline |
 | Character splitter | Baseline only |
 | Recursive splitter | General text baseline |
-| Character length | Token-aware budgeting where needed |
-| One chunk size | Evaluated configuration |
-| One overlap | Evaluated overlap |
-| Source metadata | Full provenance/version/ACL metadata |
-| Visual inspection | Golden retrieval dataset |
-| No retriever in this lab | End-to-end retrieval evaluation |
-| No content routing | Format-specific chunkers |
-| No parent expansion | Hierarchical retrieval |
+| Heading-aware splitter | Structure-aware baseline |
+| Simple evaluation loop | Automated evaluation pipeline (e.g. Ragas, TruLens) |
+| Local Chroma | Scalable vector database |
+| Dictionary-based parent lookup | Dedicated document store (e.g. MongoDB, Redis) |
+| Small manual dataset | Golden retrieval dataset |
 | No semantic splitter | Optional semantic segmentation |
 | No chunk versioning | Versioned ingestion/index configuration |
 
-This distinction is important: the README explains the design space, while the notebook deliberately demonstrates the foundational mechanics.
+This distinction is important: the README explains the design space, while the notebook deliberately demonstrates the foundational mechanics of configuring and testing boundaries.
 
 ---
 
@@ -996,6 +991,7 @@ Before moving on, you should be able to answer:
 10. What problem does parent-child retrieval address?
 11. Why should tables and code use content-aware boundaries?
 12. How would you experimentally choose a chunking configuration?
+13. If a relevant chunk fails to rank, what chunking or parsing issues might be responsible?
 
 ---
 
