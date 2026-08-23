@@ -5,6 +5,7 @@
 **Scenario:** NovaTech Enterprise Knowledge Assistant  
 **Notebook:** [`rag_foundations.ipynb`](rag_foundations.ipynb)
 
+![RAG Learning Progression](assets/rag-learning-progression.png)
 ---
 
 ## Why this lesson exists
