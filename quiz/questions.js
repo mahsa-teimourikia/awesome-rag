@@ -220,6 +220,44 @@ export const questions = [
   },
 
   {
+    id: "b5-q1",
+    category: "Capstone - Enterprise RAG",
+    prompt: "Why is it important to separate retrieval evaluation from generation evaluation?",
+    options: [
+      "Because a generation failure cannot fix a retrieval failure where evidence was never supplied.",
+      "Because it makes the system run faster.",
+      "Because LLMs cannot read retrieved evidence.",
+      "Because retrieval models cannot be quantitatively evaluated."
+    ],
+    correct: [0],
+    explanation:
+      "If the retrieval system fails to provide the relevant documents, the best generation model in the world cannot synthesize an accurate and grounded response.",
+    source: {
+      label: "Enterprise RAG Capstone",
+      url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+    },
+  },
+
+  {
+    id: "b5-q2",
+    category: "Capstone - Enterprise RAG",
+    prompt: "Which of the following are common failures in enterprise RAG systems if not handled explicitly?",
+    options: [
+      "Hiding the pipeline in an opaque chain.",
+      "Treating retrieval failures as generation failures.",
+      "Assuming all documents are conflict-free.",
+      "Returning structured responses directly from the LLM without validation."
+    ],
+    correct: [0, 1, 2, 3],
+    explanation:
+      "Enterprise RAG requires explicit orchestration, separating retrieval evaluation from generation, acknowledging document conflicts, and validating structured outputs.",
+    source: {
+      label: "Enterprise RAG Capstone",
+      url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+    },
+  },
+
+  {
     id: "i1-q1",
     category: "05 - Retrieval Strategies",
     prompt: "Which query types often benefit from lexical or sparse retrieval signals?",

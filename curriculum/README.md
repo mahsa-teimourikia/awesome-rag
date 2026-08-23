@@ -63,6 +63,7 @@ The Beginner track develops the mental model and evidence discipline required fo
 | [02 — First Local RAG](beginner/02-first-local-rag/README.md) | Can I build and inspect the complete loop? | Build a transparent local RAG baseline and inspect intermediate artifacts |
 | [03 — Chunking Lab](beginner/03-chunking-lab/README.md) | How should documents become retrievable evidence? | Compare chunking and document-representation strategies experimentally |
 | [04 — Citations & Abstention](beginner/04-citations-abstention/README.md) | When is an answer actually supported? | Preserve provenance, validate citations, and abstain when evidence is insufficient |
+| [05 — Enterprise RAG Capstone](beginner/05-capstone-enterprise-rag/README.md) | How do these pieces fit into a real application? | Build an end-to-end Enterprise RAG system using a real vector store, embeddings, LLM, and dataset |
 
 ### Beginner progression
 
@@ -74,6 +75,8 @@ inspectable implementation
 document representation
       ↓
 evidence + citation discipline
+      ↓
+end-to-end enterprise capstone
 ```
 
 **Exit capability:** build a small RAG system whose answers can be traced back through retrieved evidence and whose failures can be classified rather than simply called “hallucinations.”

@@ -78,6 +78,24 @@ export const learningPath = [
           "Evidence Validation",
         ],
       },
+      {
+        id: "b5",
+        title: "Enterprise RAG Capstone",
+        description:
+          "Build an end-to-end Enterprise RAG system using a real vector store, embeddings, LLM, and evaluation dataset.",
+        material:
+          "../curriculum/beginner/05-capstone-enterprise-rag/README.md",
+        notebook:
+          "../curriculum/beginner/05-capstone-enterprise-rag/05_enterprise_rag_capstone.ipynb",
+        category: "Capstone - Enterprise RAG",
+        minutes: 180,
+        technologies: [
+          "Vector Databases",
+          "Embeddings",
+          "LLM Generation",
+          "Evaluation Metrics",
+        ],
+      },
     ],
   },
 

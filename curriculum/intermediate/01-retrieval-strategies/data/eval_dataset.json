@@ -1,0 +1,182 @@
+[
+    {
+        "id": "q-001",
+        "query": "What voltage does AX-774-B require?",
+        "relevant_ids": [
+            "doc-002"
+        ],
+        "slice": "identifier"
+    },
+    {
+        "id": "q-002",
+        "query": "Which incident involved AX-774-B?",
+        "relevant_ids": [
+            "doc-006"
+        ],
+        "slice": "identifier"
+    },
+    {
+        "id": "q-003",
+        "query": "Details for SRV-2207",
+        "relevant_ids": [
+            "doc-005"
+        ],
+        "slice": "identifier"
+    },
+    {
+        "id": "q-004",
+        "query": "Cooling requirements for AX-774-B2",
+        "relevant_ids": [
+            "doc-003"
+        ],
+        "slice": "identifier"
+    },
+    {
+        "id": "q-005",
+        "query": "Who supplies our vector database?",
+        "relevant_ids": [
+            "doc-012"
+        ],
+        "slice": "semantic_paraphrase"
+    },
+    {
+        "id": "q-006",
+        "query": "How much time off do new parents get?",
+        "relevant_ids": [
+            "doc-019"
+        ],
+        "slice": "semantic_paraphrase"
+    },
+    {
+        "id": "q-007",
+        "query": "What tool is used for cloud database migrations?",
+        "relevant_ids": [
+            "doc-013"
+        ],
+        "slice": "semantic_paraphrase"
+    },
+    {
+        "id": "q-008",
+        "query": "How long must we keep records according to the lawyers?",
+        "relevant_ids": [
+            "doc-021"
+        ],
+        "slice": "semantic_paraphrase"
+    },
+    {
+        "id": "q-009",
+        "query": "What is the RTO for tier 1?",
+        "relevant_ids": [
+            "doc-009"
+        ],
+        "slice": "acronym"
+    },
+    {
+        "id": "q-010",
+        "query": "Disaster recovery testing frequency",
+        "relevant_ids": [
+            "doc-008"
+        ],
+        "slice": "acronym"
+    },
+    {
+        "id": "q-011",
+        "query": "Business Continuity Plan failover time",
+        "relevant_ids": [
+            "doc-007"
+        ],
+        "slice": "acronym"
+    },
+    {
+        "id": "q-012",
+        "query": "What is the enterprise SLA?",
+        "relevant_ids": [
+            "doc-011"
+        ],
+        "slice": "acronym"
+    },
+    {
+        "id": "q-013",
+        "query": "What is Project Helios?",
+        "relevant_ids": [
+            "doc-013"
+        ],
+        "slice": "rare_term"
+    },
+    {
+        "id": "q-014",
+        "query": "What does VectorGrid do?",
+        "relevant_ids": [
+            "doc-015"
+        ],
+        "slice": "rare_term"
+    },
+    {
+        "id": "q-015",
+        "query": "Who is Northstar Technologies?",
+        "relevant_ids": [
+            "doc-014"
+        ],
+        "slice": "rare_term"
+    },
+    {
+        "id": "q-016",
+        "query": "Is AX-774-B compatible with the legacy cooling controller?",
+        "relevant_ids": [
+            "doc-002"
+        ],
+        "slice": "hard_negative"
+    },
+    {
+        "id": "q-017",
+        "query": "What is the approved rollback procedure for payments?",
+        "relevant_ids": [
+            "doc-025"
+        ],
+        "slice": "hard_negative"
+    },
+    {
+        "id": "q-018",
+        "query": "Who is the Atlas supplier?",
+        "relevant_ids": [
+            "doc-012"
+        ],
+        "slice": "hard_negative"
+    },
+    {
+        "id": "q-019",
+        "query": "What is the voltage for AX-774-D?",
+        "relevant_ids": [],
+        "slice": "no_answer"
+    },
+    {
+        "id": "q-020",
+        "query": "How many weeks of vacation do employees get?",
+        "relevant_ids": [],
+        "slice": "no_answer"
+    },
+    {
+        "id": "q-021",
+        "query": "Did Project Helios reduce Q1 2026 costs?",
+        "relevant_ids": [
+            "doc-023"
+        ],
+        "slice": "mixed_semantic_lexical"
+    },
+    {
+        "id": "q-022",
+        "query": "How fast must SOC be notified of security breaches?",
+        "relevant_ids": [
+            "doc-024"
+        ],
+        "slice": "mixed_semantic_lexical"
+    },
+    {
+        "id": "q-023",
+        "query": "What power does the high-density rack need?",
+        "relevant_ids": [
+            "doc-004"
+        ],
+        "slice": "mixed_semantic_lexical"
+    }
+]

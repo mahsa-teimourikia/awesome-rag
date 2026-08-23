@@ -105,6 +105,23 @@ const content = {
     ],
   },
 
+  "Capstone - Enterprise RAG": {
+    theory:
+      "Enterprise RAG is not simply calling a single chain. A robust system requires an ingestion pipeline that respects document structure, a real vector store, explicit orchestration, and quantitative evaluation.",
+    workflow: [
+      "Load complex, multi-format documents",
+      "Apply structure-aware chunking strategies",
+      "Index vectors and metadata in a database",
+      "Execute structured generation and validation",
+    ],
+    references: [
+      {
+        label: "Enterprise RAG Capstone",
+        url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+      },
+    ],
+  },
+
   "05 - Retrieval Strategies": {
     theory:
       "Enterprise retrieval is usually a candidate-generation problem with complementary signals. Lexical and sparse methods are strong for exact terms, identifiers, and rare vocabulary; dense retrieval captures semantic similarity and paraphrases. Hybrid retrieval, rank fusion, query expansion, multi-representation search, and late interaction should be added only when evaluation shows the baseline misses important evidence.",

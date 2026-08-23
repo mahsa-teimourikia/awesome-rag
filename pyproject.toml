@@ -30,7 +30,8 @@ learner = [
     "networkx",
     "matplotlib",
     "langgraph",
-    "langchain-qdrant"
+    "langchain-qdrant",
+    "unstructured[md]"
 ]
 contributor = [
     "awesome-rag-learning[learner]",
