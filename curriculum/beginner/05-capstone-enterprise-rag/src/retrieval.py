@@ -36,7 +36,7 @@ def retrieve_base(query: str, vector_store: Chroma, top_k: int) -> list[Document
 
 def retrieve_expanded(query: str, vector_store: Chroma, top_k: int) -> list[Document]:
     """Multi-Query Expansion using an LLM."""
-    from langchain.retrievers.multi_query import MultiQueryRetriever
+    from langchain_classic.retrievers.multi_query import MultiQueryRetriever
     from src.generation import create_llm
     
     llm = create_llm()

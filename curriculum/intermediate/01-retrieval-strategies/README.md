@@ -100,15 +100,13 @@ pip install -U langchain-chroma
 from langchain_chroma import Chroma
 ```
 
-The notebook should eventually replace:
+The notebook uses the dedicated integration:
 
 ```python
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 ```
 
-with the dedicated integration.
-
-Dense retrieval is strong for paraphrases and conceptual similarity, but it can be unreliable for identifiers, version strings, error codes, and rare proper nouns.
+Dense retrievers can struggle with rare identifiers, codes, exact strings, and distinctions not well represented by the embedding model.
 
 ---
 
@@ -129,13 +127,13 @@ BM25 ranks documents using lexical term statistics. It is especially useful for:
 - exact product names;
 - quoted phrases.
 
-BM25 does not "understand meaning" in the same way a dense model does, but exact lexical evidence is often exactly what production retrieval needs.
+BM25 can struggle when relevant documents use substantially different vocabulary from the query, but exact lexical evidence is often exactly what production retrieval needs.
 
 ---
 
 ## 4. Hybrid retrieval
 
-Hybrid retrieval combines complementary candidate lists.
+Hybrid retrieval combines complementary candidate lists. Hybrid retrieval can improve robustness on heterogeneous workloads but should justify its additional complexity through evaluation.
 
 ![Hybrid retrieval](assets/hybrid-retrieval.svg)
 
@@ -199,56 +197,20 @@ Atlas vector DB supplier information.
 
 ![Multi-query expansion](assets/multi-query.svg)
 
-This can improve recall when one phrasing is weak.
-
-But every variant adds retrieval work and may introduce **query drift**.
+Query expansion can improve recall for some query classes but can also add latency, redundancy, or semantic drift.
 
 A generated variant must not:
 
 - widen tenant or authorization scope;
 - invent filters;
-- change the user's intent;
+- change the user's intent (semantic drift);
 - create unrestricted search paths.
 
 Authorization remains fixed while the query wording changes.
 
 ---
 
-## 6. What the notebook does not implement
-
-The old README described several advanced mechanisms as though they were part of the lab. They are not.
-
-The notebook does **not** implement:
-
-- SPLADE;
-- HNSW tuning;
-- cross-encoder reranking;
-- domain fine-tuning;
-- hard-negative mining;
-- multilingual evaluation;
-- metadata authorization filters.
-
-Those are important topics, but they should be taught as extensions rather than documented as runnable code in this lesson.
-
-Cross-encoder reranking is intentionally handled in the next course.
-
----
-
-## 7. Retrieval strategy decision guide
-
-| Query pattern | First strategy to test |
-|---|---|
-| Exact identifier / error code | BM25 or lexical |
-| Natural-language paraphrase | Dense |
-| Mixed business + technical queries | Hybrid |
-| User vocabulary differs from corpus | Dense + query expansion |
-| Relevant result appears but ranks low | Reranking, not more query expansion |
-| Evidence absent from candidates | Improve first-stage retrieval |
-| Sensitive tenant-scoped content | Apply authorization filter before every retrieval path |
-
----
-
-## 8. Evaluation
+## 6. Evaluation
 
 Build a labelled query set with slices such as:
 
@@ -271,6 +233,40 @@ Measure:
 - failure slices.
 
 Do not evaluate hybrid retrieval only on a hand-picked query where hybrid obviously wins.
+
+---
+
+## 7. Retrieval strategy decision guide
+
+| Query pattern | First strategy to test |
+|---|---|
+| Exact identifier / error code | BM25 or lexical |
+| Natural-language paraphrase | Dense |
+| Mixed business + technical queries | Hybrid |
+| User vocabulary differs from corpus | Dense + query expansion |
+| Relevant result appears but ranks low | Reranking, not more query expansion |
+| Evidence absent from candidates | Improve first-stage retrieval |
+| Sensitive tenant-scoped content | Apply authorization filter before every retrieval path |
+
+---
+
+## 8. What the notebook does not implement
+
+The old README described several advanced mechanisms as though they were part of the lab. They are not.
+
+The notebook does **not** implement:
+
+- SPLADE;
+- HNSW tuning;
+- cross-encoder reranking;
+- domain fine-tuning;
+- hard-negative mining;
+- multilingual evaluation;
+- metadata authorization filters.
+
+Those are important topics, but they should be taught as extensions rather than documented as runnable code in this lesson.
+
+Cross-encoder reranking is intentionally handled in the next course.
 
 ---
 
