@@ -1315,3 +1315,10 @@ The last case is particularly important: under a strict evidence contract, a mem
 - attribution and citation-correctness research for RAG
 - NIST AI RMF for measurement/governance context
 - retrieval evaluation literature for answerability and evidence coverage
+
+---
+
+## Next steps
+
+Ready to put it all together? Proceed to the capstone:
+- [05 — Enterprise RAG Capstone](../05-capstone-enterprise-rag/README.md)

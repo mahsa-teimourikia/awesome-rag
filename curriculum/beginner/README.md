@@ -45,6 +45,7 @@ By the end of the track, you should be able to:
 | **02 — First Local RAG** | Can I build and inspect the loop myself? | Small local corpus, embeddings/retrieval, inspectable results | Makes the architecture concrete |
 | **03 — Chunking Decisions** | How does document preparation change retrieval quality? | Chunk boundaries, overlap, metadata, retrieval experiments | Introduces the first major design trade-off |
 | **04 — Citations & Abstention** | How does the system know what it can support? | Provenance, claim support, citation validation, abstention | Adds evidence discipline before more complex retrieval |
+| **05 — Enterprise RAG Capstone** | How do these pieces fit into a real application? | Build an end-to-end Enterprise RAG system using a real vector store, embeddings, LLM, and dataset | Consolidates all concepts into a unified pipeline |
 
 ---
 
@@ -189,9 +190,11 @@ The beginner track establishes the baseline against which later complexity shoul
 
 ---
 
-# Track completion challenge
+# 05 — Enterprise RAG Capstone
 
-Build a small RAG assistant over a controlled document set that:
+The capstone is the track completion challenge. It integrates everything you've learned into a realistic, end-to-end Enterprise Assistant.
+
+Build a complete RAG pipeline over a controlled document set that:
 
 - ingests source metadata;
 - compares at least two chunking configurations;

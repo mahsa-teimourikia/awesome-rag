@@ -69,6 +69,7 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Beginner | First local RAG | [curriculum/beginner/02-first-local-rag](curriculum/beginner/02-first-local-rag) |
 | Beginner | Chunking decisions | [curriculum/beginner/03-chunking-lab](curriculum/beginner/03-chunking-lab) |
 | Beginner | Citations and abstention | [curriculum/beginner/04-citations-abstention](curriculum/beginner/04-citations-abstention) |
+| Beginner | Enterprise RAG capstone | [curriculum/beginner/05-capstone-enterprise-rag](curriculum/beginner/05-capstone-enterprise-rag) |
 | Intermediate | Retrieval strategies | [curriculum/intermediate/01-retrieval-strategies](curriculum/intermediate/01-retrieval-strategies) |
 | Intermediate | Metadata and permissions | [curriculum/intermediate/02-metadata-permissions](curriculum/intermediate/02-metadata-permissions) |
 | Intermediate | Query planning and reranking | [curriculum/intermediate/03-query-reranking](curriculum/intermediate/03-query-reranking) |
