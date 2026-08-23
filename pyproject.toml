@@ -23,6 +23,8 @@ learner = [
     "langchain-classic",
     "langchain-community",
     "langchain-huggingface",
+    "langchain-chroma",
+    "langchain-core",
     "chromadb",
     "rank-bm25",
     "networkx",
