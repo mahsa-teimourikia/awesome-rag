@@ -714,8 +714,6 @@ A sophisticated chunker cannot repair:
 
 # 17. A practical chunking taxonomy
 
-![Chunking strategy taxonomy](assets/chunking-taxonomy.svg)
-
 | Strategy | Good starting point for | Main limitation |
 |---|---|---|
 | Fixed character/token | Baseline experiments | Arbitrary boundaries |
