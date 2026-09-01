@@ -1,7 +1,7 @@
 # Intermediate 02 — Metadata and Permissions: Secure the Retrieval Boundary
 
 **Level:** Intermediate  
-**Estimated time:** 2–3 hours  
+**Estimated time:** 3–4 hours
 **Notebook:** [`02_metadata_permissions.ipynb`](02_metadata_permissions.ipynb)  
 **Prerequisite:** [Retrieval Strategies](../01-retrieval-strategies/README.md)
 
@@ -15,7 +15,11 @@ The notebook demonstrates the core principle correctly:
 
 > **authorization belongs in the search constraint, before retrieved text reaches the model.**
 
-It builds a multi-tenant Chroma collection and compares naive search with tenant/classification metadata filters.
+Or, as the course's central rule states:
+
+> **Authorization defines the candidate evidence space before generation.**
+
+It builds a multi-tenant Chroma collection and compares naive search with a trusted, policy-derived candidate-eligibility filter. The exercise remains intentionally local and inspectable: identity providers, policy engines, and enterprise IAM are represented by clear Python interfaces rather than mocked infrastructure.
 
 ![Authorization boundary](assets/authorization-boundary.svg)
 
@@ -32,9 +36,11 @@ After this lesson you should be able to:
 - identify leakage paths beyond the final answer;
 - reason about RBAC and attribute-based filters;
 - preserve authorization metadata through chunking;
+- reject or quarantine documents with invalid security metadata;
+- combine tenant, classification, project, and lifecycle eligibility;
 - design negative tests for cross-tenant retrieval;
 - understand freshness/version metadata as a retrieval constraint; and
-- design tenant-safe cache keys.
+- design tenant-safe cache keys and minimal audit records.
 
 ---
 
@@ -59,7 +65,7 @@ These help retrieval narrow the search space.
 Examples:
 
 ```text
-tenant
+tenant_id
 classification
 required_role
 project_id
@@ -87,51 +93,63 @@ These determine whether evidence is current and eligible.
 
 ## 2. What the notebook implements
 
-The notebook creates documents such as:
+The original four-document demonstration is expanded into a synthetic corpus of roughly thirty chunks across Acme, Globex, and NovaTech. It deliberately contains public, internal, and restricted material; overlapping text; project boundaries; active, expired, superseded, future, and deleted records; and invalid records that must be quarantined.
+
+A representative chunk looks like:
 
 ```python
 metadata={
-    "source": "globex_plan.md",
-    "tenant": "globex",
-    "level": "restricted",
+    "document_id": "acme-checkout-runbook",
+    "chunk_id": "acme-checkout-runbook#approval",
+    "source": "acme_runbook.md",
+    "tenant_id": "acme",
+    "classification": "internal",
+    "project_id": "checkout",
+    "valid_from": "2026-01-01",
+    "valid_to": None,
+    "is_deleted": False,
 }
 ```
 
-It first runs an unsafe search:
+The lab first makes the failure visible:
 
 ```python
-vectorstore.similarity_search(question, k=3)
+unsafe_results = search_without_authorization(vectorstore, question)
 ```
 
-Then applies:
+It then makes every trusted decision inspectable:
 
 ```python
-filter=security_filter
+principal
+    ↓
+build_authorization_filter(principal, now)
+    ↓
+authorized_search(vectorstore, query, principal)
+    ↓
+validate_results(results, principal)
 ```
 
-derived from the active user's tenant and allowed classification levels.
+The query never supplies tenant, role, clearance, or project membership. The policy function derives candidate eligibility from the authenticated principal.
 
 This is the correct teaching sequence because it makes the leak visible before showing the control.
 
 ---
 
-## 3. Current LangChain maintenance note
+## 3. Current Chroma integration
 
-The notebook still imports:
+Install the repository environment, or install the focused dependencies directly:
 
-```python
-from langchain_community.vectorstores import Chroma
+```bash
+pip install langchain-chroma langchain-core chromadb
 ```
 
-Current LangChain documentation uses:
+The executable notebook uses the dedicated integration:
 
 ```python
 from langchain_chroma import Chroma
 ```
 
-with the `langchain-chroma` package.
-
-The notebook should be refreshed to use the dedicated integration when you update executable code.
+For repeatable offline execution, the lesson supplies a small deterministic token-hashing embedding implementation. It is a teaching substitute for a production embedding model, not a quality benchmark. The authorization policy is independent of the embedding provider.
 
 ---
 
@@ -140,17 +158,21 @@ The notebook should be refreshed to use the dedicated integration when you updat
 Safe order:
 
 ```text
-authenticated identity
+authenticated principal
+        ↓
+trusted identity attributes
         ↓
 authorization policy
         ↓
-server-side search filter
+retrieval eligibility filter
         ↓
-eligible candidate space
+authorized candidate retrieval
         ↓
-retrieval
+ranking
         ↓
 context
+        ↓
+generation
 ```
 
 Unsafe order:
@@ -164,6 +186,8 @@ ask model to hide restricted content
 ```
 
 Once restricted content enters a prompt, trace, cache, or intermediate model call, the boundary has already failed.
+
+Authorization constraints must be enforced by the retrieval or storage layer as part of candidate eligibility, before unauthorized content enters model-visible or application-visible intermediate state. This is an architectural requirement, not a claim that every vector backend executes filters identically. Verify the deployed backend's filtering semantics, approximate-nearest-neighbor behavior, recall, and performance under realistic filters.
 
 ---
 
@@ -187,19 +211,29 @@ A good security test checks the entire evidence path, not only the final respons
 
 ## 6. Build filters from trusted claims
 
-The notebook uses a Python dictionary representing a user.
+The notebook models an authenticated principal separately from the query:
 
-In production, filter values must come from verified identity and policy systems.
-
-Do not trust:
-
-```text
-user query: "search tenant globex"
+```python
+principal = {
+    "user_id": "user-123",
+    "tenant_id": "acme",
+    "roles": ["support"],
+    "clearance": "internal",
+    "projects": ["checkout"],
+}
 ```
 
-as authorization evidence.
+In production, these values must originate from verified authentication, identity, and authorization systems. The user query can express intent, but it cannot mutate the principal. Therefore `"Search Globex documents"` does not change `principal["tenant_id"]`.
 
-The user can request a scope; the application decides whether that scope is allowed.
+The notebook centralizes policy construction:
+
+```python
+def build_authorization_filter(principal, now):
+    # validate the principal, apply RBAC and ABAC, and return a trusted filter
+    ...
+```
+
+Application call sites do not assemble ad hoc security filters. Centralization reduces drift between endpoints and makes the policy version testable and auditable.
 
 ---
 
@@ -220,6 +254,38 @@ AND project_id IN caller.projects
 AND valid_now == true
 ```
 
+### RBAC in this lesson
+
+RBAC controls a capability ceiling. For example, the fictional `admin` role may consider restricted evidence, while `support` is capped at internal evidence. A role check alone does not establish tenant or project scope.
+
+### ABAC in this lesson
+
+ABAC combines subject, resource, and environment attributes:
+
+```text
+tenant_id == principal.tenant_id
+AND classification <= principal.clearance
+AND classification <= role ceiling
+AND project_id IN {"shared", *principal.projects}
+AND document is currently valid
+```
+
+Classification order is defined once for this fictional organization:
+
+```python
+CLASSIFICATION_RANK = {
+    "public": 0,
+    "internal": 1,
+    "restricted": 2,
+}
+```
+
+This ordering is an example policy, not a universal standard. The lab derives Chroma's explicit `$in` values from it instead of scattering classification lists across retrieval calls.
+
+### ReBAC beyond this lab
+
+Project membership is represented as an attribute in the notebook. A mature relationship-aware system may instead evaluate resource ownership, group membership, sharing relationships, and delegated access through an external authorization service.
+
 ---
 
 ## 8. Freshness is also a filter
@@ -238,6 +304,18 @@ version
 
 A current-policy query should not retrieve superseded content unless the application explicitly asks for historical evidence.
 
+The notebook derives a simple lifecycle state in Python before indexing and then includes `lifecycle_status == "current"` in candidate eligibility. This keeps the temporal lesson readable when a backend's date-comparison syntax is cumbersome:
+
+```text
+security eligibility
+        +
+lifecycle eligibility
+        =
+candidate eligibility
+```
+
+This preprocessing approach requires lifecycle status to be recomputed when time or source versions change. Production systems may enforce time validity at query time, periodically re-index it, or use a storage layer with native temporal predicates. Remember: **authorized does not mean currently valid**.
+
 ---
 
 ## 9. Cache isolation
@@ -251,16 +329,17 @@ cache_key = hash(query)
 Safer:
 
 ```python
-cache_key = hash(
-    query,
-    tenant_id,
-    roles,
-    policy_version,
-    index_version,
+cache_key = build_cache_key(
+    query=query,
+    principal=principal,
+    policy_version=POLICY_VERSION,
+    index_version=INDEX_VERSION,
 )
 ```
 
 If authorization-relevant dimensions are absent from a cache key, retrieval can be correct while the cache still leaks another tenant's result.
+
+A cached result also becomes suspect when roles, clearance, project membership, policy version, index version, or document validity changes. The lab demonstrates the key shape; it does not attempt to implement a production invalidation service.
 
 ---
 
@@ -269,12 +348,16 @@ If authorization-relevant dimensions are absent from a cache key, retrieval can 
 Test:
 
 ```text
-Acme query → Acme evidence only
-Acme exact query for Globex text → no Globex evidence
-Non-admin → no restricted evidence
-Admin at NovaTech → NovaTech restricted allowed, Acme still denied
-Expired evidence → excluded
-Same query across tenants → isolated cache entries
+Acme support → Acme internal allowed
+Acme support → Globex public denied
+Acme support → Acme restricted denied
+Acme checkout member → Acme checkout allowed
+Acme checkout member → Acme pricing denied
+NovaTech admin → NovaTech restricted allowed
+NovaTech admin → Acme restricted denied
+Expired, superseded, future, or deleted document → denied for a current query
+Missing tenant or classification → rejected before indexing
+Same text in two tenants → only the authorized tenant is eligible
 ```
 
 The strongest test is not "the expected document appears."
@@ -283,33 +366,124 @@ It is:
 
 > **the forbidden document cannot appear anywhere in the retrieval path.**
 
----
+The notebook treats these as hard security metrics:
 
-## 11. Important correction to the old README
+```text
+forbidden retrieval count       = 0
+cross-tenant leakage count      = 0
+classification violations       = 0
+project-scope violations        = 0
+lifecycle violations            = 0
+```
 
-The old README described `lab.py`, custom authorization classes, cache implementations, and extensive temporal logic as runnable artifacts. They do not exist in this course folder.
+This differs from relevance evaluation, where gradual quality trade-offs may be acceptable:
 
-The updated lesson keeps those concepts as production design guidance while making it clear that the notebook's executable scope is:
+```text
+authorization: Can this evidence be considered?
+relevance:     How useful is this eligible evidence?
+```
 
-- Chroma metadata filtering;
-- tenant isolation;
-- classification filtering;
-- role-dependent allowed levels.
-
----
-
-## 12. Exercises
-
-1. Add another Acme restricted document and verify a non-admin never retrieves it.
-2. Use the same text in Acme and Globex documents; verify the filter still isolates tenants.
-3. Add `valid_to` metadata and design a current-only filter.
-4. Change the user tenant in Python and verify the filter changes without changing the query.
-5. Update the notebook to `langchain_chroma.Chroma`.
-6. Design a cache key that cannot cross tenant or role boundaries.
+Relevance is measured only inside the authorized candidate space.
 
 ---
 
-## 13. Checkpoint
+## 11. Fail closed at ingestion and retrieval
+
+Security filtering is only as trustworthy as the metadata being filtered. The executable lab validates required fields, controlled values, dates, and chunk identity before indexing. Records with missing tenant or classification are quarantined rather than defaulted to public.
+
+```text
+unknown classification
+missing tenant
+invalid policy state
+        ↓
+do not retrieve
+```
+
+Security metadata must also survive preprocessing. The notebook chunks a restricted parent document and asserts that every child inherits `tenant_id`, `classification`, `project_id`, and document identity.
+
+Some information should not enter a RAG index at all. Credentials, passwords, API keys, private keys, and access tokens belong in secret-management systems—not in a corpus protected only by metadata.
+
+> Some data should not enter the RAG index at all. Authorization controls do not replace data-minimization and secret-management practices.
+
+---
+
+## 12. Audit the decision, not the sensitive content
+
+The lab emits a minimal audit event containing:
+
+```text
+principal_id
+tenant_id
+policy_version
+query_id
+trusted filter
+retrieved document IDs
+```
+
+It intentionally avoids logging retrieved document text. These fields help answer which principal, policy, and candidate scope produced a result without reproducing sensitive evidence in telemetry.
+
+If a forbidden identifier or metadata record reaches a retrieval trace, debugging UI, cache, or evaluation export, security has already failed—even if no LLM was invoked and the final answer hides it.
+
+---
+
+## 13. Isolation architecture choices
+
+Metadata filtering is one design, not the only enterprise isolation boundary.
+
+| Pattern | Advantages | Trade-offs / when to consider |
+|---|---|---|
+| Shared index + trusted filters | Operational simplicity; efficient for many small tenants | Requires rigorous metadata validation, backend semantics, negative tests, and cache isolation |
+| Namespaces or tenant-specific collections | Clearer logical boundary; easier tenant-level operations | More collections and routing complexity; backend-specific guarantees |
+| Tenant-specific indexes/services | Stronger blast-radius isolation | Higher operational cost and capacity overhead |
+| Database row-level security | Authorization close to structured records | Requires correct database policy and a retrieval architecture that preserves it |
+| Physical data isolation | Strongest boundary for highly regulated workloads | Highest infrastructure and operational complexity |
+
+Choose based on risk, regulatory obligations, tenant count, scale, backend guarantees, and operational capacity. Do not assume a metadata filter provides the same boundary as physical isolation.
+
+---
+
+## 14. Production policy-engine extension
+
+The teaching function can later be replaced by an external policy decision point:
+
+```text
+application identity
+        ↓
+OPA / Cedar / custom authorization service
+        ↓
+allowed retrieval scope
+        ↓
+retrieval enforcement point
+```
+
+Authentication still happens outside the policy engine, and the retrieval service must enforce—not merely display—the returned scope. Version policy decisions and include that version in tests, caches, and audit evidence. The lab uses `POLICY_VERSION = "2026-01"` to make this traceability visible.
+
+---
+
+## 15. Authorization is not prompt-injection defense
+
+Authorization answers whether a principal may retrieve a document. Prompt-injection defense addresses whether authorized but malicious content can manipulate downstream model behavior. A user may legitimately retrieve a poisoned document; that does not make its embedded instructions trustworthy.
+
+```text
+authorization ≠ prompt-injection defense
+```
+
+This course keeps generation minimal and forwards content-origin, instruction/data separation, tool-policy, and indirect-injection defenses to dedicated RAG security and red-team material.
+
+---
+
+## 16. Exercises
+
+1. Add a `region` attribute to principals and resources, then extend the ABAC policy and negative tests.
+2. Add a historical-policy search mode without weakening the default current-only policy.
+3. Compare shared-index filtering with two tenant-specific Chroma collections and document the operational trade-off.
+4. Add a role or project membership change and identify which cache entries must be invalidated.
+5. Express the teaching policy as OPA Rego or Cedar pseudocode, keeping Chroma as the enforcement point.
+6. Benchmark relevance inside the eligible candidate space at `k = 1, 3, 5` without merging relevance and authorization metrics.
+
+---
+
+## 17. Checkpoint
 
 1. Why is post-generation filtering too late?
 2. What metadata is security-critical?
@@ -318,6 +492,8 @@ The updated lesson keeps those concepts as production design guidance while maki
 5. Why does freshness belong in retrieval policy?
 6. How can a cache violate authorization even when retrieval is correct?
 7. What negative test proves tenant isolation?
+8. Why should missing security metadata fail closed?
+9. Why must authorization metrics remain separate from relevance metrics?
 
 ---
 
@@ -332,8 +508,11 @@ Once the candidate space is authorized, improve ranking within that safe candida
 ## References
 
 - LangChain — [Chroma integration](https://docs.langchain.com/oss/python/integrations/vectorstores/chroma)
-- Qdrant — [Filtering](https://qdrant.tech/documentation/concepts/filtering/)
-- Open Policy Agent — [Policy language and authorization](https://www.openpolicyagent.org/docs/latest/)
+- Chroma — [Metadata filtering](https://docs.trychroma.com/docs/querying-collections/metadata-filtering) and [`where` filter reference](https://docs.trychroma.com/reference/where-filter)
+- Qdrant — [Filtering](https://qdrant.tech/documentation/search/filtering/) and [multitenancy patterns](https://qdrant.tech/documentation/tutorials/multiple-partitions/)
+- PostgreSQL — [Row security policies](https://www.postgresql.org/docs/17/ddl-rowsecurity.html)
+- Open Policy Agent — [Policy decisions and deployment](https://www.openpolicyagent.org/docs)
+- AWS Verified Permissions — [Cedar-based authorization](https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/what-is-avp.html)
 - OWASP — [Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 - NIST — [AI RMF Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
 
@@ -342,57 +521,3 @@ Once the candidate space is authorized, improve ranking within that safe candida
 ## Key takeaway
 
 **Authorization is a deterministic retrieval constraint, not a prompt instruction.**
-
-
----
-
-# Deep Dive — Metadata, Filtering, and Permissions
-
-The central enterprise rule is: **authorization defines the candidate space before relevance ranking begins.**
-
-## Metadata as retrieval contract
-Tenant, source, classification, effective dates, region, language, owner, document type, and version are not merely prompt context. They determine evidence eligibility.
-
-## Filter before rank
-Prefer:
-```text
-authenticated identity → policy → trusted scope → filtered retrieval → ranking
-```
-over retrieving broadly and removing unauthorized candidates later. Unauthorized data should not enter model-visible intermediate stages.
-
-## Tenant isolation
-Tenant scope must be derived from authenticated application state, never from model-generated arguments. High-risk systems may combine physical/collection isolation with metadata filters.
-
-## RBAC, ABAC, and relationships
-RBAC maps roles to permissions; ABAC evaluates subject/resource/action/environment attributes; relationship-aware systems model ownership and membership. Enterprise retrieval often combines them. The LLM may interpret intent but must not grant access.
-
-## Classification
-Define classification semantics and precedence. Missing classification must not default to public. Chunks, summaries, embeddings, and cached contexts inherit source security obligations.
-
-## Temporal validity
-Track effective-from/to, superseded state, source version, ingestion time, and index time. “Newest” and “currently effective” are different concepts.
-
-## Metadata schema design
-Use stable IDs, controlled vocabularies, explicit null semantics, normalized values, and versioned schemas for security-critical fields.
-
-## Filter selectivity
-Restrictive filters can change ANN behavior and latency. Benchmark realistic tenant/classification filters, not only unfiltered search.
-
-## Authorization-aware caching
-Cache keys may need query, tenant, authorization scope, policy version, index version, and temporal state. Never reuse retrieved context across principals simply because their natural-language query matches.
-
-## Adversarial tests
-Include same-name documents in different tenants, revoked access, stale permission caches, missing metadata, downgraded clearance, cross-tenant prompt attempts, and superseded policies. Cross-tenant leakage is a hard release failure.
-
-## Auditability
-Record principal, policy version, authorized scope, filters, evidence IDs, and source versions. Avoid unnecessary sensitive text and hidden reasoning.
-
-## Reference architecture
-```text
-authenticate → resolve attributes → policy engine → trusted filter → authorized retrieval → ranking → generation/citations
-```
-
-The notebook implements only a subset of this architecture. Policy engines, sophisticated caches, and temporal governance should remain clearly labelled production extensions unless implemented.
-
-### Further study
-NIST ABAC guidance; OWASP access-control guidance; Qdrant filtering/multitenancy; PostgreSQL Row Security; NIST AI RMF.
