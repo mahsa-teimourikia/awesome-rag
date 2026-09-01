@@ -21,7 +21,7 @@ learner = [
     "langchain-experimental",
     "langchain",
     "langchain-classic",
-    "langchain-community>=0.3,<0.4",
+    "langchain-community",
     "langchain-huggingface",
     "langchain-chroma",
     "langchain-core",
