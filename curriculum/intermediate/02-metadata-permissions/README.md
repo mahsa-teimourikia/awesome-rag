@@ -93,7 +93,7 @@ These determine whether evidence is current and eligible.
 
 ## 2. What the notebook implements
 
-The original four-document demonstration is expanded into a synthetic corpus of roughly thirty chunks across Acme, Globex, and NovaTech. It deliberately contains public, internal, and restricted material; overlapping text; project boundaries; active, expired, superseded, future, and deleted records; and invalid records that must be quarantined.
+The original four-document demonstration is expanded into a synthetic ingestion corpus of 30 records across Acme, Globex, and NovaTech: 28 initial source/chunk records plus two chunks created by the metadata-inheritance exercise. Two intentionally malformed records are quarantined, leaving 28 validated chunks for indexing. The corpus deliberately contains public, internal, and restricted material; overlapping text; project boundaries; active, expired, superseded, future, and deleted records; and invalid records that must fail closed.
 
 A representative chunk looks like:
 
@@ -122,7 +122,7 @@ It then makes every trusted decision inspectable:
 ```python
 principal
     ↓
-build_authorization_filter(principal, now)
+build_authorization_filter(principal)
     ↓
 authorized_search(vectorstore, query, principal)
     ↓
@@ -149,7 +149,7 @@ The executable notebook uses the dedicated integration:
 from langchain_chroma import Chroma
 ```
 
-For repeatable offline execution, the lesson supplies a small deterministic token-hashing embedding implementation. It is a teaching substitute for a production embedding model, not a quality benchmark. The authorization policy is independent of the embedding provider.
+For repeatable offline execution, the lesson supplies a small deterministic token-hashing embedding implementation. This course intentionally minimizes retrieval-model variability so authorization behavior is easy to inspect. This is **not** a recommendation to use token hashing as a production retrieval model. Retrieval quality and embedding-model comparisons are handled in retrieval-focused courses; here, retrieval only needs enough signal to expose authorization collisions. The authorization policy remains independent of the embedding provider.
 
 ---
 
@@ -228,7 +228,7 @@ In production, these values must originate from verified authentication, identit
 The notebook centralizes policy construction:
 
 ```python
-def build_authorization_filter(principal, now):
+def build_authorization_filter(principal):
     # validate the principal, apply RBAC and ABAC, and return a trusted filter
     ...
 ```
@@ -304,7 +304,19 @@ version
 
 A current-policy query should not retrieve superseded content unless the application explicitly asks for historical evidence.
 
-The notebook derives a simple lifecycle state in Python before indexing and then includes `lifecycle_status == "current"` in candidate eligibility. This keeps the temporal lesson readable when a backend's date-comparison syntax is cumbersome:
+The notebook derives a simple lifecycle state in Python at `INDEX_AS_OF` and then includes `lifecycle_status == "current"` in candidate eligibility. This is explicitly a current-only index snapshot:
+
+```text
+INDEX_AS_OF
+    ↓
+lifecycle status derived during index preparation
+    ↓
+current-only index snapshot
+    ↓
+authorization filter requires lifecycle_status == "current"
+```
+
+This keeps the temporal lesson readable when a backend's date-comparison syntax is cumbersome:
 
 ```text
 security eligibility
@@ -314,7 +326,7 @@ lifecycle eligibility
 candidate eligibility
 ```
 
-This preprocessing approach requires lifecycle status to be recomputed when time or source versions change. Production systems may enforce time validity at query time, periodically re-index it, or use a storage layer with native temporal predicates. Remember: **authorized does not mean currently valid**.
+Changing a query-time date does not change this snapshot. Supporting historical or arbitrary as-of retrieval requires recomputing lifecycle eligibility or evaluating temporal predicates at query time. Production systems may periodically re-index status or use a storage layer with native temporal predicates. In the teaching taxonomy, `deleted` takes precedence, then `future`, then `superseded`, then `expired`, then `current`; replacement identity is considered more informative than generic expiration. Remember: **authorized does not mean currently valid**.
 
 ---
 
@@ -339,6 +351,12 @@ cache_key = build_cache_key(
 
 If authorization-relevant dimensions are absent from a cache key, retrieval can be correct while the cache still leaks another tenant's result.
 
+```text
+same query + different effective authorization scope = different cache entry
+```
+
+Production systems may use an `authorization_scope_hash`, entitlement version, or policy-decision fingerprint rather than manually enumerating every identity attribute. The important property is that the key represents the effective authorization decision.
+
 A cached result also becomes suspect when roles, clearance, project membership, policy version, index version, or document validity changes. The lab demonstrates the key shape; it does not attempt to implement a production invalidation service.
 
 ---
@@ -358,6 +376,7 @@ NovaTech admin → Acme restricted denied
 Expired, superseded, future, or deleted document → denied for a current query
 Missing tenant or classification → rejected before indexing
 Same text in two tenants → only the authorized tenant is eligible
+Project membership revoked → checkout evidence denied and cache key changed
 ```
 
 The strongest test is not "the expected document appears."
@@ -384,6 +403,15 @@ relevance:     How useful is this eligible evidence?
 ```
 
 Relevance is measured only inside the authorized candidate space.
+
+The notebook deliberately uses two policy representations: `build_authorization_filter()` supplies the enforcement input, while `eligibility_violations()` acts as an independent test oracle so mistakes in the retrieval filter can be detected. In production, avoid maintaining two uncontrolled copies of authorization policy. Validate against a shared policy decision, an external policy engine, or an independently managed test oracle.
+
+Zero violations is the required result for the evaluated test matrix; it is not mathematical proof that the authorization system is complete or secure against every possible input. Extend the matrix when policies, memberships, metadata schemas, backend configuration, caches, indexes, tenants, or projects change:
+
+```text
+security violation tolerance = zero
+test coverage ≠ formal proof
+```
 
 ---
 
@@ -416,7 +444,7 @@ principal_id
 tenant_id
 policy_version
 query_id
-trusted filter
+authorized_scope_filter
 retrieved document IDs
 ```
 
