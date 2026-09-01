@@ -1,7 +1,7 @@
 # Advanced 02 — GraphRAG: Relationship Retrieval and Provenance
 
 **Level:** Advanced  
-**Estimated time:** 2–3 hours  
+**Estimated time:** 4–5 hours<br>
 **Notebook:** [`02_graphrag.ipynb`](02_graphrag.ipynb)  
 **Prerequisite:** Corrective RAG and retrieval evaluation
 
@@ -19,14 +19,14 @@ Project Atlas
 VectorDB-X
    ↓ supplied_by
 Acme Systems
-   ↓ must_comply_with
+   ↓ governed_by
 Regulation R-17
 ```
 
-The notebook demonstrates this with:
-
-1. a manual fact graph containing provenance; and
-2. a NetworkX directed graph with a shortest-path query.
+The notebook keeps this compact Atlas path as its entry point, then develops it
+into a provenance-preserving, directed, weighted, authorization-aware retrieval
+system. You will construct, break, measure, and repair the graph rather than
+treating a shortest-path call as a complete GraphRAG implementation.
 
 ![Graph retrieval path](assets/graph-path.svg)
 
@@ -41,11 +41,15 @@ It is not a universal replacement for chunk, lexical, or vector retrieval.
 After this lesson you should be able to:
 
 - model relationships as typed graph edges;
+- validate structured extraction before graph mutation;
+- evaluate entity-resolution false merges and false splits;
 - explain why edge provenance matters;
-- retrieve a bounded multi-hop path;
+- retrieve a bounded, directional, weighted multi-hop path;
 - distinguish graph traversal from vector similarity;
-- recognize entity-resolution failures;
+- resolve aliases without silently merging ambiguous entities;
 - preserve edge direction when relation semantics require it;
+- compare a graph retriever with a text baseline on one labelled task set;
+- detect stale facts and cross-tenant structural leakage;
 - explain local vs global GraphRAG at a conceptual level;
 - combine graph facts with supporting source text; and
 - evaluate path correctness before answer fluency.
@@ -322,277 +326,226 @@ GraphRAG is a specialized retrieval architecture, not the next mandatory stage a
 
 ---
 
-# Notebook companion
+# Guided lab — from extracted facts to defensible paths
 
-The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
-
-# 1. What the notebook actually implements
-
-The folder contains only:
+The notebook is a self-contained investigation of the fictional **Atlas Commerce**
+estate. Its central question remains:
 
 ```text
-README.md
-02_graphrag.ipynb
+How is Project Atlas connected to Regulation R-17?
 ```
 
-There is no `lab.py`, and the notebook is not named `graph_rag.ipynb`.
-
-The manual section defines:
-
-```python
-Fact(id, subject, predicate, object, source)
-```
-
-which is a good teaching representation because each relationship retains a source.
-
-The NetworkX section then creates a `DiGraph` with relationship labels.
-
----
-
-# 2. A graph fact needs provenance
-
-A useful relationship record is more than:
-
-```text
-A → B
-```
-
-Prefer:
-
-```text
-fact_id
-subject_id
-relation_type
-object_id
-source_document_id
-source_span
-source_version
-tenant
-validity
-extraction_version
-```
+The answer is useful only when every relationship in the path is directionally
+valid, current, visible to the requester, and traceable to an exact source span.
 
 ![Fact anatomy](assets/fact-anatomy.svg)
 
-Without provenance, a generated relationship claim cannot be reliably audited or retracted.
+## 1. Establish typed graph contracts
 
----
-
-# 3. Entity resolution is a first-class problem
-
-These may refer to the same entity:
-
-```text
-Acme Systems
-Acme Systems Inc.
-ACME
-```
-
-Or they may not.
-
-Graph quality depends heavily on:
-
-- canonical IDs;
-- aliases;
-- tenant scope;
-- entity type;
-- merge/split decisions.
-
-A wrong merge creates false paths.
-
-A missed merge breaks valid paths.
-
----
-
-# 4. Direction matters
-
-The notebook finds the shortest path using:
-
-```python
-G.to_undirected()
-```
-
-This is a useful way to demonstrate connectivity, but it is a **teaching simplification**.
-
-For directional predicates such as:
+The lab separates source records, canonical entities, extracted relations, query
+entities, traversed edges, evidence records, and grounded answers. A relation is
+not accepted merely because a model produced plausible JSON. It must pass
+deterministic validation:
 
 ```text
-SUPPLIED_BY
-OWNS
-DEPENDS_ON
-MUST_COMPLY_WITH
+structured extraction
+        ↓
+relation vocabulary + endpoint-type rules
+        ↓
+tenant + source-span + source-version checks
+        ↓
+accepted edge or quarantine
 ```
 
-turning the graph undirected can permit paths that are connected but semantically invalid.
+The default path uses a frozen extraction fixture so the notebook runs without
+credentials. An optional cell demonstrates current schema-constrained extraction
+with LangChain and `ChatOpenAI.with_structured_output(...)`. The same validation
+boundary applies to both.
 
-Production traversal should preserve direction rules or explicitly define which relations are safely traversable in reverse.
+## 2. Build a corpus large enough to fail meaningfully
 
----
+The scenario contains 26 source records, 34 canonical entities, and 39
+source-backed relations across projects, services, databases, suppliers,
+controls, regulations, owners, regions, and a generic platform hub. It includes:
 
-# 5. Notebook provenance limitation
+- aliases such as `Acme Systems Inc.`;
+- same-name entities in different tenants;
+- parallel relations between the same node pair;
+- current and historical source versions;
+- a high-degree hub that creates a misleading short path; and
+- malformed extraction candidates that must be quarantined.
 
-The manual `Fact` objects contain `source`.
+This is still synthetic and inspectable, but it is no longer a three-edge happy
+path.
 
-The later NetworkX triplets are:
+## 3. Treat entity resolution as measured graph construction
 
-```python
-(subject, relation, target)
-```
+Resolution uses normalized aliases together with entity type and tenant scope.
+Ambiguous names produce an explicit clarification state instead of an arbitrary
+node choice. The lab injects both major failure modes:
 
-and the edge only stores:
+| Failure | Graph consequence |
+|---|---|
+| False merge | unrelated nodes become connected and fabricate a path |
+| False split | a legitimate path becomes unreachable |
 
-```python
-label=relation
-```
+The exercise reports false-merge and false-split rates separately. In a real
+system, authoritative IDs, review queues, and domain-specific match features
+should supplement string normalization.
 
-So the NetworkX section **drops source provenance**.
+## 4. Preserve direction and provenance in a `MultiDiGraph`
 
-That is an important limitation.
+The graph uses NetworkX `MultiDiGraph`, not a simple undirected graph. This
+retains parallel edges and stores source document, source span, source version,
+tenant, confidence, status, validity, and extraction version on every edge.
 
-A better edge would include:
-
-```python
-G.add_edge(
-    subject,
-    target,
-    relation=relation,
-    source="vendor_list.csv",
-    fact_id="f2",
-)
-```
-
-Then path context can carry citations.
-
----
-
-# 6. Local GraphRAG
-
-Microsoft GraphRAG's current query engine distinguishes several search modes.
-
-**Local Search** combines knowledge-graph data with related raw text chunks for entity-focused questions.
-
-That general architecture is close to the kind of question in this notebook:
+The original manual Atlas trace remains in the lab, now as structured evidence.
+The notebook also deliberately calls `to_undirected()` to show the failure:
 
 ```text
-How is Project Atlas connected to R-17?
+Analyst A ──OWNS── Shared Service ──OWNS── Analyst C
 ```
 
-Current Microsoft GraphRAG also provides **Global Search**, **DRIFT Search**, and a basic vector-RAG comparison path.
+Connectivity does not establish that Analyst A owns Analyst C. Reverse traversal
+is allowed only when a relation has an explicitly modelled reverse meaning.
 
-Those features are not implemented in this notebook.
+## 5. Retrieve a bounded, weighted, relation-aware path
 
----
-
-# 7. Global and DRIFT search are different problems
-
-### Global Search
-
-Uses generated community reports in a map-reduce workflow for corpus-level questions such as:
-
-```text
-What are the major themes across the dataset?
-```
-
-### DRIFT Search
-
-Combines community-level context with iterative local exploration.
-
-Do not present "GraphRAG" as one traversal algorithm.
-
-Different question shapes need different graph retrieval modes.
-
----
-
-# 8. Hybrid graph + text retrieval
-
-A practical architecture often looks like:
+The educational retriever exposes the mechanics frameworks often hide:
 
 ```text
 query
   ↓
-semantic/lexical seed retrieval
+resolve source and target entities
   ↓
-resolve entities
+apply tenant, status, validity, and relation eligibility
   ↓
-bounded graph expansion
+weighted directional traversal
   ↓
-supporting source passages
+max-hop and max-fact budgets
   ↓
-answer with fact + text provenance
+path trace + terminal reason
 ```
+
+Shortest does not always mean best. The lab adds a two-hop route through a
+generic enterprise-platform hub and a three-hop supplier/compliance route.
+Weights and allowed-relation policy select the semantically meaningful path. A
+separate hub experiment shows how bounded expansion controls fan-out.
+
+## 6. Seed the graph from text, then hydrate source evidence
+
+A graph query should not require users to type exact canonical node names. The
+notebook uses a small BM25 baseline to retrieve source records, extracts candidate
+entity seeds, resolves them, and then traverses the graph.
 
 ![Hybrid graph retrieval](assets/hybrid-graph-text.svg)
 
-The graph explains connections.
-
-The source passages provide human-verifiable evidence.
-
----
-
-# 9. Bound graph traversal
-
-Unbounded graph expansion creates:
-
-- irrelevant context;
-- high-degree hub explosions;
-- leakage across access boundaries;
-- latency;
-- difficult citations.
-
-Control:
+Retrieved graph edges are hydrated back into request-local evidence records:
 
 ```text
-max hops
-max facts
-allowed relation types
-tenant filter
-minimum confidence
-time budget
+path edge
+  → source record
+  → exact source span
+  → evidence ID
+  → cited answer
 ```
 
----
+A deterministic renderer is used by default. Optional live generation receives
+only validated evidence, and a citation validator rejects unknown evidence IDs.
 
-# 10. Evaluation
+## 7. Reconcile versions and isolate tenants
 
-Evaluate graph stages separately:
+Graph facts are derived data. The notebook replaces a source version, removes
+facts derived from the old version, validates the new extraction, and rebuilds
+the graph. It also injects a structurally valid-looking cross-tenant edge and
+demonstrates that endpoint validation and traversal scope both prevent exposure.
 
-| Stage | Measure |
+Do not confuse a missing visible path with proof that no relationship exists:
+
+- the fact may never have been extracted;
+- entity resolution may have split the entity;
+- the source may be stale or unavailable;
+- the path may be outside the principal's scope; or
+- the traversal budget may be too small.
+
+## 8. Evaluate the graph before answer style
+
+The lab uses one 22-case dataset for a graph retriever and a text baseline. Cases
+cover direct, two-hop, and three-hop paths; direction; aliases; ambiguity; hubs;
+no-path outcomes; historical versions; ownership semantics; and cross-tenant
+requests.
+
+It reports:
+
+| Layer | Measures |
 |---|---|
-| Entity extraction | precision / recall |
-| Entity resolution | merge/split error |
-| Relation extraction | relation correctness |
-| Path retrieval | path recall / precision |
-| Provenance | source coverage |
-| Answer | claim-to-fact support |
-| Security | unauthorized node/edge exposure |
-| Operations | traversal latency / fan-out |
+| Extraction | entity and relation precision / recall |
+| Resolution | false-merge and false-split rate |
+| Retrieval | exact-path accuracy, edge precision, edge recall |
+| Provenance | source-backed edge coverage |
+| Security | unauthorized node and edge count |
+| Baseline comparison | graph vs BM25 outcomes by question type |
 
-A fluent multi-hop answer does not prove the graph path is valid.
+Unauthorized exposure is a hard failure, not a relevance trade-off. Answer
+fluency is evaluated only after the path and its provenance pass.
 
----
+## 9. Map the lab to current GraphRAG systems
 
-# 11. Exercises
+The implementation is deliberately transparent and local. It teaches the
+primitives behind entity-focused graph retrieval, not the full Microsoft GraphRAG
+stack.
 
-1. Add source metadata to every NetworkX edge.
-2. Remove `to_undirected()` and define valid directional traversal.
-3. Add aliases for `Acme Systems Inc`.
-4. Add a same-named entity in another tenant.
-5. Introduce a high-degree hub and enforce a fact budget.
-6. Compare graph retrieval to dense text retrieval on relationship vs lookup questions.
-7. Produce a cited path where each edge maps back to a source.
+| Query mode | Purpose | Implemented here? |
+|---|---|---|
+| Local Search | entity neighborhood plus supporting text | educational analogue |
+| Global Search | map-reduce over community reports | conceptual only |
+| DRIFT Search | community context plus iterative local exploration | conceptual only |
+| Basic Search | vector/text comparison path | BM25 teaching baseline |
 
----
+Community detection, community report generation, distributed graph storage,
+production graph authorization, learned reranking, and incremental extraction
+orchestration remain production upgrades rather than simulated notebook claims.
 
-# 12. Checkpoint
+## Production decision points
 
-1. When does a graph add value over passage retrieval?
-2. Why is relation provenance important?
-3. What can go wrong during entity resolution?
-4. Why can undirected traversal be semantically unsafe?
-5. What provenance does the current NetworkX section lose?
-6. What is Microsoft GraphRAG Local Search?
-7. How does Global Search differ?
-8. Why should graph traversal be bounded?
+Before adopting GraphRAG, decide and test:
+
+- which question classes genuinely require topology;
+- whether relation extraction and entity resolution meet release thresholds;
+- how source changes retract or supersede graph facts;
+- whether access control applies to nodes, edges, properties, and summaries;
+- how traversal fan-out, latency, and cost are bounded;
+- whether a property graph, RDF store, or simpler relational model fits the data;
+- how graph and text evidence are ranked together; and
+- how an operator can replay a path from answer to source version.
+
+NetworkX is suitable for this transparent lab. Production candidates include
+Neo4j and other graph databases, cloud graph services, RDF stores, or a
+domain-specific relational representation. Benchmark the deployed backend's
+traversal, authorization, update, and operational behavior rather than assuming
+the teaching implementation transfers unchanged.
+
+## Exercises
+
+1. Add a relation type with an explicit reverse meaning and update the schema.
+2. Tune hub penalties without damaging recall on legitimate platform questions.
+3. Add a second ambiguous `Atlas` entity and design a clarification response.
+4. Replace BM25 seeding with embeddings while keeping the same evaluation set.
+5. Add confidence thresholds and measure precision/recall changes.
+6. Implement source deletion and verify that every derived edge is retracted.
+7. Add a community summary, then test it for stale and cross-tenant facts.
+8. Extend the path evaluator with ordered-node and source-span correctness.
+
+## Checkpoint
+
+1. Why is schema-constrained extraction still untrusted input?
+2. How do false merges and false splits affect reachability differently?
+3. Why is an undirected shortest path not a semantic proof?
+4. When can a longer weighted path be preferable to a shorter path?
+5. What must be retained to retract a fact after a source update?
+6. Why can a graph leak information before any answer is generated?
+7. What does Local Search solve that Global Search does not?
+8. Which metrics must pass before an answer-quality evaluation is meaningful?
 
 ---
 
@@ -607,14 +560,16 @@ Move from a bounded graph query to runtime tool selection while retaining explic
 ## References
 
 - Edge et al. — [From Local to Global: A Graph RAG Approach](https://arxiv.org/abs/2404.16130)
+- Microsoft GraphRAG — [Indexing architecture](https://microsoft.github.io/graphrag/index/overview/)
 - Microsoft GraphRAG — [Query overview](https://microsoft.github.io/graphrag/query/overview/)
 - Microsoft GraphRAG — [Local Search](https://microsoft.github.io/graphrag/query/local_search/)
 - Microsoft GraphRAG — [Global Search](https://microsoft.github.io/graphrag/query/global_search/)
 - Microsoft GraphRAG — [DRIFT Search](https://microsoft.github.io/graphrag/query/drift_search/)
-- NetworkX — [Documentation](https://networkx.org/documentation/stable/)
-
----
-- Microsoft GraphRAG — [Query engine overview](https://microsoft.github.io/graphrag/query/overview/)
+- NetworkX — [`MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html)
+- NetworkX — [Shortest paths](https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html)
+- LangChain — [Structured output](https://docs.langchain.com/oss/python/langchain/structured-output)
+- LangChain — [`LLMGraphTransformer` API reference](https://reference.langchain.com/python/langchain-neo4j/graph_transformers/llm/LLMGraphTransformer)
+- Neo4j — [Operations and access control](https://neo4j.com/docs/operations-manual/current/authentication-authorization/)
 - Microsoft GraphRAG — [Prompt tuning](https://microsoft.github.io/graphrag/prompt_tuning/overview/)
 
 ## Key takeaway
