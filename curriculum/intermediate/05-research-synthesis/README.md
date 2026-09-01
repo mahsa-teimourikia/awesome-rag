@@ -23,7 +23,7 @@ After completing the chapter and notebook, you can:
 - distinguish citations, sources, and independent source families;
 - classify direct, temporal, scope, definition, and unresolved conflicts;
 - build a claim-evidence map before generating prose;
-- implement and compare Map-Reduce and structured Refine;
+- implement Map-Reduce and a deterministic structured-Refine state simulation;
 - identify gaps and perform a bounded gap-filling pass;
 - evaluate support, citation coverage, conflict coverage, temporal qualification, and source independence; and
 - explain how the teaching design should change for production research systems.
@@ -166,6 +166,8 @@ previous evidence state + next EvidenceRecord → updated evidence state
 
 Structured Refine can retain claims, conflicts, gaps, and evidence IDs explicitly. It still introduces sequential dependencies, which can increase wall-clock latency compared with parallelizable map stages. It can also be order-sensitive when state is compressed or capped. The notebook runs the same evidence in two orders and measures retained claims, conflicts, evidence IDs, and final coverage.
 
+The executable Refine path is deterministic state refinement so order and capacity effects remain reproducible. It is not a live-model benchmark: the optional live model path applies to Map extraction and Reduce output only. A schema-constrained model-based state updater is a production extension that needs its own faithfulness, latency, and cost evaluation.
+
 Neither strategy is universally superior:
 
 | Dimension | Map-Reduce | Structured Refine |
@@ -208,6 +210,8 @@ secondary_summary
 ```
 
 This is not a universal numeric ranking. An independent audit may be authoritative for control effectiveness, an operations log for an incident, and an official policy for requirements. Lower-authority evidence should not be silently discarded; its role and limitations should be visible.
+
+The notebook makes this concrete by comparing the vendor's 40 ms synthetic performance claim with QA's July 120 ms measurement at a defined 4x customer load. Both remain relevant, but the vendor claim is not treated as equivalent independent measurement for the production workload. Authority changes interpretation and follow-up—not truth through a universal numeric weight.
 
 ## 9. Conflict analysis before generation
 
@@ -267,17 +271,18 @@ The lab computes deterministic checks where labels exist:
 
 | Metric | Question |
 |---|---|
-| Claim support | Does every material claim point to known evidence? |
+| Claim-evidence link validity | Does every material claim point to known evidence IDs? |
 | Citation validity | Does every cited alias resolve to an evidence record? |
-| Citation completeness | Do material claims include supporting evidence? |
+| Claim-level citation completeness | Does each structured final claim carry at least one citation? |
 | Required-topic coverage | Does the map address the research plan? |
-| Conflict coverage | Were expected material conflicts detected? |
+| Detected-conflict coverage | Did the labelled teaching detector find expected conflicts before generation? |
+| Report-conflict disclosure | Did the structured synthesis output disclose those conflicts? |
 | Source-family diversity | How many independent evidence lineages support claims? |
 | Duplicate-source rate | How much citation volume repeats the same lineage? |
 | Temporal qualification | Are changing measurements represented with dates/versions? |
 | Gap reporting | Are unsupported questions explicitly disclosed? |
 
-Keep relevance and authority separate. Keep citation validity, correctness, and completeness separate. A valid citation can still support the wrong claim, while many citations can still omit a material unsupported conclusion.
+Keep relevance and authority separate. Keep citation validity, correctness, and completeness separate. `claim_evidence_link_validity` proves only that a claim points to known evidence IDs; it does not prove semantic entailment. Semantic support requires gold support labels, a calibrated judge, or human review. Likewise, attaching a valid citation to a structured final claim does not by itself prove the evidence supports the wording.
 
 ## 13. Cost, latency, and observability
 
@@ -309,7 +314,7 @@ The notebook measures actual local teaching-runtime latency and records call cou
 | Hierarchical retrieval/summarization | Scales large corpora and multi-resolution access | Compression can lose provenance | Large repositories with layered summaries |
 | Systematic-review tooling | Explicit screening and review workflow | Domain-specific and often human-intensive | High-stakes literature synthesis |
 
-The notebook teaches the primitive in Python first. Optional `ChatOpenAI.with_structured_output(...)` shows how a mainstream integration packages schema-constrained extraction and reduction without making paid APIs mandatory.
+The notebook teaches the provider-neutral primitive in Python first. Optional `ChatOpenAI.with_structured_output(...)` is one implementation example showing how a mainstream integration packages schema-constrained extraction and reduction without making paid APIs mandatory. Live mode requires an explicitly configured `SYNTHESIS_MODEL`; the course does not embed a model name that will age with provider catalogues.
 
 ## 16. Production upgrade path
 
@@ -354,7 +359,7 @@ An audit trail should retain the question and plan versions, selected/excluded s
 3. When do three citations represent only one independent confirmation?
 4. How do scope, time, and definition differences change conflict interpretation?
 5. Why is evidence-state Refine easier to audit than narrative Refine?
-6. What does conflict coverage detect that citation validity cannot?
+6. Why must conflict detection and final-report conflict disclosure be measured separately?
 7. Why must unresolved gaps appear in the final report?
 8. Which metrics are deterministic in this lab, and which require semantic or expert review?
 
