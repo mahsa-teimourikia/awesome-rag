@@ -1,8 +1,8 @@
 # Advanced 01 — Corrective RAG: Bounded Recovery After Retrieval Failure
 
-**Level:** Advanced  
-**Estimated time:** 2–3 hours  
-**Notebook:** [`01_corrective_rag.ipynb`](01_corrective_rag.ipynb)  
+**Level:** Advanced<br>
+**Estimated time:** 3–4 hours<br>
+**Notebook:** [`01_corrective_rag.ipynb`](01_corrective_rag.ipynb)<br>
 **Prerequisite:** complete the intermediate retrieval and evaluation track
 
 ---
@@ -258,244 +258,221 @@ The goal is not self-correction as a feature. The goal is measurable reduction i
 
 ---
 
-# Notebook companion
+# Guided lab — build a bounded evidence-recovery controller
 
-The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
+The notebook is a self-contained incident-policy investigation lab. It keeps the evidence-control logic inspectable and uses one controller twice: first as ordinary Python, then as a LangGraph `StateGraph`.
 
-# 1. What the notebook actually implements
+## 1. Scenario and evidence corpus
 
-The course folder contains:
+The lab uses 38 synthetic chunks across internal Acme, Globex, and NovaTech sources plus an allowlisted external-source fixture. The data deliberately includes:
 
-```text
-README.md
-01_corrective_rag.ipynb
+- strong and irrelevant matches;
+- exact identifiers that a dense baseline misses;
+- vocabulary mismatches;
+- multi-facet questions with partial coverage;
+- active and superseded versions;
+- contradictory authoritative statements;
+- internal corpus gaps;
+- evidence outside the active tenant's authorization scope; and
+- questions that require clarification.
+
+Every chunk has stable document, chunk, source, tenant, classification, status, authority, and coverage metadata. Request-local evidence IDs (`E1`, `E2`, …) make each execution trace readable, while `document_id` and `chunk_id` preserve stable source identity.
+
+## 2. First-stage retrieval is real and local
+
+The notebook implements two credential-free retrievers over the actual corpus:
+
+- a transparent normalized unigram/bigram vector baseline; and
+- BM25 lexical retrieval for exact identifiers.
+
+This is an educational local baseline, not a claim that token-feature vectors replace a production embedding model. Its intentional limitations make the recovery routes observable. A deployed system may use an embedding service, sparse/dense hybrid search, late interaction, or a managed retrieval system.
+
+Backend behavior matters. Verify the filtering semantics, ANN recall, indexing strategy, and latency of the store you deploy rather than assuming all vector databases behave identically.
+
+## 3. Grade documents and the evidence set
+
+The typed `EvidenceGrade` contract separates the decision from its explanation:
+
+```python
+state: strong | weak | insufficient
+failure_types: list[
+    lexical_gap | semantic_gap | partial_coverage | stale | conflict |
+    corpus_gap | authorization_limited | underspecified
+]
+covered_requirements: list[str]
+missing_requirements: list[str]
 ```
 
-There is no `lab.py`, and the notebook is not named `corrective_rag.ipynb`.
+The lab first labels individual evidence items as relevant, irrelevant, stale, duplicate, or unauthorized. It then grades the set against explicit task requirements. This prevents a compound question from being accepted merely because one retrieved passage is relevant.
 
-The notebook first implements:
+Authorization, lifecycle, attempt budgets, and allowed routes are deterministic application controls. The evidence-sufficiency evaluator is replaceable: the default frozen evaluator makes every run repeatable, while an optional `ChatOpenAI.with_structured_output(EvidenceGrade)` path demonstrates a live semantic grader when `CRAG_USE_LIVE_GRADER=1`, `OPENAI_API_KEY`, and `CRAG_MODEL` are configured. A live grader still cannot override deterministic policy.
 
-```text
-Retrieve → Grade → Web-search mock → Final context
-```
+The 26-case calibration set measures initial grade accuracy, false acceptance, and unnecessary correction. Treat the notebook's frozen labels as teaching fixtures; calibrate real evaluators on reviewed, domain-specific examples.
 
-with `ManualCRAG`.
-
-It then implements a LangGraph graph:
-
-```text
-retrieve
-   ↓
-grade_documents
-   ├─ relevant → generate
-   └─ weak     → web_search → generate
-```
-
-The "web search" in the notebook is a **mock function returning a fixed string**. It does not perform real internet retrieval.
-
----
-
-# 2. Correction is a policy, not "try again"
-
-A production controller needs:
-
-```text
-allowed routes
-route-specific authorization
-max attempts
-max elapsed time
-max cost
-terminal states
-reason codes
-```
+## 4. Route by diagnosed failure
 
 ![Finite recovery policy](assets/recovery-policy.svg)
 
-A useful terminal state is often:
+The `RecoveryPolicy` allowlists routes and limits attempts. The controller maps diagnosed failures to specific changes:
+
+| Diagnosed failure | Bounded route | What changes |
+|---|---|---|
+| Exact identifier missed | `lexical_fallback` | retrieval method |
+| Vocabulary mismatch | `query_rewrite` | retrieval query, not user intent |
+| Partial coverage | `targeted_retrieval` | missing requirement/facet |
+| Stale evidence | `fresh_source` | lifecycle eligibility |
+| Authorized corpus gap | `external_source` | approved source boundary |
+| Missing task parameter | `clarification` | information supplied by user |
+| Authorization-limited | no recovery | terminal abstention |
+| Conflicting evidence | no automatic answer | terminal conflict state |
+
+After every recovery, the controller re-grades the complete evidence set. It never jumps directly from recovery to generation.
+
+## 5. Authorization is invariant across recovery
+
+A failed internal search does not grant authority to widen tenant, classification, network, or tool scope. The lab therefore uses:
 
 ```text
+same principal
+same policy
+new allowed retrieval action
+```
+
+An authorization-limited case terminates as `insufficient_authorized_evidence`. It does not search another tenant or use an external source to reconstruct restricted facts. The authorization-existence signal in the teaching fixture reveals only that eligible evidence is unavailable; it never exposes the forbidden content.
+
+## 6. External evidence changes the trust boundary
+
+The external route searches a finite allowlisted fixture with explicit authority metadata. This makes source selection, provenance, and re-grading executable without making a network call or pretending a fixed string is web search.
+
+In a deployed system, external retrieval also introduces source-quality, privacy, prompt-injection, egress, retention, and citation risks. "Internal retrieval failed" does **not** imply "search the web." External access must be approved by policy and the returned evidence must pass the same sufficiency checks.
+
+## 7. Enforce budgets and terminal states
+
+The Python runtime increments `attempts`, applies `max_attempts` and `max_rewrites`, and terminates explicitly:
+
+```text
+answered
+insufficient_evidence
 insufficient_authorized_evidence
+conflicting_evidence
+clarification_required
+budget_exhausted
 ```
 
-rather than another unbounded retry.
+Two deliberately unsatisfiable compound cases prove that repeated targeted retrieval stops at the configured budget. This is stronger than carrying an unused retry field: the limit is executed and asserted.
 
----
+## 8. Preserve an evidence ledger
 
-# 3. Grade evidence, not model confidence
+Each run records:
 
-A retrieval grade should answer:
+- original query and query ID;
+- initial and final grades;
+- failure reasons;
+- attempted routes;
+- original and rewritten retrieval queries;
+- stable source/document/chunk provenance;
+- recovered evidence IDs;
+- attempt count;
+- terminal reason; and
+- whether unauthorized evidence entered state.
 
-> Is the available evidence sufficient for this task?
+The original query is never overwritten by a retrieval rewrite. A separate refinement exercise extracts useful spans and retains a parent-evidence link, demonstrating the CRAG decompose-filter-recompose idea without confusing it with reranking.
 
-Possible signals include:
+## 9. Generate only after evidence acceptance
 
-- candidate relevance;
-- coverage of required concepts;
-- source authority;
-- freshness;
-- authorization;
-- conflict;
-- redundancy.
+The credential-free generator renders requirement-backed claims with citations so the controller can be tested without hidden model behavior. Application-side checks verify that:
 
-Do not interpret a single similarity score or reranker score as calibrated answer confidence.
+- generation happens only from `strong` evidence;
+- citation IDs exist in the ledger; and
+- evidence remains authorized.
 
-For high-risk systems, tune decision thresholds on labelled validation data and separately measure:
+Replacing the renderer with a live model does not remove these validation responsibilities.
 
-- false accept: weak evidence accepted;
-- false abstain: strong evidence rejected.
+## 10. Reproduce the controller in LangGraph
 
----
+The second implementation uses the current `StateGraph`, `START`, `END`, and conditional-edge APIs. Graph nodes call the same retriever, evaluator, recovery policy, and terminal logic as the manual runtime; the graph is not a second, looser implementation.
 
-# 4. Recovery routes
+The lab checks parity for strong, lexical-recovery, authorization-limited, and budget-exhaustion cases. This is the key framework lesson: LangGraph packages stateful orchestration, but policy semantics still belong to the application.
 
-| Failure | Candidate recovery |
+## 11. Compare fixed RAG with Corrective RAG
+
+Both systems run on the same 26 cases. The benchmark records:
+
+- initial grade and route accuracy;
+- false accepts and unnecessary corrections;
+- recovery success by route;
+- supported and unsupported answer rates;
+- correct and false abstentions;
+- attempts, retrieval calls, and grader calls;
+- measured local median and p95 execution time; and
+- unauthorized route attempts.
+
+The displayed results are computed in the notebook run, not hard-coded benchmark claims. Local timings measure this teaching implementation only; they are not service-level latency projections.
+
+## 12. Failure analysis before optimization
+
+When a route fails, ask which layer failed:
+
+| Layer | Diagnostic question |
 |---|---|
-| Vocabulary mismatch | rewrite query |
-| Exact identifier missed | lexical/hybrid retriever |
-| Relevant result poorly ranked | reranker |
-| Wrong internal index queried | approved alternate internal source |
-| Missing critical parameter | clarification |
-| Internal corpus legitimately incomplete | approved external source |
-| Evidence remains weak | abstain / escalate |
+| Retriever | Did the right evidence enter the candidate set? |
+| Document grader | Were useful and stale candidates labelled correctly? |
+| Set grader | Were all requirements and conflicts considered? |
+| Policy | Was the selected route permitted and failure-specific? |
+| Recovery | Did the action change the variable that caused failure? |
+| Budget | Did the controller stop predictably? |
+| Generator | Were all claims supported by accepted evidence? |
 
-A recovery route must not silently widen:
+Do not optimize retrieval recall by allowing weak evidence through the acceptance gate. Authorization and supported-answer constraints are hard invariants; relevance is optimized within them.
 
-- tenant scope;
-- data classification;
-- network access;
-- tool permissions.
-
----
-
-# 5. External retrieval is a trust-boundary change
-
-The notebook's web-search node is useful pedagogically because it makes routing visible.
-
-In production, external retrieval introduces additional risks:
-
-- source authority;
-- stale or poisoned content;
-- indirect prompt injection;
-- egress/privacy exposure;
-- SSRF-style tool risks;
-- retention and citation requirements.
-
-Therefore:
-
-> "Internal retrieval failed" does **not** automatically imply "search the web."
-
-The route must be explicitly permitted for the task and data class.
-
----
-
-# 6. LangGraph update
-
-The notebook's `StateGraph` approach remains a valid low-level control-flow pattern in LangGraph v1.
-
-LangGraph v1 kept the graph primitives—state, nodes, edges, conditional edges—as stable core APIs.
-
-For agent construction, however, the old `langgraph.prebuilt.create_react_agent` API used later in this curriculum is deprecated in LangGraph v1 in favor of LangChain's `create_agent`.
-
-This CRAG notebook uses `StateGraph` directly, so the core orchestration idea remains current.
-
----
-
-# 7. Important notebook limitation: retry state is not enforced
-
-The notebook defines:
-
-```python
-retries: int
-```
-
-in `GraphState`.
-
-But the graph does **not** increment or enforce that field.
-
-So the current notebook demonstrates conditional recovery, but not a complete bounded retry loop.
-
-A production implementation should explicitly implement something like:
-
-```text
-attempt += 1
-if attempt >= MAX_ATTEMPTS:
-    abstain
-```
-
-Do not claim loop protection merely because a `retries` field exists.
-
----
-
-# 8. Corrective vs Adaptive vs Agentic RAG
+## 13. Corrective, Adaptive, Self-RAG, and Agentic RAG
 
 ![RAG routing patterns](assets/routing-patterns.svg)
 
-### Corrective RAG
+- **Corrective RAG** evaluates retrieved evidence and chooses bounded recovery.
+- **Adaptive RAG** selects a retrieval strategy before or around retrieval.
+- **Self-RAG** interleaves retrieval and reflection signals with generation.
+- **Agentic RAG** gives a runtime broader discretion over tools and multi-step actions.
+- **Reranking** reorders candidates; it does not by itself establish set sufficiency.
 
-Decision happens **after evidence retrieval**:
+These approaches can coexist, but every added controller creates new interactions to evaluate.
 
-```text
-Did retrieval succeed?
-```
+## 14. Production upgrade path
 
-### Adaptive RAG
+The notebook deliberately avoids pretending to be a production system. A production implementation would normally add:
 
-Decision happens **before or around retrieval strategy selection**:
+1. a calibrated embedding or hybrid retrieval service;
+2. service-enforced tenant and classification filters;
+3. a versioned evaluator dataset and release gate;
+4. durable state/checkpoints for long-running recovery;
+5. per-route latency, token, and monetary budgets;
+6. approved external-source connectors with content-security controls;
+7. structured traces and privacy-aware evidence logging;
+8. claim-level citation verification;
+9. human escalation for unresolved high-risk conflicts; and
+10. rollback/fallback behavior when the evaluator is unavailable.
 
-```text
-Which route should this query use?
-```
+## Exercises
 
-### Agentic RAG
+1. Add a reranker route for relevant-but-poorly-ranked candidates and prove it is distinct from evidence refinement.
+2. Replace the local dense baseline with an embedding model and rerun all 26 cases.
+3. Add a monetary or token budget alongside `max_attempts`.
+4. Add a source-authority policy for resolving one conflict, while preserving a terminal path when authority is tied.
+5. Add a third missing facet to a compound request and visualize the requirement coverage after each attempt.
+6. Persist the ledger without retaining unnecessary restricted text.
+7. Add an evaluator-outage case and choose a fail-closed behavior.
+8. Calibrate the optional live evaluator against human labels and report disagreement by failure slice.
 
-The system grants a model more runtime discretion to choose among tools/steps.
+## Checkpoint
 
-These patterns can be combined, but should not be conflated.
-
----
-
-# 9. Evaluate the controller
-
-Compare fixed RAG and corrective RAG on the same dataset.
-
-Measure:
-
-- answerable-query success;
-- unsupported-answer rate;
-- false-abstention rate;
-- retrieval recovery rate;
-- attempts per query;
-- route distribution;
-- p95 latency;
-- cost per supported answer;
-- unauthorized-route attempts.
-
-Correction is worthwhile only when the quality/risk improvement justifies added latency and complexity.
-
----
-
-# 10. Exercises
-
-1. Replace the mock relevance test with three evidence grades: `strong`, `weak`, `empty`.
-2. Add an explicit `attempts` counter and terminate after two recovery attempts.
-3. Add a clarification route rather than always using external search.
-4. Add a lexical fallback for exact identifiers.
-5. Record the selected route and evidence IDs in state.
-6. Create one case where web retrieval is forbidden by policy.
-7. Compare fixed RAG and CRAG on 20 labelled cases.
-
----
-
-# 11. Checkpoint
-
-1. What failure does Corrective RAG address?
-2. Why is a recovery route different from a retry?
-3. Why is external search not a default fallback?
-4. What should a retrieval grader measure?
-5. Why is a reranker score not truth confidence?
-6. Which LangGraph concept does the notebook use?
-7. Does the notebook currently enforce its `retries` state?
-8. How would you prove correction is worth the extra cost?
+1. Why is evidence grading different from model confidence?
+2. When must a query rewrite preserve the original query separately?
+3. Why must recovery return to the grader rather than generation?
+4. What makes authorization-limited retrieval different from a corpus gap?
+5. Why does conflict require a distinct terminal state?
+6. Which controls should remain deterministic even when an LLM grades semantics?
+7. How does evidence refinement preserve provenance?
+8. What evidence would justify the additional cost of a corrective controller?
 
 ---
 
@@ -511,11 +488,10 @@ Move from correcting retrieval failures to retrieving explicit relationships acr
 
 - Yan et al. — [Corrective Retrieval Augmented Generation](https://arxiv.org/abs/2401.15884)
 - Asai et al. — [Self-RAG](https://arxiv.org/abs/2310.11511)
-- LangGraph — [v1 migration guide](https://docs.langchain.com/oss/python/migrate/langgraph-v1)
-- LangGraph — [What's new in v1](https://docs.langchain.com/oss/python/releases/langgraph-v1)
-
----
 - Akarsu et al. — [From BM25 to Corrective RAG: Benchmarking Retrieval Strategies for Text-and-Table Documents](https://arxiv.org/abs/2604.01733)
+- LangGraph — [Graph API overview](https://docs.langchain.com/oss/python/langgraph/use-graph-api)
+- LangGraph reference — [`StateGraph.add_conditional_edges`](https://reference.langchain.com/python/langgraph/graph/state/StateGraph/add_conditional_edges)
+- LangChain — [OpenAI integration and structured output](https://docs.langchain.com/oss/python/integrations/chat/openai)
 
 ## Key takeaway
 

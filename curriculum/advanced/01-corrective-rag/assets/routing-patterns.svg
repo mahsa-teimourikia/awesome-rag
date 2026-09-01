@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
+<title id="title">Related RAG routing patterns</title>
+<desc id="desc">Adaptive RAG routes before retrieval, Corrective RAG responds after retrieval, and Agentic RAG delegates dynamic tool choice.</desc>
 <rect width="1200" height="390" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
