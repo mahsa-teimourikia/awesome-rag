@@ -352,7 +352,7 @@ structured extraction
         ↓
 relation vocabulary + endpoint-type rules
         ↓
-tenant + source-span + source-version checks
+tenant + source-span + source-version + source-authority checks
         ↓
 accepted edge or quarantine
 ```
@@ -389,9 +389,10 @@ node choice. The lab injects both major failure modes:
 | False merge | unrelated nodes become connected and fabricate a path |
 | False split | a legitimate path becomes unreachable |
 
-The exercise reports false-merge and false-split rates separately. In a real
-system, authoritative IDs, review queues, and domain-specific match features
-should supplement string normalization.
+The exercise reports whether each deliberately injected false-merge and
+false-split failure was detected; these single examples are outcomes, not rates.
+In a real system, authoritative IDs, review queues, and domain-specific match
+features should supplement string normalization.
 
 ## 4. Preserve direction and provenance in a `MultiDiGraph`
 
@@ -422,7 +423,8 @@ apply tenant, status, validity, and relation eligibility
   ↓
 weighted directional traversal
   ↓
-max-hop and max-fact budgets
+max-hop and returned-path-fact budgets
+  + a separate candidate-edge evaluation budget
   ↓
 path trace + terminal reason
 ```
@@ -456,9 +458,11 @@ only validated evidence, and a citation validator rejects unknown evidence IDs.
 ## 7. Reconcile versions and isolate tenants
 
 Graph facts are derived data. The notebook replaces a source version, removes
-facts derived from the old version, validates the new extraction, and rebuilds
-the graph. It also injects a structurally valid-looking cross-tenant edge and
-demonstrates that endpoint validation and traversal scope both prevent exposure.
+facts derived from the old version, passes every replacement through the same
+validation boundary used at initial ingestion, and rebuilds the graph. It also
+injects a relation with a valid `Project DEPENDS_ON Service` shape but cross-tenant
+endpoints, demonstrating that tenant validation and traversal scope both prevent
+exposure.
 
 Do not confuse a missing visible path with proof that no relationship exists:
 
@@ -480,14 +484,18 @@ It reports:
 | Layer | Measures |
 |---|---|
 | Extraction | entity and relation precision / recall |
-| Resolution | false-merge and false-split rate |
-| Retrieval | exact-path accuracy, edge precision, edge recall |
-| Provenance | source-backed edge coverage |
+| Resolution | lookup accuracy plus injected false-merge/false-split outcomes |
+| Retrieval | positive-case exact-path accuracy, edge precision, edge recall |
+| Provenance | source-backed edge coverage over non-empty, generation-eligible paths |
 | Security | unauthorized node and edge count |
-| Baseline comparison | graph vs BM25 outcomes by question type |
+| Baseline comparison | graph vs BM25 support completeness by question type |
 
 Unauthorized exposure is a hard failure, not a relevance trade-off. Answer
 fluency is evaluated only after the path and its provenance pass.
+Graph relation recall and text source-document recall remain visible diagnostic
+proxies, but they are not treated as numerically identical metrics. The primary
+comparison asks the same binary question of both systems: were all required
+source-backed facts available?
 
 ## 9. Map the lab to current GraphRAG systems
 
