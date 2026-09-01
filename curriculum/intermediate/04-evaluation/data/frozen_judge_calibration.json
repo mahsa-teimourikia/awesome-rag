@@ -1,0 +1,202 @@
+[
+  {
+    "pair_id": "judge-01",
+    "query": "How many paid leave days do full-time employees receive?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "direct_fact",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-02",
+    "query": "How many leave days can carry over, and when do they expire?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "stale_source",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-03",
+    "query": "Is MFA required?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "paraphrase",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-04",
+    "query": "What approvals are needed for emergency access?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "stale_source",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-05",
+    "query": "What must happen before production database failover?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "high_risk_policy",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-06",
+    "query": "Give the database failover execution sequence.",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "multi_evidence",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-07",
+    "query": "How should payment authorization errors be triaged?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "procedural",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-08",
+    "query": "Who approves a payment rollback?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "high_risk_policy",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-09",
+    "query": "What is the standard support response target?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "near_duplicate",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-10",
+    "query": "What is the severity-one enterprise response target?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "near_duplicate",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-11",
+    "query": "How long are customer event records retained by default?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "stale_source",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-12",
+    "query": "What does an approved legal hold do?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "high_risk_policy",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-13",
+    "query": "When must a critical vendor incident be reported?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "direct_fact",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-14",
+    "query": "What TLS version is required for external services?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "exact_identifier",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-15",
+    "query": "Who may approve a 9 percent discount?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "numeric_boundary",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-16",
+    "query": "Who approves a 15 percent discount?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "multi_evidence",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-17",
+    "query": "What should I do after losing a company laptop?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "paraphrase",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-18",
+    "query": "What is needed for a replacement laptop?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "list_completeness",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-19",
+    "query": "How is SSO enrolled during onboarding?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "pass",
+    "frozen_judge_small_v1": "pass",
+    "frozen_judge_strict_v2": "pass",
+    "slice": "procedural",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  },
+  {
+    "pair_id": "judge-20",
+    "query": "When must identity access be disabled during offboarding?",
+    "candidate_answer": "Candidate answer fixture for calibration; inspect the author-curated reference label.",
+    "reference_label": "fail",
+    "frozen_judge_small_v1": "fail",
+    "frozen_judge_strict_v2": "fail",
+    "slice": "high_risk_policy",
+    "note": "Author-curated teaching reference; not an independently reviewed expert label or a live-model benchmark."
+  }
+]

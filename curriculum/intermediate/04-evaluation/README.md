@@ -1,7 +1,7 @@
 # Intermediate 04 — RAG Evaluation: Datasets, Metrics, Safety, and Continuous Evaluation
 
 **Level:** Intermediate  
-**Estimated time:** 4–6 hours across four notebooks  
+**Estimated time:** 7–10 hours across four notebooks
 **Prerequisite:** [Two-Stage Retrieval](../03-query-reranking/README.md)
 
 ## Notebooks
@@ -11,7 +11,17 @@
 3. [`03_safety_and_robustness.ipynb`](03_safety_and_robustness.ipynb) — abstention and prompt-injection evaluation  
 4. [`04_continuous_evaluation.ipynb`](04_continuous_evaluation.ipynb) — production tracing and online evaluation
 
-The old README incorrectly referenced `evaluation.ipynb` and `lab.py`; neither exists. This README is aligned to the actual four-notebook course.
+Shared, committed artifacts keep every notebook reproducible:
+
+| Artifact | Purpose |
+|---|---|
+| [`evaluation_contracts.py`](evaluation_contracts.py) | Pydantic schemas and deterministic metric definitions |
+| [`data/evaluation_corpus.json`](data/evaluation_corpus.json) | 35 synthetic enterprise chunks with stable IDs, versions, distractors, restricted content, and tenant boundaries |
+| [`data/evaluation_candidates.json`](data/evaluation_candidates.json) | synthetic candidates, including deliberately invalid examples |
+| [`data/evaluation_golden.json`](data/evaluation_golden.json) | 40 reviewed cases across answerability, evidence, risk, and adversarial slices |
+| [`data/frozen_judge_calibration.json`](data/frozen_judge_calibration.json) | 20 author-curated teaching references for judge-calibration mechanics |
+
+Run the notebooks in order. Each is independently executable from this directory, but together they implement one evaluation lifecycle.
 
 ![Evaluation system](assets/evaluation-system.svg)
 
@@ -57,9 +67,41 @@ Measure separately:
 
 # 2. Notebook 1 — Building evaluation datasets
 
-The notebook uses synthetic question generation from policy documents.
+The notebook uses a shared Northstar enterprise-policy corpus. It includes current and superseded policies, similar cross-tenant text, multi-evidence questions, unanswerable requests, malicious retrieved instructions, and restricted material. It deliberately contains no credentials or secrets.
+
+> Some data should not enter a RAG index at all. Evaluation and authorization controls do not replace data minimization and secret management.
+
+The shared `EvalCase` contract contains:
+
+```python
+case_id
+query
+answerable
+expected_document_ids
+required_evidence_ids
+relevant_evidence_ids
+reference_answer
+slice
+risk
+corpus_version
+index_version
+review_status
+reviewer_rationale
+```
+
+This is richer than a question/answer/context triple. A release dataset needs stable provenance, evidence requirements, answerability, slices, risk, versions, and review state.
+
+`expected_document_ids` is derived from **required** evidence, not every relevant chunk. A historical version, optional corroborating source, or hard negative may be relevant for evaluation without being required to answer the case.
 
 Synthetic generation is useful for coverage, but generated cases require quality control.
+
+The review lifecycle is explicit:
+
+```text
+synthetic_unreviewed → reviewed → approved
+```
+
+The filename `evaluation_golden.json` describes the approved release artifact; `review_status` records how each case reached it.
 
 Do not treat:
 
@@ -73,40 +115,57 @@ as equivalent to:
 human-reviewed golden case
 ```
 
-A strong evaluation case should contain:
-
-```text
-query
-expected evidence IDs
-answerability
-reference answer or acceptance criteria
-slice
-risk/severity
-reviewer rationale
-corpus/index version
-```
-
 Use synthetic generation to propose cases; review and curate them before using them as release gates.
 
-The notebook reflection's "review a random 10%" is a reasonable classroom heuristic, not a universal production rule. Review rates should depend on risk, generator quality, novelty, and intended use.
+The real provider path is optional and schema-constrained. Offline execution uses committed artifacts. Mutations recompute the question's answerability, required evidence, relevant evidence, and reference answer; copying labels after changing a question is a dataset bug.
+
+Review rates should depend on risk, novelty, generator or prompt changes, slice coverage, and intended release use. Random sampling remains useful for discovering unknown failure modes, but there is no universal “review 10%” rule.
 
 ---
 
-# 3. Notebook 2 — Ragas-style metric concepts
+# 3. Notebook 2 — Retrieval, generation, citations, and judges
 
-The notebook demonstrates:
+Start with deterministic information-retrieval metrics when labels exist:
 
-- faithfulness;
-- answer relevance;
-- context recall.
+| Metric | Diagnostic question |
+|---|---|
+| Recall@k | Did the retriever find the labelled relevant evidence? |
+| Precision@k | How much of the top-k candidate set is relevant? |
+| MRR | How early did the first relevant chunk appear? |
+| nDCG@k | Did highly relevant evidence rank above weaker evidence? |
+| Evidence completeness | Were all indispensable chunks retrieved? |
 
-It uses simple binary mock judges to make the concepts visible.
+In the teaching implementation, Precision@k divides by `k`: unfilled ranks count as non-relevant. Recall and nDCG return `None` when no relevance labels exist, so no-answer cases cannot inflate retrieval aggregates as “perfect” results.
 
-Modern RAG evaluation frameworks expose richer metrics, but the essential lesson remains:
+For a multi-evidence question, finding one of two required chunks is not complete even if the first hit looks excellent.
+
+Keep two context concepts distinct:
+
+```text
+labelled context recall
+    exact comparison against relevant evidence IDs
+
+semantic context sufficiency
+    human or calibrated-judge estimate that supplied context can answer the question
+```
+
+The second is useful when only a reference answer exists, but it is not a replacement for retrieval labels.
+
+The notebook then contrasts faithful/correct, faithful/incomplete, faithful-but-stale, correct-but-unfaithful, unsupported, and irrelevant-but-faithful answers. This preserves the essential diagnostic rule:
 
 > **retrieval failure and generation failure require different fixes.**
 
-Also avoid the notebook's recommendation to "always use the most capable model available" as a blanket rule. A judge should be selected based on **measured agreement with human labels, cost, latency, and reproducibility**.
+Citation quality is also a vector:
+
+- **validity:** does the cited identity resolve to the intended source/version?
+- **correctness:** does each cited ID belong to the labelled support set for its attached claim?
+- **completeness:** are all material claims cited?
+
+A claim may be supported somewhere in the corpus while citing the wrong source. When claim-level gold support IDs exist, citation correctness is deterministic. Without those labels, claim-to-citation support needs calibrated semantic judgment or human review.
+
+Ragas is demonstrated as a current dataset/metric adapter rather than presented as “four core metrics.” Its available metric catalogue is broader and evolves. Keep the metric contract in your code so framework upgrades do not silently redefine release quality.
+
+A judge should be selected by **measured agreement with human labels, slice behavior, cost, latency, stability, and reproducibility**—not size alone.
 
 A larger model is not automatically a calibrated evaluator.
 
@@ -134,12 +193,26 @@ For enterprise RAG, both dimensions matter.
 
 ---
 
-# 5. Notebook 3 — Safety and robustness
+# 5. Notebook 3 — Safety, robustness, and release blockers
 
 The notebook tests:
 
-- out-of-domain abstention;
-- direct/indirect prompt injection outcomes.
+- answerability and abstention;
+- direct and indirect prompt injection;
+- malicious retrieved instructions;
+- citation manipulation;
+- data-exfiltration requests;
+- cross-tenant requests;
+- role impersonation; and
+- deterministic policy invariants.
+
+Keep three concepts separate:
+
+| Dimension | Question | Enforced by |
+|---|---|---|
+| Answerability | Does eligible evidence support an answer? | retrieval/generation policy plus evaluation |
+| Policy scope | May this principal access the evidence or action? | deterministic authorization outside the model |
+| Safety | Can input or untrusted context induce harmful behavior? | defense-in-depth controls plus adversarial evaluation |
 
 This should be interpreted as **evaluation examples**, not complete defenses.
 
@@ -159,23 +232,36 @@ That is useful instruction hygiene, but production controls also need:
 - adversarial evaluation;
 - incident monitoring.
 
-Security failures should be hard release blockers, not averaged into a quality score.
+No single prompt-injection defense is universally “best.” Input checks, context trust labels, least privilege, sandboxing, authorization, output validation, monitoring, and incident response address different failure paths.
+
+Security failures should be hard release blockers, not averaged into a quality score. Track answerability with a four-outcome confusion matrix:
+
+```text
+true answer       | correct abstention
+false answer      | false abstention
+```
 
 ---
 
 # 6. Notebook 4 — Continuous evaluation
 
-Offline evaluation answers:
+Offline evaluation asks:
 
 > Should this configuration be released?
 
-Online evaluation answers:
+Online evaluation asks:
 
 > Is the deployed system behaving as expected?
 
 ![Offline to online loop](assets/offline-online-loop.svg)
 
-Capture trace elements such as:
+These are ongoing signals, not proof that a system is correct. Capture the full stage path:
+
+```text
+retrieval → reranking → context → generation → validation → rendering
+```
+
+Useful trace elements include:
 
 ```text
 query
@@ -191,7 +277,19 @@ tokens/cost
 user feedback
 ```
 
-Be careful not to log sensitive document text unnecessarily. Provenance IDs and controlled sampling are often safer than indiscriminate full-context logging.
+Use explicit privacy modes:
+
+| Mode | Typical use | Content policy |
+|---|---|---|
+| Metadata-only | default production monitoring | IDs, counts, versions, timing; no body text |
+| Sampled/redacted | selected debugging and review | minimized, redacted samples |
+| Full debug | exceptional controlled diagnosis | tightly restricted, time-bound, audited |
+
+Be careful not to log sensitive document text unnecessarily. Provenance IDs and controlled sampling are often safer than indiscriminate full-context logging. If restricted evidence reaches a trace or evaluation export, a later-safe answer does not undo the exposure.
+
+An unsalted hash is not anonymization: predictable, low-entropy queries can be dictionary-attacked. For sensitive production telemetry, prefer opaque trace IDs, controlled pseudonymization, or keyed HMAC identifiers with managed key rotation and access controls.
+
+Online labels are not limited to reference-free scores. They can include delayed expert review, user feedback, case resolution, citation validation, tool outcomes, and business/process outcomes. Each has latency, bias, and privacy limitations.
 
 ---
 
@@ -209,6 +307,20 @@ Procedure:
 4. inspect disagreements by slice;
 5. version model, prompt, and rubric;
 6. re-calibrate when any of them changes.
+
+Store, at minimum:
+
+```text
+judge model
+provider
+prompt version
+rubric version
+temperature / sampling configuration
+dataset version
+per-case label, confidence, and reason
+```
+
+The lab compares two frozen judge configurations with 20 **author-curated teaching reference labels**. They demonstrate calibration mechanics but are neither independently reviewed domain-expert annotations nor live benchmark results. The optional provider path uses structured Pydantic output and produces a separate experiment.
 
 Use deterministic checks where possible:
 
@@ -242,6 +354,16 @@ critical injection success = 0
 
 Authorization leakage and severe safety failures should not be compensated by a higher answer-relevance score.
 
+Treat hard invariants and quality thresholds differently:
+
+```text
+hard invariant violated → BLOCK
+quality threshold missed → BLOCK or WARN according to the declared release policy
+all gates passed         → eligible for release review
+```
+
+The release report should name blockers and warnings. A scalar “overall score” must not hide why a candidate was rejected.
+
 ---
 
 # 9. Slice analysis
@@ -258,6 +380,10 @@ tenant boundary
 language
 document type
 high-risk policies
+benign security language
+indirect injection
+tenant boundary
+release/version applicability
 ```
 
 Aggregate improvement can hide catastrophic slice regressions.
@@ -284,9 +410,75 @@ new release
 
 This loop is how an evaluation program becomes durable rather than a one-time benchmark.
 
+Production sampling should combine:
+
+- a random sample for broad coverage;
+- unusual, low-confidence, or empty-retrieval cases;
+- explicit negative feedback and escalations;
+- safety and policy events;
+- high-risk tasks; and
+- changes in source, model, prompt, policy, or index versions.
+
+Promotion is a reviewed data operation. A trace is not automatically a golden case: a reviewer must establish answerability, evidence labels, reference or acceptance criteria, slice, risk, and rationale.
+
+Monitor drift indicators such as empty retrieval, abstention, top-source concentration, candidate count, citation failures, latency, cost, and slice distribution. A drift alarm tells you where to investigate; it does not diagnose the cause.
+
 ---
 
-# 11. Exercises
+# 11. Architecture and technology landscape
+
+Keep the evaluation contract independent from the platform that executes or stores it.
+
+| Need | Examples | Role in this course |
+|---|---|---|
+| RAG metrics and experiments | Ragas, DeepEval | secondary adapters for semantic and RAG-oriented metrics |
+| Tracing plus evaluation | Phoenix, LangSmith, MLflow | stage-level traces, datasets, experiments, dashboards |
+| Portable telemetry | OpenTelemetry | spans, attributes, metrics, and export conventions |
+| Adversarial testing | Giskard, Garak | broader red-team/test workflows; introduced, not fully implemented here |
+
+Exact properties—schema validity, known citation IDs, tenant consistency, current source version, latency, and budgets—remain deterministic. Semantic properties—claim support, nuanced correctness, and response quality—may use calibrated judges and human review.
+
+```mermaid
+flowchart LR
+    A[Versioned EvalCase dataset] --> B[Run candidate RAG]
+    B --> C[Deterministic checks]
+    B --> D[Calibrated semantic judges]
+    C --> E[Per-case results]
+    D --> E
+    E --> F[Slice analysis]
+    F --> G{Release policy}
+    G -->|hard blocker| H[Block]
+    G -->|warning| I[Review]
+    G -->|pass| J[Deploy]
+    J --> K[Privacy-aware traces]
+    K --> L[Review queue]
+    L --> A
+```
+
+---
+
+# 12. Worked evaluation sequence
+
+For one multi-evidence query:
+
+1. load the versioned `EvalCase`;
+2. run retrieval and record ranked chunk IDs;
+3. compute Recall@k, Precision@k, MRR, nDCG, and evidence completeness;
+4. build model context only from the selected evidence;
+5. record answer, material claims, and citations;
+6. validate citation identities exactly;
+7. judge semantic support/correctness using a calibrated rubric when necessary;
+8. assign an answerability outcome;
+9. apply safety invariants;
+10. aggregate by slice without discarding per-case failures;
+11. record cost and latency; and
+12. produce a release decision with explicit blockers and warnings.
+
+This order makes the failed stage visible. A final-answer-only score cannot tell whether to repair ingestion, retrieval, ranking, context assembly, prompting, or policy enforcement.
+
+---
+
+# 13. Exercises
 
 1. Add an unanswerable case to the synthetic dataset.
 2. Add expected evidence IDs rather than only ground-truth text.
@@ -294,11 +486,14 @@ This loop is how an evaluation program becomes durable rather than a one-time be
 4. Create a prompt-injection case where the retrieved document contains malicious instructions.
 5. Define a hard release block for cross-tenant leakage.
 6. Build an online trace schema that avoids storing unnecessary sensitive text.
-7. Calibrate a mock judge against a small human-labelled set.
+7. Run a structured judge against the author-curated calibration set and report agreement, confusion counts, and Cohen's kappa; then describe what expert review would be required before production use.
+8. Add a multi-evidence case whose first relevant hit is present but whose second indispensable chunk is missing.
+9. Promote a reviewed production failure to a regression case without storing raw sensitive context.
+10. Write a release policy that distinguishes hard blockers from quality warnings.
 
 ---
 
-# 12. Checkpoint
+# 14. Checkpoint
 
 1. Why is one RAG score insufficient?
 2. What must a golden evaluation case contain?
@@ -308,6 +503,8 @@ This loop is how an evaluation program becomes durable rather than a one-time be
 6. Which checks should remain deterministic?
 7. What safety failures should block release?
 8. How does a production failure become a regression test?
+9. Why does continuous evaluation provide evidence rather than proof?
+10. Which trace mode should be the production default, and why?
 
 ---
 
@@ -321,11 +518,16 @@ Apply evidence discipline to multi-document synthesis and conflicting sources.
 
 ## References
 
-- Ragas — [Documentation](https://docs.ragas.io/)
+- Ragas — [Evaluation quickstart](https://docs.ragas.io/en/stable/getstarted/evals/)
+- Ragas — [Available metrics](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/)
+- Ragas — [v0.3 to v0.4 migration](https://docs.ragas.io/en/latest/howtos/migrations/migrate_from_v03_to_v04/)
 - Es et al. — [RAGAS](https://arxiv.org/abs/2309.15217)
 - Arize Phoenix — [Evaluation](https://arize.com/docs/phoenix/evaluation)
 - LangSmith — [Evaluation](https://docs.smith.langchain.com/evaluation)
+- MLflow — [GenAI evaluation](https://mlflow.org/docs/latest/genai/eval-monitor/)
+- DeepEval — [Documentation](https://deepeval.com/docs/getting-started)
 - OpenTelemetry — [Documentation](https://opentelemetry.io/docs/)
+- LangChain — [ChatOpenAI structured output](https://docs.langchain.com/oss/python/integrations/chat/openai#structured-output)
 - OWASP — [LLM Application Security](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 - NIST — [AI RMF Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
 
@@ -334,57 +536,3 @@ Apply evidence discipline to multi-document synthesis and conflicting sources.
 ## Key takeaway
 
 **Evaluation should tell you which stage failed, whether the change is safe to release, and whether production behavior is drifting.**
-
-
----
-
-# Deep Dive — RAG Evaluation
-
-Evaluation is the **control system for RAG development**, not a final reporting exercise.
-
-## Dataset design
-Combine representative historical questions, expert-curated cases, targeted synthetic cases, and adversarial cases. Label answerability, required/relevant evidence, expected facts, forbidden evidence, query class, and risk class. Keep a held-out regression set.
-
-## Retrieval evaluation
-Use deterministic IR metrics when relevance labels exist: Recall@k, Precision@k, MRR, and nDCG. For multi-evidence questions, label all required evidence.
-
-## Generation evaluation
-Separate task correctness, relevance, completeness, claim support, and instruction compliance. A relevant answer can still be unsupported.
-
-## Groundedness
-Decompose output into material claims and test whether each claim is supported by retrieved evidence. For consequential systems, complement model judges with deterministic checks and human review.
-
-## Citation evaluation
-Measure citation correctness (does it support the claim?), completeness (are material claims cited?), and identity (does it resolve to the intended source/version?).
-
-## Abstention
-Include unanswerable cases. Measure false-answer and false-abstention rates. A benchmark containing only answerable questions teaches the wrong behavior.
-
-## LLM-as-a-judge
-Judges scale semantic evaluation but introduce variance, bias, prompt sensitivity, position effects, and shared-model blind spots. Use explicit rubrics, version judges, and calibrate against human labels.
-
-## Human calibration
-Use experts to validate rubrics, inspect disagreements, and assess consequential domain correctness. Measure agreement where useful.
-
-## Slice analysis
-Slice by query type, answerability, language, tenant, document age, source type, identifier-heavy questions, long documents, and risk class. Averages hide regressions.
-
-## Synthetic/adversarial cases
-Target missing evidence, conflicting sources, stale documents, permission boundaries, near-duplicate distractors, and misleading lexical overlap. Validate synthetic distributions against real usage.
-
-## CI/CD gates
-Hard invariants such as cross-tenant leakage or invalid citation identity should hard-fail. Quality metrics can use controlled thresholds and baseline comparisons. Store per-case results.
-
-## Online evaluation
-Monitor empty retrieval, abstention, retrieval distribution changes, citation failures, latency, cost, and task outcomes. Offline and online evaluation complement each other.
-
-## Framework landscape
-RAGAS and DeepEval provide RAG-oriented metrics and test abstractions; tracing platforms connect evaluation to pipeline stages. Frameworks should implement your evaluation design, not define quality for you.
-
-## Evaluation hierarchy
-```text
-retrieval correctness → evidence sufficiency → claim support → citation validity → task success → latency/cost/risk
-```
-
-### Further study
-RAGAS; DeepEval; BEIR; Phoenix/Arize evaluation concepts; NIST AI RMF.
