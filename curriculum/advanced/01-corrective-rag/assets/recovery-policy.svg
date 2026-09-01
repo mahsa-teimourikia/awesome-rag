@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+<title id="title">Finite recovery policy</title>
+<desc id="desc">Weak evidence can trigger only an approved rewrite, alternate retriever, external source, clarification, or abstention, each with authorization and budget limits.</desc>
 <rect width="1200" height="480" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">

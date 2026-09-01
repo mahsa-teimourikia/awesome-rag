@@ -1,12 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410">
-<rect width="1200" height="410" fill="white"/>
-<defs>
-  <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-    <path d="M0 0 L7 3.5 L0 7 Z" fill="#64748B"/>
-  </marker>
-</defs>
-<g font-family="Arial, Helvetica, sans-serif">
-<text x="55" y="52" font-size="29" font-weight="700" fill="#111827">Corrective RAG control loop</text>
-<text x="55" y="82" font-size="16" fill="#475569">Evaluate evidence before generation and keep recovery finite.</text>
-<rect x="55" y="170" width="180" height="75" rx="14" fill="#EEF2FF" stroke="#64748B" stroke-width="2"/><text x="145" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Retrieve</text><line x1="235" y1="207" x2="270" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="280" y="170" width="180" height="75" rx="14" fill="#ECFEFF" stroke="#64748B" stroke-width="2"/><text x="370" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Grade evidence</text><line x1="460" y1="207" x2="495" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="505" y="170" width="180" height="75" rx="14" fill="#FFF7ED" stroke="#64748B" stroke-width="2"/><text x="595" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Recover</text><line x1="685" y1="207" x2="720" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="730" y="170" width="180" height="75" rx="14" fill="#FAF5FF" stroke="#64748B" stroke-width="2"/><text x="820" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Verify</text><line x1="910" y1="207" x2="945" y2="207" stroke="#64748B" stroke-width="2" marker-end="url(#a)"/><rect x="955" y="170" width="180" height="75" rx="14" fill="#F0FDF4" stroke="#64748B" stroke-width="2"/><text x="1045" y="214" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">Answer / abstain</text>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820" role="img" aria-labelledby="title desc">
+  <title id="title">Corrective RAG bounded evidence-recovery controller</title>
+  <desc id="desc">Authorized retrieval is graded, then a policy either generates from strong evidence, executes one bounded recovery and re-grades, or terminates by abstaining or asking for clarification.</desc>
+  <rect width="1440" height="820" fill="#F8FAFC"/>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 Z" fill="#526071"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+  </defs>
+  <g font-family="Inter, Arial, sans-serif">
+    <text x="52" y="55" font-size="30" font-weight="700" fill="#102A43">Corrective RAG: bounded evidence recovery</text>
+    <text x="52" y="86" font-size="17" fill="#526071">Accept, recover, or abstain—then make every decision inspectable.</text>
+    <rect x="52" y="112" width="1336" height="612" rx="22" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+    <rect x="78" y="128" width="236" height="34" rx="17" fill="#E2E8F0"/>
+    <text x="196" y="151" text-anchor="middle" font-size="14" font-weight="700" fill="#334155">AUTHORIZED EVIDENCE BOUNDARY</text>
+    <g fill="none" stroke="#526071" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
+      <path d="M312 302 H380"/><path d="M620 302 H688"/><path d="M918 302 H980 V208 H1090"/>
+      <path d="M803 354 V402 H1077 V444"/><path d="M1077 560 V588 H500 V354"/><path d="M803 354 H748 V655 H1090"/>
+    </g>
+    <g font-size="14" font-weight="700" fill="#526071">
+      <rect x="621" y="272" width="66" height="24" rx="12" fill="#FFFFFF"/><text x="654" y="289" text-anchor="middle">grade</text>
+      <rect x="979" y="190" width="62" height="24" rx="12" fill="#FFFFFF"/><text x="1010" y="207" text-anchor="middle">strong</text>
+      <rect x="924" y="377" width="72" height="24" rx="12" fill="#FFFFFF"/><text x="960" y="394" text-anchor="middle">recover</text>
+      <rect x="668" y="574" width="216" height="26" rx="13" fill="#FFFFFF"/><text x="776" y="592" text-anchor="middle">re-grade after every attempt</text>
+      <rect x="754" y="633" width="70" height="24" rx="12" fill="#FFFFFF"/><text x="789" y="650" text-anchor="middle">terminal</text>
+    </g>
+    <g filter="url(#shadow)">
+      <rect x="92" y="250" width="220" height="104" rx="18" fill="#EAF2FF" stroke="#2563EB" stroke-width="2"/>
+      <rect x="380" y="250" width="240" height="104" rx="18" fill="#E8FBF7" stroke="#0F8B7D" stroke-width="2"/>
+      <rect x="688" y="250" width="230" height="104" rx="18" fill="#FFF4E5" stroke="#C56518" stroke-width="2"/>
+      <rect x="1090" y="156" width="244" height="104" rx="18" fill="#EAF8EE" stroke="#258A4B" stroke-width="2"/>
+      <rect x="820" y="444" width="514" height="116" rx="18" fill="#F4EEFF" stroke="#7652B4" stroke-width="2"/>
+      <rect x="1090" y="614" width="244" height="82" rx="18" fill="#FFF0F1" stroke="#C2414B" stroke-width="2"/>
+    </g>
+    <g text-anchor="middle" fill="#102A43">
+      <text x="202" y="293" font-size="18" font-weight="700">Authorized retrieval</text><text x="202" y="322" font-size="14" fill="#526071">dense baseline</text>
+      <text x="500" y="293" font-size="18" font-weight="700">Evidence evaluator</text><text x="500" y="322" font-size="14" fill="#526071">document + set grade</text>
+      <text x="803" y="293" font-size="18" font-weight="700">Recovery policy</text><text x="803" y="322" font-size="14" fill="#526071">routes + budgets</text>
+      <text x="1212" y="199" font-size="18" font-weight="700">Generate + verify</text><text x="1212" y="228" font-size="14" fill="#526071">strong evidence only</text>
+      <text x="1077" y="489" font-size="19" font-weight="700">Execute one approved recovery</text><text x="1077" y="520" font-size="14" fill="#526071">lexical • rewrite • missing facet • approved external</text>
+      <text x="1212" y="648" font-size="18" font-weight="700">Abstain / clarify</text><text x="1212" y="676" font-size="13" fill="#526071">conflict • unauthorized • exhausted</text>
+    </g>
+    <circle cx="75" cy="686" r="7" fill="#0F8B7D"/>
+    <text x="92" y="691" font-size="15" font-weight="700" fill="#334155">Invariant: recovery may change retrieval strategy, never the principal's authority.</text>
+  </g>
+</svg>
