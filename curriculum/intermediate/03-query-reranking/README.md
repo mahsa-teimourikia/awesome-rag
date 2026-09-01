@@ -44,7 +44,7 @@ After this lesson you should be able to:
 - rerank a bounded candidate set;
 - explain why rerankers cannot recover missing candidates;
 - measure candidate recall across retrieval budgets;
-- compute MRR, nDCG, Precision@k, and top-context support on one labelled query set;
+- compute MRR, nDCG, Precision@k, any-evidence support, and evidence completeness on one labelled query set;
 - inspect per-query rank movement and diagnose regressions;
 - measure local median and p95 stage latency;
 - distinguish `candidate_k` from downstream `top_n`;
@@ -241,10 +241,11 @@ The notebook labels relevance by stable `chunk_id`, not by filenames or keyword 
 Useful metrics:
 
 - Recall@candidate_k — how much relevant evidence entered the candidate set?;
-- MRR — did the first relevant result move up?;
-- nDCG@k — did relevant evidence move toward earlier ranks?;
+- MRR — did the first relevant result move up? MRR does not measure completeness when a question requires multiple passages;
+- nDCG@k — did relevant evidence move toward earlier ranks across the ordered list?;
 - Precision@k — how much retained context is relevant?;
-- top-context support rate — does final `top_n` contain useful evidence?;
+- Any-support@k — does final `top_n` contain at least one relevant passage?;
+- Evidence-completeness@k — what fraction of all required passages survived into final `top_n`?;
 - median/p95 retrieval, reranking, and total local latency.
 
 First-stage distance and cross-encoder score remain in separate columns because they are different scoring functions used at different stages. Do not compare or linearly combine them without a deliberately calibrated and evaluated fusion method.
@@ -295,6 +296,8 @@ Each chunk has stable metadata:
 
 The evaluation set contains answerable, multi-relevant, identifier, lexical-overlap, semantic-hard-negative, version-sensitive, missing-candidate, regression-probe, and no-answer slices. A multi-evidence question labels every passage needed to establish the relationship; no single passage is silently called the complete answer.
 
+Historical and draft records are deliberately left inside this lesson's tenant-authorized candidate space so learners can observe version-confusion hard negatives. That is a controlled ranking experiment, not production lifecycle guidance. For a production **current-policy-only** workflow, lifecycle eligibility should normally remove historical, superseded, expired, or draft records before reranking. Reranking must not decide which policy version is authoritative.
+
 ---
 
 ## 11. Candidate-budget and `top_n` experiments
@@ -311,7 +314,7 @@ retrieve candidates
 
 The missing-candidate experiment demonstrates that a relevant passage absent at `candidate_k = 3` cannot be recovered by reranking, then shows whether it becomes available at `candidate_k = 10`.
 
-The separate `top_n = 1, 3, 5` experiment asks how much useful evidence fits in the downstream context budget. It does not change first-stage candidate recall.
+The separate `top_n = 1, 3, 5` experiment asks how much useful evidence fits in the downstream context budget. It reports both **any-support** and **evidence completeness**: these are identical for a single-source question but differ when several chunks are jointly required. Changing `top_n` does not change first-stage candidate recall.
 
 ---
 
@@ -336,15 +339,16 @@ A reranker is another learned model. Aggregate gains can coexist with individual
 | Version confusion | historical/draft wording displaced current evidence; strengthen lifecycle filters and domain labels |
 | Multi-evidence incompleteness | only part of the evidence set survived `top_n`; increase/diversify context selection carefully |
 | Authorization scope issue | forbidden evidence entered candidate/reranker state; treat as a hard security failure |
-| Corpus/source coverage failure | no labelled supporting evidence exists; reranking and high scores cannot create answerability |
+| Expected no-answer | the labelled case is intentionally unsupported; abstaining or reporting insufficient evidence is correct behavior |
+| Corpus/source coverage failure | a case expected to be answerable has no indexed supporting source; reranking cannot repair source coverage |
 
-If no natural regression occurs in one environment/model revision, the notebook's analysis still reports zero honestly and includes a separately labelled failure injection to prove the regression detector—not a fabricated aggregate improvement.
+The notebook reports two views that answer different questions: **query-level MRR outcome** tracks the first relevant hit, while **relevant-chunk movement** tracks every labelled passage. A multi-evidence query can therefore improve in MRR while one of its other required chunks regresses. If no natural regression occurs in one environment/model revision, the analysis still reports zero honestly and includes a clearly marked **TEST-ONLY FAILURE INJECTION** to exercise the detector—not a fabricated aggregate improvement.
 
 ---
 
 ## 13. Local latency, not universal latency
 
-The notebook measures first-stage, reranker, and total two-stage duration per query and reports median and p95. These values describe only that run. Latency depends on model size, candidate count, sequence length, CPU/GPU, batching, model warm-up, and serving architecture.
+The notebook measures first-stage, reranker, and total two-stage duration per query and reports median and p95. These values describe only that run. Latency depends on model size, candidate count, sequence length, CPU/GPU, batching, model warm-up, and serving architecture. Even after explicit model warm-up, notebook/runtime caching and backend initialization can influence the measurements.
 
 Use the measurements to compare configurations within the same environment. Do not copy them into a universal service-level objective.
 
