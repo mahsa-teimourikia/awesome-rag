@@ -264,7 +264,7 @@ The notebook is a self-contained incident-policy investigation lab. It keeps the
 
 ## 1. Scenario and evidence corpus
 
-The lab uses 38 synthetic chunks across internal Acme, Globex, and NovaTech sources plus an allowlisted external-source fixture. The data deliberately includes:
+The lab uses 39 synthetic chunks across internal Acme, Globex, and NovaTech sources plus approved and deliberately unapproved external-source fixtures. The data deliberately includes:
 
 - strong and irrelevant matches;
 - exact identifiers that a dense baseline misses;
@@ -276,7 +276,7 @@ The lab uses 38 synthetic chunks across internal Acme, Globex, and NovaTech sour
 - evidence outside the active tenant's authorization scope; and
 - questions that require clarification.
 
-Every chunk has stable document, chunk, source, tenant, classification, status, authority, and coverage metadata. Request-local evidence IDs (`E1`, `E2`, …) make each execution trace readable, while `document_id` and `chunk_id` preserve stable source identity.
+Every chunk has stable document, chunk, source, tenant, classification, status, authority, and coverage metadata. Request-local evidence IDs (`E1`, `E2`, …) make each execution trace readable, while `document_id` and `chunk_id` preserve stable source identity. The fictional Acme policy defines an explicit `public < internal < restricted` classification order; unknown classifications fail closed. This ordering is a teaching policy, not a universal standard.
 
 ## 2. First-stage retrieval is real and local
 
@@ -303,17 +303,17 @@ covered_requirements: list[str]
 missing_requirements: list[str]
 ```
 
-The lab first labels individual evidence items as relevant, irrelevant, stale, duplicate, or unauthorized. It then grades the set against explicit task requirements. This prevents a compound question from being accepted merely because one retrieved passage is relevant.
+The lab first labels individual evidence items as relevant, irrelevant, stale, duplicate, untrusted, or unauthorized. It then grades the set against explicit task requirements. This prevents a compound question from being accepted merely because one retrieved passage is relevant.
 
-Authorization, lifecycle, attempt budgets, and allowed routes are deterministic application controls. The evidence-sufficiency evaluator is replaceable: the default frozen evaluator makes every run repeatable, while an optional `ChatOpenAI.with_structured_output(EvidenceGrade)` path demonstrates a live semantic grader when `CRAG_USE_LIVE_GRADER=1`, `OPENAI_API_KEY`, and `CRAG_MODEL` are configured. A live grader still cannot override deterministic policy.
+Authorization, lifecycle, external-authority eligibility, attempt budgets, and allowed routes are deterministic application controls. The evidence-sufficiency evaluator is replaceable: the default frozen evaluator makes every run repeatable, while an optional `ChatOpenAI.with_structured_output(EvidenceGrade)` path demonstrates a live semantic grader when `CRAG_USE_LIVE_GRADER=1`, `OPENAI_API_KEY`, and `CRAG_MODEL` are configured. A live grader still cannot override deterministic policy. **Live grading is experimental:** do not allow its decisions to control validated routing until it has been compared with the labelled grading set.
 
-The 26-case calibration set measures initial grade accuracy, false acceptance, and unnecessary correction. Treat the notebook's frozen labels as teaching fixtures; calibrate real evaluators on reviewed, domain-specific examples.
+The 27-case calibration set measures initial grade accuracy, false acceptance, and unnecessary correction. Treat the notebook's frozen labels as teaching fixtures; calibrate real evaluators on reviewed, domain-specific examples.
 
 ## 4. Route by diagnosed failure
 
 ![Finite recovery policy](assets/recovery-policy.svg)
 
-The `RecoveryPolicy` allowlists routes and limits attempts. The controller maps diagnosed failures to specific changes:
+The `RecoveryPolicy` allowlists routes, external authority classes, and limits attempts and rewrites. The controller maps diagnosed failures to specific changes:
 
 | Diagnosed failure | Bounded route | What changes |
 |---|---|---|
@@ -338,17 +338,17 @@ same policy
 new allowed retrieval action
 ```
 
-An authorization-limited case terminates as `insufficient_authorized_evidence`. It does not search another tenant or use an external source to reconstruct restricted facts. The authorization-existence signal in the teaching fixture reveals only that eligible evidence is unavailable; it never exposes the forbidden content.
+An authorization-limited case terminates as `insufficient_authorized_evidence`. It does not search another tenant or use an external source to reconstruct restricted facts. The notebook's `labelled_authorization_gap_exists()` helper is explicitly a **synthetic test oracle** used to construct known negative cases. Production application or authorization code must not inspect forbidden documents on a user's behalf, even to decide that a match exists.
 
 ## 6. External evidence changes the trust boundary
 
-The external route searches a finite allowlisted fixture with explicit authority metadata. This makes source selection, provenance, and re-grading executable without making a network call or pretending a fixed string is web search.
+The external route searches a finite fixture, but candidate eligibility admits only current documents whose `authority` belongs to the policy's allowlist: `approved_vendor`, `approved_regulator`, or `approved_status`. A deliberately unapproved `public_notice` covers a regulated factual requirement but is filtered out and cannot produce a `strong` grade. Authority metadata therefore changes behavior; it is not merely recorded for display.
 
 In a deployed system, external retrieval also introduces source-quality, privacy, prompt-injection, egress, retention, and citation risks. "Internal retrieval failed" does **not** imply "search the web." External access must be approved by policy and the returned evidence must pass the same sufficiency checks.
 
 ## 7. Enforce budgets and terminal states
 
-The Python runtime increments `attempts`, applies `max_attempts` and `max_rewrites`, and terminates explicitly:
+The Python runtime increments `attempts`, applies `max_attempts`, `max_rewrites`, allowed-route, external-source, and authority-allowlist controls, and terminates explicitly:
 
 ```text
 answered
@@ -359,7 +359,7 @@ clarification_required
 budget_exhausted
 ```
 
-Two deliberately unsatisfiable compound cases prove that repeated targeted retrieval stops at the configured budget. This is stronger than carrying an unused retry field: the limit is executed and asserted.
+Two deliberately unsatisfiable compound cases prove that repeated targeted retrieval stops at the configured budget. This is stronger than carrying an unused retry field: the limit is executed and asserted. The lab does **not** implement elapsed-time, token, cost, or model-call budgets; those remain explicit production upgrades rather than implied capabilities.
 
 ## 8. Preserve an evidence ledger
 
@@ -369,6 +369,7 @@ Each run records:
 - initial and final grades;
 - failure reasons;
 - attempted routes;
+- each route's before/after grade and newly added evidence IDs;
 - original and rewritten retrieval queries;
 - stable source/document/chunk provenance;
 - recovered evidence IDs;
@@ -392,11 +393,11 @@ Replacing the renderer with a live model does not remove these validation respon
 
 The second implementation uses the current `StateGraph`, `START`, `END`, and conditional-edge APIs. Graph nodes call the same retriever, evaluator, recovery policy, and terminal logic as the manual runtime; the graph is not a second, looser implementation.
 
-The lab checks parity for strong, lexical-recovery, authorization-limited, and budget-exhaustion cases. This is the key framework lesson: LangGraph packages stateful orchestration, but policy semantics still belong to the application.
+The lab checks terminal state, first route, and attempt-count parity across all 27 labelled cases. This is the key framework lesson: LangGraph packages stateful orchestration, but policy semantics still belong to the application.
 
-## 11. Compare fixed RAG with Corrective RAG
+## 11. Compare naive fixed RAG with Corrective RAG
 
-Both systems run on the same 26 cases. The benchmark records:
+Both systems run on the same 27 cases. The benchmark records:
 
 - initial grade and route accuracy;
 - false accepts and unnecessary corrections;
@@ -407,7 +408,9 @@ Both systems run on the same 26 cases. The benchmark records:
 - measured local median and p95 execution time; and
 - unauthorized route attempts.
 
-The displayed results are computed in the notebook run, not hard-coded benchmark claims. Local timings measure this teaching implementation only; they are not service-level latency projections.
+The displayed results are computed in the notebook run, not hard-coded benchmark claims. The fixed baseline is deliberately naive: it retrieves once and answers whenever any candidate exists. A stronger fixed pipeline with deterministic abstention, lifecycle filtering, score thresholds, or reranking would narrow the gap. Local timings measure this teaching implementation only; they are not service-level latency projections.
+
+Route effectiveness is measured per attempt. Every recovery record contains `grade_before`, `grade_after`, and `new_evidence_ids`; a route receives credit only when its own attempt improves evidence or directly reaches `strong`, not because a later route eventually succeeds.
 
 ## 12. Failure analysis before optimization
 
@@ -455,7 +458,7 @@ The notebook deliberately avoids pretending to be a production system. A product
 ## Exercises
 
 1. Add a reranker route for relevant-but-poorly-ranked candidates and prove it is distinct from evidence refinement.
-2. Replace the local dense baseline with an embedding model and rerun all 26 cases.
+2. Replace the local dense baseline with an embedding model and rerun all 27 cases.
 3. Add a monetary or token budget alongside `max_attempts`.
 4. Add a source-authority policy for resolving one conflict, while preserving a terminal path when authority is tied.
 5. Add a third missing facet to a compound request and visualize the requirement coverage after each attempt.
