@@ -380,7 +380,7 @@ The original query is never overwritten by a retrieval rewrite. A separate refin
 
 ## 9. Generate only after evidence acceptance
 
-The credential-free generator renders requirement-backed claims with citations so the controller can be tested without hidden model behavior. Application-side checks verify that:
+The credential-free generator renders requirement-backed claims with citations so the controller can be tested without hidden model behavior. An explicitly enabled `CRAG_USE_LIVE_GENERATOR=1` path uses the configured `CRAG_MODEL` with a typed `GroundedAnswer` contract. Application-side checks verify that:
 
 - generation happens only from `strong` evidence;
 - citation IDs exist in the ledger; and
