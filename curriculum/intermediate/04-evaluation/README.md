@@ -19,7 +19,7 @@ Shared, committed artifacts keep every notebook reproducible:
 | [`data/evaluation_corpus.json`](data/evaluation_corpus.json) | 35 synthetic enterprise chunks with stable IDs, versions, distractors, restricted content, and tenant boundaries |
 | [`data/evaluation_candidates.json`](data/evaluation_candidates.json) | synthetic candidates, including deliberately invalid examples |
 | [`data/evaluation_golden.json`](data/evaluation_golden.json) | 40 reviewed cases across answerability, evidence, risk, and adversarial slices |
-| [`data/frozen_judge_calibration.json`](data/frozen_judge_calibration.json) | 20 human-labelled teaching fixtures for judge calibration |
+| [`data/frozen_judge_calibration.json`](data/frozen_judge_calibration.json) | 20 author-curated teaching references for judge-calibration mechanics |
 
 Run the notebooks in order. Each is independently executable from this directory, but together they implement one evaluation lifecycle.
 
@@ -91,6 +91,8 @@ reviewer_rationale
 
 This is richer than a question/answer/context triple. A release dataset needs stable provenance, evidence requirements, answerability, slices, risk, versions, and review state.
 
+`expected_document_ids` is derived from **required** evidence, not every relevant chunk. A historical version, optional corroborating source, or hard negative may be relevant for evaluation without being required to answer the case.
+
 Synthetic generation is useful for coverage, but generated cases require quality control.
 
 The review lifecycle is explicit:
@@ -133,6 +135,8 @@ Start with deterministic information-retrieval metrics when labels exist:
 | nDCG@k | Did highly relevant evidence rank above weaker evidence? |
 | Evidence completeness | Were all indispensable chunks retrieved? |
 
+In the teaching implementation, Precision@k divides by `k`: unfilled ranks count as non-relevant. Recall and nDCG return `None` when no relevance labels exist, so no-answer cases cannot inflate retrieval aggregates as “perfect” results.
+
 For a multi-evidence question, finding one of two required chunks is not complete even if the first hit looks excellent.
 
 Keep two context concepts distinct:
@@ -154,8 +158,10 @@ The notebook then contrasts faithful/correct, faithful/incomplete, faithful-but-
 Citation quality is also a vector:
 
 - **validity:** does the cited identity resolve to the intended source/version?
-- **correctness:** does the cited passage support its attached claim?
+- **correctness:** does each cited ID belong to the labelled support set for its attached claim?
 - **completeness:** are all material claims cited?
+
+A claim may be supported somewhere in the corpus while citing the wrong source. When claim-level gold support IDs exist, citation correctness is deterministic. Without those labels, claim-to-citation support needs calibrated semantic judgment or human review.
 
 Ragas is demonstrated as a current dataset/metric adapter rather than presented as “four core metrics.” Its available metric catalogue is broader and evolves. Keep the metric contract in your code so framework upgrades do not silently redefine release quality.
 
@@ -281,6 +287,8 @@ Use explicit privacy modes:
 
 Be careful not to log sensitive document text unnecessarily. Provenance IDs and controlled sampling are often safer than indiscriminate full-context logging. If restricted evidence reaches a trace or evaluation export, a later-safe answer does not undo the exposure.
 
+An unsalted hash is not anonymization: predictable, low-entropy queries can be dictionary-attacked. For sensitive production telemetry, prefer opaque trace IDs, controlled pseudonymization, or keyed HMAC identifiers with managed key rotation and access controls.
+
 Online labels are not limited to reference-free scores. They can include delayed expert review, user feedback, case resolution, citation validation, tool outcomes, and business/process outcomes. Each has latency, bias, and privacy limitations.
 
 ---
@@ -312,7 +320,7 @@ dataset version
 per-case label, confidence, and reason
 ```
 
-The lab compares two frozen judge configurations with 20 human-labelled pairs. Those outputs are clearly identified as teaching fixtures; they are not presented as live benchmark results. The optional provider path uses structured Pydantic output and produces a separate experiment.
+The lab compares two frozen judge configurations with 20 **author-curated teaching reference labels**. They demonstrate calibration mechanics but are neither independently reviewed domain-expert annotations nor live benchmark results. The optional provider path uses structured Pydantic output and produces a separate experiment.
 
 Use deterministic checks where possible:
 
@@ -478,7 +486,7 @@ This order makes the failed stage visible. A final-answer-only score cannot tell
 4. Create a prompt-injection case where the retrieved document contains malicious instructions.
 5. Define a hard release block for cross-tenant leakage.
 6. Build an online trace schema that avoids storing unnecessary sensitive text.
-7. Run a structured judge against the human-labelled calibration set and report agreement, confusion counts, and Cohen's kappa.
+7. Run a structured judge against the author-curated calibration set and report agreement, confusion counts, and Cohen's kappa; then describe what expert review would be required before production use.
 8. Add a multi-evidence case whose first relevant hit is present but whose second indispensable chunk is missing.
 9. Promote a reviewed production failure to a regression case without storing raw sensitive context.
 10. Write a release policy that distinguishes hard blockers from quality warnings.

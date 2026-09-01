@@ -113,25 +113,27 @@ def load_cases(name: str = "evaluation_golden.json") -> list[EvalCase]:
 
 
 def precision_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
+    """Precision@k, treating unfilled ranks up to k as non-relevant."""
     top = retrieved[:k]
     return sum(item in relevant for item in top) / k if k else 0.0
 
 
-def recall_at_k(retrieved: list[str], relevant: set[str], k: int) -> float:
-    return sum(item in relevant for item in retrieved[:k]) / len(relevant) if relevant else 1.0
+def recall_at_k(retrieved: list[str], relevant: set[str], k: int) -> float | None:
+    """Return None when recall is undefined because no relevance labels exist."""
+    return sum(item in relevant for item in retrieved[:k]) / len(relevant) if relevant else None
 
 
 def reciprocal_rank(retrieved: list[str], relevant: set[str]) -> float:
     return next((1.0 / rank for rank, item in enumerate(retrieved, 1) if item in relevant), 0.0)
 
 
-def ndcg_at_k(retrieved: list[str], relevance: dict[str, int], k: int) -> float:
+def ndcg_at_k(retrieved: list[str], relevance: dict[str, int], k: int) -> float | None:
     def dcg(grades: list[int]) -> float:
         return sum((2**grade - 1) / math.log2(rank + 1) for rank, grade in enumerate(grades, 1))
 
     actual = dcg([relevance.get(item, 0) for item in retrieved[:k]])
     ideal = dcg(sorted(relevance.values(), reverse=True)[:k])
-    return actual / ideal if ideal else 1.0
+    return actual / ideal if ideal else None
 
 
 def evidence_completeness(retrieved: list[str], required: set[str]) -> float:
@@ -171,11 +173,30 @@ def validate_dataset(cases: list[EvalCase], corpus: list[CorpusChunk]) -> list[s
         unknown_documents = set(case.expected_document_ids) - document_ids
         if unknown_documents:
             errors.append(f"{case.case_id}: unknown document IDs {sorted(unknown_documents)}")
-        derived_documents = {
-            chunk.document_id for chunk in corpus if chunk.chunk_id in case.relevant_evidence_ids
+        required_documents = {
+            chunk.document_id for chunk in corpus if chunk.chunk_id in case.required_evidence_ids
         }
-        if set(case.expected_document_ids) != derived_documents:
+        if set(case.expected_document_ids) != required_documents:
             errors.append(
-                f"{case.case_id}: document IDs do not match relevant chunk provenance"
+                f"{case.case_id}: document IDs do not match required evidence provenance"
             )
     return errors
+
+
+def lexical_retrieve_ids(
+    query: str, corpus: list[CorpusChunk], k: int = 5, *, include_stale: bool = True
+) -> list[str]:
+    """Small inspectable baseline shared by the metric and release-report lessons."""
+    import re
+
+    token_pattern = re.compile(r"[a-z0-9]+")
+    query_tokens = set(token_pattern.findall(query.lower()))
+    eligible = [chunk for chunk in corpus if include_stale or chunk.status == "current"]
+    ranked = sorted(
+        eligible,
+        key=lambda chunk: (
+            -len(query_tokens & set(token_pattern.findall(chunk.text.lower()))),
+            chunk.chunk_id,
+        ),
+    )
+    return [chunk.chunk_id for chunk in ranked[:k]]
