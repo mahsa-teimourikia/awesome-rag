@@ -376,10 +376,24 @@ class QuerySpec(BaseModel):
     dataset: Literal["renewals"]
     filters: list[FilterSpec]
     aggregation: AggregationSpec | None
-    row_limit: int
+    row_limit: int       # returned lookup rows
+    max_scan_rows: int   # aggregation safety budget
 ```
 
-It cannot set `tenant_id`. Trusted application code injects the principal's tenant, enforces the dataset, field, operator, aggregation, row-limit, unit, and currency rules, and returns a structured `ComputationResult`.
+It cannot set `tenant_id`. Trusted application code injects the principal's tenant, branches explicitly between `eq` and `in`, and enforces the dataset, field, operator, aggregation, unit, and currency rules.
+
+Lookup limits and aggregation limits have different semantics:
+
+```text
+lookup
+→ return at most row_limit matching rows
+
+aggregate
+→ scan every authorized matching row
+→ or fail when max_scan_rows would be exceeded
+```
+
+The executor never reports `SUM(first N rows)` as the total. It either computes over the complete authorized match set or terminates with `aggregation_scan_limit_exceeded`.
 
 For numeric questions:
 
@@ -396,6 +410,15 @@ optional natural-language explanation
 ```
 
 `Decimal` is used for material financial values. It provides exact base-10 semantics for the fixture and makes the audited result reproducible. An attempted `USD + EUR` sum terminates with `currency_conversion_required` unless an explicit conversion policy covers every selected currency.
+
+The lab defines conversion direction explicitly:
+
+```text
+conversion_rates[source_currency]
+= target-currency units per 1 source-currency unit
+```
+
+For example, `EUR: 1.10` with target `USD` means `1 EUR → 1.10 USD`. The target currency must map to `1` when it is among the selected currencies. The rates are synthetic teaching fixtures, not market data.
 
 ---
 
@@ -439,7 +462,7 @@ reextract_required
 not_found
 ```
 
-No branch invents a corrected value. The deliberately low-confidence `35M` fixture goes to review; the reading-order failure goes to re-extraction; the duplicate R4 extraction is rejected as a second independent observation.
+No branch invents a corrected value. Recognition uncertainty or structural extraction failure routes to `reextract_required`; a plausible transcription that violates a business range routes to `review_required`. Thus the deliberately low-confidence but parseable `35M` and high-confidence but suspicious `$500M` fixtures require review, while the reading-order failure requires re-extraction. The duplicate R4 extraction is rejected as a second independent observation.
 
 ---
 
@@ -490,7 +513,7 @@ The uploaded-image fixture also contains a prompt injection. It remains untruste
 
 # 8. Lineage, freshness, trust, and contradiction
 
-Visual evidence retains asset, page/frame, region, bounding box, source version, model/version, confidence, and kind. Derived representations add `derived_from`. The context builder deduplicates by underlying lineage, so OCR text, a page image, and a generated summary of one source region do not become three votes.
+Visual evidence retains asset, page/frame, region, bounding box, source version, model/version, confidence, and kind. Derived representations add `derived_from`. The context builder deduplicates **equivalent representations of the same factual observation**, using modality, evidence kind, and lineage. It preserves complementary OCR and visual evidence that happen to share a parent region but answer different operations.
 
 The lab surfaces a deliberate contradiction:
 
@@ -500,7 +523,7 @@ dashboard OCR region R4     → $5.0M
 terminal state              → evidence_conflict
 ```
 
-It does not average the values. Source authority, version, and effective date remain available so an application or reviewer can resolve the conflict explicitly.
+It does not average the values. Source authority, version, and effective date remain available so an application or reviewer can resolve the conflict explicitly. The teaching implementation surfaces these signals; it does not claim to perform automatic authority/freshness conflict resolution.
 
 ---
 
@@ -510,11 +533,15 @@ It does not average the values. Source authority, version, and effective date re
 
 `FinalAnswer` contains typed claims. Every material claim must cite available evidence IDs and declare whether it is computed, observed, inferred, or mixed. Credential-free fixtures demonstrate this validation without requiring an LLM.
 
+Hybrid execution composes the real modality functions: it runs the typed structured query, retrieves the current policy, normalizes visual/OCR records, validates OCR, and deduplicates the resulting evidence. The conflict case likewise derives its two values from `execute_query(...)` and `assess_ocr(...)`; it does not assemble preselected IDs.
+
 ---
 
 # 10. Modality-specific evaluation
 
 The same 30 labelled cases evaluate both an always-text baseline and the operation-aware router. Relative cost units compare paths for teaching; they are not provider pricing. Because the baseline is designed only for text lookup, the aggregate result measures task-suite coverage as well as execution quality. Always inspect the per-modality slices.
+
+The deterministic router and cases are tightly co-designed teaching fixtures. Their reported accuracy verifies that this implementation satisfies its labelled contracts; it is not evidence of real-world model-routing performance. OCR transcription-correctness labels used for the Brier score are also a manually authored **gold evaluation oracle**, not knowledge available to the OCR pipeline itself.
 
 | Evidence type | Primary checks |
 |---|---|
