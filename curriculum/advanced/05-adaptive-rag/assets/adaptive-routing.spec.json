@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "id": "adaptive-routing-controller",
+  "title": "Authorization-aware adaptive routing controller",
+  "purpose": "Show how trusted principal context and query requirements flow through a router proposal, deterministic policy, bounded evidence handlers, and explicit terminal states.",
+  "output": {
+    "svg": "adaptive-routing.svg",
+    "medium": "documentation-and-notebook",
+    "alt_text": "Query and trusted principal context flow through requirement extraction, a route proposal, and deterministic policy. Policy dispatches only authorized routes to direct, internal text, structured, graph, external, or clarify handlers, which return evidence-backed results or explicit terminal states."
+  },
+  "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 64, "grid": 8},
+  "layout": {"primary_flow": "top-to-bottom", "min_node_gap": 40, "min_layer_gap": 64, "node_padding": {"x": 24, "y": 16}},
+  "style": {
+    "font_family": "Inter, Arial, sans-serif",
+    "title_color": "#16324F",
+    "semantic_colors": {
+      "input": {"fill": "#FFFFFF", "stroke": "#D7DEE8"},
+      "analysis": {"fill": "#F0EEFF", "stroke": "#7667E8"},
+      "policy": {"fill": "#FFF1DF", "stroke": "#F59E42"},
+      "evidence": {"fill": "#E5F7F6", "stroke": "#16A3A5"},
+      "terminal": {"fill": "#EAF1FF", "stroke": "#2F6BFF"}
+    }
+  },
+  "groups": [
+    {"id": "sources", "label": "Bounded route handlers", "bounds": {"x": 64, "y": 500, "width": 1472, "height": 208}, "fill": "#FFFFFF", "stroke": "#D7DEE8"}
+  ],
+  "nodes": [
+    {"id": "query", "label": "Query", "type": "input", "bounds": {"x": 160, "y": 152, "width": 248, "height": 80}, "ports": {"out": {"side": "right", "offset": 0.5}}},
+    {"id": "principal", "label": "Trusted principal", "subtitle": "tenant · roles · egress", "type": "input", "bounds": {"x": 160, "y": 272, "width": 248, "height": 96}, "ports": {"out": {"side": "right", "offset": 0.5}}},
+    {"id": "requirements", "label": "Requirements", "subtitle": "freshness · operation · ambiguity", "type": "analysis", "bounds": {"x": 512, "y": 152, "width": 296, "height": 96}, "ports": {"query": {"side": "left", "offset": 0.42}, "out": {"side": "right", "offset": 0.5}}},
+    {"id": "router", "label": "Router proposal", "subtitle": "typed route + confidence band", "type": "analysis", "bounds": {"x": 912, "y": 152, "width": 296, "height": 96}, "ports": {"in": {"side": "left", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "policy", "label": "Deterministic policy", "subtitle": "authorization · budget · fallback", "type": "policy", "bounds": {"x": 912, "y": 320, "width": 296, "height": 104}, "ports": {"proposal": {"side": "top", "offset": 0.5}, "principal": {"side": "left", "offset": 0.5}, "dispatch": {"side": "bottom", "offset": 0.5}}},
+    {"id": "direct", "group": "sources", "label": "DIRECT", "type": "evidence", "bounds": {"x": 96, "y": 568, "width": 192, "height": 80}, "ports": {"in": {"side": "top", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "internal", "group": "sources", "label": "INTERNAL_TEXT", "type": "evidence", "bounds": {"x": 336, "y": 568, "width": 192, "height": 80}, "ports": {"in": {"side": "top", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "structured", "group": "sources", "label": "STRUCTURED", "type": "evidence", "bounds": {"x": 576, "y": 568, "width": 192, "height": 80}, "ports": {"in": {"side": "top", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "graph", "group": "sources", "label": "GRAPH", "type": "evidence", "bounds": {"x": 816, "y": 568, "width": 192, "height": 80}, "ports": {"in": {"side": "top", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "external", "group": "sources", "label": "EXTERNAL", "type": "evidence", "bounds": {"x": 1056, "y": 568, "width": 192, "height": 80}, "ports": {"in": {"side": "top", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "clarify", "group": "sources", "label": "CLARIFY", "type": "evidence", "bounds": {"x": 1296, "y": 568, "width": 192, "height": 80}, "ports": {"in": {"side": "top", "offset": 0.5}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "route_bus", "label": "Authorized handler output", "type": "input", "bounds": {"x": 96, "y": 684, "width": 1392, "height": 40}, "ports": {"p1": {"side": "top", "offset": 0.068966}, "p2": {"side": "top", "offset": 0.241379}, "p3": {"side": "top", "offset": 0.413793}, "p4": {"side": "top", "offset": 0.586207}, "p5": {"side": "top", "offset": 0.758621}, "p6": {"side": "top", "offset": 0.931034}, "out": {"side": "bottom", "offset": 0.5}}},
+    {"id": "result", "label": "Route result + evidence", "subtitle": "stable IDs · cost · terminal state", "type": "terminal", "bounds": {"x": 536, "y": 776, "width": 528, "height": 88}, "ports": {"in": {"side": "top", "offset": 0.5}}}
+  ],
+  "edges": [
+    {"id": "query_to_requirements", "from": {"node": "query", "port": "out"}, "to": {"node": "requirements", "port": "query"}, "route": [[408, 192], [512, 192]]},
+    {"id": "requirements_to_router", "from": {"node": "requirements", "port": "out"}, "to": {"node": "router", "port": "in"}, "route": [[808, 200], [912, 200]]},
+    {"id": "router_to_policy", "from": {"node": "router", "port": "out"}, "to": {"node": "policy", "port": "proposal"}, "route": [[1060, 248], [1060, 320]]},
+    {"id": "principal_to_policy", "from": {"node": "principal", "port": "out"}, "to": {"node": "policy", "port": "principal"}, "route": [[408, 320], [840, 320], [840, 372], [912, 372]]},
+    {"id": "policy_dispatch", "from": {"node": "policy", "port": "dispatch"}, "to": {"node": "direct", "port": "in"}, "route": [[1060, 424], [1060, 480], [192, 480], [192, 568]], "label": "authorized route"},
+    {"id": "dispatch_internal", "from": {"node": "policy", "port": "dispatch"}, "to": {"node": "internal", "port": "in"}, "route": [[1060, 424], [1060, 480], [432, 480], [432, 568]]},
+    {"id": "dispatch_structured", "from": {"node": "policy", "port": "dispatch"}, "to": {"node": "structured", "port": "in"}, "route": [[1060, 424], [1060, 480], [672, 480], [672, 568]]},
+    {"id": "dispatch_graph", "from": {"node": "policy", "port": "dispatch"}, "to": {"node": "graph", "port": "in"}, "route": [[1060, 424], [1060, 480], [912, 480], [912, 568]]},
+    {"id": "dispatch_external", "from": {"node": "policy", "port": "dispatch"}, "to": {"node": "external", "port": "in"}, "route": [[1060, 424], [1152, 424], [1152, 568]]},
+    {"id": "dispatch_clarify", "from": {"node": "policy", "port": "dispatch"}, "to": {"node": "clarify", "port": "in"}, "route": [[1060, 424], [1392, 424], [1392, 568]]},
+    {"id": "direct_to_bus", "from": {"node": "direct", "port": "out"}, "to": {"node": "route_bus", "port": "p1"}, "route": [[192, 648], [192, 684]]},
+    {"id": "internal_to_bus", "from": {"node": "internal", "port": "out"}, "to": {"node": "route_bus", "port": "p2"}, "route": [[432, 648], [432, 684]]},
+    {"id": "structured_to_bus", "from": {"node": "structured", "port": "out"}, "to": {"node": "route_bus", "port": "p3"}, "route": [[672, 648], [672, 684]]},
+    {"id": "graph_to_bus", "from": {"node": "graph", "port": "out"}, "to": {"node": "route_bus", "port": "p4"}, "route": [[912, 648], [912, 684]]},
+    {"id": "external_to_bus", "from": {"node": "external", "port": "out"}, "to": {"node": "route_bus", "port": "p5"}, "route": [[1152, 648], [1152, 684]]},
+    {"id": "clarify_to_bus", "from": {"node": "clarify", "port": "out"}, "to": {"node": "route_bus", "port": "p6"}, "route": [[1392, 648], [1392, 684]]},
+    {"id": "bus_to_result", "from": {"node": "route_bus", "port": "out"}, "to": {"node": "result", "port": "in"}, "route": [[792, 724], [792, 752], [800, 752], [800, 776]], "label": "evidence / terminal"}
+  ],
+  "validation": {"no_overlaps": true, "route_around_nodes": true, "min_text_padding": 16, "min_connector_clearance": 12, "verify_port_attachment": true, "verify_contrast": true},
+  "renderer": "The authoritative coordinates in this specification are rendered deterministically by the repository update script; the committed SVG preserves these exact bounds and routes."
+}
