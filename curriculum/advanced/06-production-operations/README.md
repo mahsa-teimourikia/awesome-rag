@@ -294,7 +294,7 @@ policy
 cache
 ```
 
-Keep the last known-good release bundle and test rollback procedures before incidents.
+Keep the last known-good release bundle and test rollback procedures before incidents. A rollback action is not proof of recovery: rerun the affected case and verify its terminal state, latency, authorization, and freshness behavior against the known-good contract.
 
 ## Safe degradation
 
@@ -459,7 +459,7 @@ request
 
 The lab uses `perf_counter()` around the complete request and every child stage. This is real elapsed time for simulated operations, not a fabricated latency column. Tiny waits keep the full notebook fast.
 
-Trace attributes default to metadata-only mode. Stable evidence IDs, release versions, policy results, counts, and terminal reasons are retained; raw prompts and documents are not. Optional redacted-sample and debug modes demonstrate why elevated telemetry needs explicit access and retention controls.
+Trace attributes default to metadata-only mode. Stable evidence IDs, release versions, policy results, counts, terminal reasons, `authorization_ok`, and `freshness_violation` are retained; raw prompts and documents are not. Authorization attempts, cross-tenant evidence exposure, and forbidden-route execution remain separate signals so blocked attacks are observable without being confused with successful bypasses. The debug mode is explicitly local/testing-only and does not normalize full-payload production logging.
 
 ---
 
@@ -591,7 +591,7 @@ freshness
 
 Hard safety constraints such as cross-tenant isolation should not be averaged with softer quality metrics.
 
-The lab's typed gate returns blockers and warnings. Controlled retrieval-loss, latency, and authorization-bypass mutations prove that failed candidates are rejected. Thresholds are evaluated both absolutely and, where appropriate, relative to the known-good baseline.
+The lab's typed gate returns blockers and warnings under four visible categories: hard invariants, quality blockers, operating limits, and regression warnings. Controlled retrieval-loss, latency, and authorization-bypass mutations prove that failed candidates are rejected. Thresholds are evaluated both absolutely and, where appropriate, relative to the known-good baseline.
 
 ---
 
@@ -613,9 +613,11 @@ Do not invent fixed percentages or monitoring durations as universal rules.
 
 Choose them according to traffic volume and risk.
 
-The teaching canary uses stable-hash assignment and prints its frozen policy before execution. A long-query latency regression causes rollback. This deterministic small sample teaches control flow; a real canary also needs sufficient sample size, a justified observation window, route/risk slices, and named decision ownership.
+The teaching canary uses stable-hash assignment and prints its frozen policy before execution. For reproducibility, the failure-injection exercise intentionally chooses a long-query case ID that belongs to the canary cohort. This demonstrates rollback mechanics, not the probability that random production sampling will discover a rare failure. A real canary needs sufficient cohort size, a justified observation window, representative route/risk slices, and named decision ownership.
 
 Shadow traffic is exercised first: V2 runs beside V1 but its answer is never served. This reduces exposure, not duplicated cost or privacy obligations.
+
+When rollback is requested, the notebook reports the incompatible components—such as prompt, index, or cache—rather than a generic rejection. It then reruns the affected canary case on V1 and verifies behavior before declaring recovery.
 
 ---
 
