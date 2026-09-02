@@ -316,9 +316,9 @@ export const learningPath = [
         material:
           "../curriculum/advanced/05-adaptive-rag/README.md",
         notebook:
-          "../curriculum/advanced/05-adaptive-rag/06_adaptive_rag.ipynb",
+          "../curriculum/advanced/05-adaptive-rag/05_adaptive_rag.ipynb",
         category: "15 - Adaptive RAG",
-        minutes: 150,
+        minutes: 300,
         technologies: [
           "Adaptive RAG",
           "Routing",
