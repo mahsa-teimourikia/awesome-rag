@@ -1,11 +1,9 @@
 # Advanced 06 — Production RAG Operations: Observe, Release, Degrade, and Recover
 
 **Level:** Advanced  
-**Estimated time:** 2–3 hours  
-**Notebook:** [`05_production_operations.ipynb`](05_production_operations.ipynb)  
+**Estimated time:** 4–5 hours
+**Notebook:** [`06_production_operations.ipynb`](06_production_operations.ipynb)
 **Prerequisite:** complete the preceding advanced modules
-
-> **Repository note:** this folder is `06-production-operations`, but the existing notebook is named `05_production_operations.ipynb`. This README intentionally links to the real file.
 
 ---
 
@@ -37,7 +35,7 @@ recoverability
 
 ![Production operating loop](assets/production-operating-loop.svg)
 
-The notebook demonstrates a small subset of this: callback-based LLM timing and simulated cost accounting around a mock LCEL pipeline.
+The notebook turns these ideas into a credential-free Day-2 operations simulation: a versioned RAG release moves through offline gates, shadow traffic, a canary, rollback, degraded modes, incident analysis, and a new regression test.
 
 ---
 
@@ -48,7 +46,8 @@ After this lesson you should be able to:
 - separate service reliability from RAG quality;
 - define service-level objectives and release thresholds;
 - instrument stage-level latency and cost;
-- understand what the notebook's callback does and does not measure;
+- build parent/child traces for every important RAG stage;
+- compute quality, safety, freshness, latency, and cost signals from the same request records;
 - define release gates and canary rollback criteria;
 - distinguish readiness, freshness, and answer quality;
 - design safe degraded modes;
@@ -124,7 +123,7 @@ Avoid turning traces into uncontrolled copies of private prompts and documents.
 
 ## OpenTelemetry and GenAI telemetry
 
-OpenTelemetry's GenAI semantic-convention work provides standardized attributes for model operations, token usage, tool calls, and retrieval-related telemetry. Current guidance treats prompt/message content as potentially sensitive and opt-in.
+OpenTelemetry's evolving GenAI semantic conventions provide vendor-neutral names for model operations, usage, tools, and related telemetry. The specification is still developing, so pin the convention version you implement. Prompt, message, and retrieved-document content can be sensitive and should be opt-in rather than a default trace payload.
 
 This is a useful direction for vendor-neutral observability: instrument the application once and export traces/metrics through standard telemetry infrastructure rather than coupling operational evidence to one model vendor.
 
@@ -425,42 +424,26 @@ Production RAG maturity is the ability to answer these questions consistently—
 
 # Notebook companion
 
-The sections below connect the theory above to the executable notebook, identify deliberate simplifications, and highlight production gaps.
+The notebook is a standalone, locally runnable Day-2 operations workshop. It uses a fictional Meridian Policy Assistant and deterministic fixtures so learners can inspect every control without credentials or network calls. The numbers are reproducible teaching signals, not claims about a hosted model or vector database.
 
-# 1. What the notebook actually implements
+# 1. Follow one release through its operating lifecycle
 
-The notebook:
+The lab follows one coherent sequence:
 
-- defines example SLO concepts;
-- defines a "cost per grounded answer" idea;
-- creates `ProductionMetricsCallback`;
-- measures LLM callback latency;
-- estimates cost from **character length** using simulated prices;
-- runs a mock retrieval + prompt + fake LLM pipeline.
+```text
+known-good V1 → candidate diff → 36-case offline gate
+      → shadow comparison → frozen canary policy
+      → latency incident → full-bundle rollback
+      → incident-derived regression → V2.1 verification
+```
 
-This is useful instrumentation training.
-
-It is not production billing or complete distributed tracing.
+The workload includes normal lookup, multi-evidence questions, freshness-sensitive requests, identifiers, no-answer cases, authorization boundaries, high-risk policies, latency outliers, and missing reranker/verifier dependencies. V1 and V2 use the same ordered dataset so comparisons are meaningful.
 
 ---
 
-# 2. Important instrumentation limitation
+# 2. Inspect an explicit request trace
 
-`mock_retrieve` is a plain Python function.
-
-It does not emit LangChain retriever callback events.
-
-Therefore the custom callback does **not** actually record retrieval latency as a retriever span.
-
-The notebook also accumulates:
-
-```text
-total LLM latency
-```
-
-rather than true end-to-end latency.
-
-For production, capture explicit spans:
+Every run captures a parent request plus child stages:
 
 ```text
 request
@@ -474,23 +457,17 @@ request
 
 ![Trace spans](assets/trace-spans.svg)
 
+The lab uses `perf_counter()` around the complete request and every child stage. This is real elapsed time for simulated operations, not a fabricated latency column. Tiny waits keep the full notebook fast.
+
+Trace attributes default to metadata-only mode. Stable evidence IDs, release versions, policy results, counts, and terminal reasons are retained; raw prompts and documents are not. Optional redacted-sample and debug modes demonstrate why elevated telemetry needs explicit access and retention controls.
+
 ---
 
-# 3. Cost estimates are simulated
+# 3. Separate usage records from prices
 
-The notebook estimates token cost from character lengths and hard-coded example rates.
+The notebook uses deterministic token-usage fixtures rather than character-count estimates. A full route cost includes input/output tokens, model calls, retrieval, reranking, verification, external access, and retries.
 
-Do not use those values for financial planning.
-
-Production accounting should use:
-
-- actual provider usage metadata where available;
-- actual local-inference resource accounting;
-- current model/provider pricing;
-- infrastructure cost allocation;
-- external-tool/API costs.
-
-Pricing changes over time.
+The results are labelled **synthetic cost units**. Do not use them for financial planning. A deployed system should use provider usage metadata, local-inference resource accounting, current external-service charges, infrastructure allocation, and telemetry costs.
 
 ---
 
@@ -516,9 +493,11 @@ Count successful cases directly whenever possible.
 
 ---
 
-# 5. SLOs are application-specific
+# 5. Keep SLOs and release thresholds application-specific
 
-The notebook's values such as:
+The notebook's latency, quality, and error-budget values are teaching policy, not universal RAG standards. Set them from user workflow, business impact, risk class, dependency behavior, and cost envelope.
+
+Keep service objectives separate from quality release thresholds:
 
 ```text
 p95 < 3 seconds
@@ -528,16 +507,6 @@ p95 < 3 seconds
 are examples.
 
 They are not universal RAG standards.
-
-Set SLOs from:
-
-- user workflow;
-- business impact;
-- dependency reliability;
-- risk class;
-- cost envelope.
-
-Also separate:
 
 ### Service SLO
 
@@ -602,6 +571,8 @@ generation model
 
 Without this bundle, rollback and incident reconstruction become guesswork.
 
+The notebook represents this as a typed `ReleaseBundle` and prints the complete V1→V2 diff before promotion. Rollback restores the recorded last-known-good bundle rather than changing only the model or application version.
+
 ---
 
 # 8. Release gate
@@ -619,6 +590,8 @@ freshness
 ```
 
 Hard safety constraints such as cross-tenant isolation should not be averaged with softer quality metrics.
+
+The lab's typed gate returns blockers and warnings. Controlled retrieval-loss, latency, and authorization-bypass mutations prove that failed candidates are rejected. Thresholds are evaluated both absolutely and, where appropriate, relative to the known-good baseline.
 
 ---
 
@@ -639,6 +612,10 @@ owner
 Do not invent fixed percentages or monitoring durations as universal rules.
 
 Choose them according to traffic volume and risk.
+
+The teaching canary uses stable-hash assignment and prints its frozen policy before execution. A long-query latency regression causes rollback. This deterministic small sample teaches control flow; a real canary also needs sufficient sample size, a justified observation window, route/risk slices, and named decision ownership.
+
+Shadow traffic is exercised first: V2 runs beside V1 but its answer is never served. This reduces exposure, not duplicated cost or privacy obligations.
 
 ---
 
@@ -663,6 +640,8 @@ skip authorization
 skip citation validation
 silently use stale data
 ```
+
+The notebook tests a predeclared dependency matrix for reranker, external source, verifier, and fresh-index failures across low- and high-risk requests. It also exposes retry amplification and a circuit-breaker decision so dependency failure cannot become an unbounded loop.
 
 ---
 
@@ -692,6 +671,8 @@ Do not automatically log:
 
 Use redaction and retention policies.
 
+Prefer metadata-only telemetry by default. Keep raw prompts and documents behind a distinct, audited debug mode. Also avoid high-cardinality metric labels; stable identifiers belong in traces or controlled logs.
+
 ---
 
 # 12. Incident loop
@@ -714,45 +695,53 @@ add regression case
 
 Production incidents should improve the evaluation suite.
 
+The canary failure becomes a structured incident record and then a long-query regression case. V2.1 must pass the expanded dataset before it can be reconsidered. This gives the evaluation suite operational memory instead of leaving the lesson at “write a postmortem.”
+
 ---
 
 # 13. Exercises
 
-1. Add explicit timers around retrieval and generation.
-2. Compute true end-to-end latency.
-3. Replace character-based token estimates with a real tokenizer or provider usage record.
-4. Define `successful_supported_answer` as a per-case boolean and compute cost per success.
-5. Simulate stale-index policy and safe degradation.
-6. Define a release bundle with all relevant versions.
-7. Create a canary rollback condition.
-8. Redesign the trace schema to avoid storing raw sensitive text.
+1. Add a retrieval timeout budget and prove it cannot consume the generation budget.
+2. Introduce an index/schema mismatch and extend rollback compatibility checks.
+3. Add a fourth release failure: an invalid citation on a critical route.
+4. Calculate retry amplification by dependency and terminal reason.
+5. Add route-specific thresholds without hiding global security invariants.
+6. Add a test that fails when raw document text enters metadata-only telemetry.
+7. Replace the in-memory collector with OpenTelemetry spans while preserving the trace schema.
+8. Design a canary sample size and observation window for an expected production traffic volume.
+9. Add cache namespaces and prove incompatible V1/V2 entries cannot collide.
+10. Turn an authorization incident into a regression case that hard-blocks release.
 
 ---
 
 # 14. Checkpoint
 
-1. What does the notebook callback actually measure?
-2. Why is character count not reliable billing data?
-3. How should cost per successful supported answer be calculated?
-4. What is the difference between readiness and freshness?
-5. Why are example SLO numbers not universal?
-6. Which failures should hard-block a release?
-7. What should safe degradation preserve?
-8. What information is required for rollback?
+1. Why must a release bundle contain more than the model name?
+2. Which signals are hard blockers, and which are operational warnings?
+3. What risk does shadow traffic reduce, and which costs and risks remain?
+4. Why must canary thresholds be frozen before inspecting candidate outcomes?
+5. How does cost per successful supported answer differ from average request cost?
+6. Why can readiness be green while freshness is red?
+7. What must a safe degraded mode always preserve?
+8. How can retries increase both latency and incident severity?
+9. What makes a rollback bundle compatible?
+10. What durable artifact should every production incident add to the release process?
 
 ---
 
 # References
 
-- OpenTelemetry — [Documentation](https://opentelemetry.io/docs/)
+- OpenTelemetry — [Semantic conventions](https://opentelemetry.io/docs/specs/semconv/)
+- OpenTelemetry — [Generative AI attribute registry](https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai/)
 - Google SRE — [Service Level Objectives](https://sre.google/sre-book/service-level-objectives/)
+- Google SRE Workbook — [Canarying Releases](https://sre.google/workbook/canarying-releases/)
+- Arize Phoenix — [Tracing documentation](https://arize.com/docs/phoenix/tracing)
+- LangSmith — [Observability documentation](https://docs.langchain.com/langsmith/observability)
+- Grafana Cloud — [AI agent observability](https://grafana.com/docs/grafana-cloud/observe-and-act/agent-observability/)
+- Datadog — [LLM Observability](https://docs.datadoghq.com/llm_observability/)
 - Qdrant — [Production documentation](https://qdrant.tech/documentation/guides/installation/)
 - NIST — [AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
 - OWASP — [Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
-
----
-- OpenTelemetry — [GenAI observability](https://opentelemetry.io/blog/2026/genai-observability/)
-- OpenTelemetry — [Semantic conventions](https://opentelemetry.io/docs/specs/semconv/)
 
 ## Key takeaway
 
