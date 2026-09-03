@@ -431,7 +431,7 @@ const content = {
     bestPractices: [
       "Separate readiness, freshness, offline quality, and online behavior",
       "Use stage-level spans to localize latency and quality regressions",
-      "Compute cost from real usage data rather than simulated character counts",
+      "Use provider-reported usage and include retrieval, reranking, verification, external calls, and retries in route cost",
       "Version the complete RAG release bundle for reproducibility and rollback",
       "Degrade optional capability without weakening authorization or evidence controls",
     ],
