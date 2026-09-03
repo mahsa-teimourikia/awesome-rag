@@ -1,0 +1,28 @@
+{
+  "version": 1, "id": "incident-lifecycle", "title": "RAG incident lifecycle",
+  "subtitle": "Restore a safe state first; preserve evidence; convert the failure into a permanent test.",
+  "alt_text": "An incident lifecycle from detection and classification through containment, investigation, rollback or fix, verification, regression test, and postmortem.",
+  "output": "incident-lifecycle.svg", "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 60},
+  "nodes": [
+    {"id": "detect", "label": "Detect", "subtitle": "signal + impact", "type": "danger", "x": 90, "y": 230, "width": 170, "height": 100, "ports": {"out": {"side": "right"}}},
+    {"id": "classify", "label": "Classify", "subtitle": "quality · safety · ops", "type": "action", "x": 350, "y": 230, "width": 190, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "contain", "label": "Contain", "subtitle": "disable route · rollback", "type": "danger", "x": 640, "y": 230, "width": 200, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "investigate", "label": "Investigate", "subtitle": "trace + versions", "type": "agent", "x": 940, "y": 230, "width": 190, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "fix", "label": "Rollback or fix", "subtitle": "compatible safe state", "type": "action", "x": 1230, "y": 230, "width": 220, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "bottom"}}},
+    {"id": "verify", "label": "Verify recovery", "subtitle": "hard invariants first", "type": "service", "x": 1230, "y": 500, "width": 220, "height": 100, "ports": {"in": {"side": "top"}, "out": {"side": "left"}}},
+    {"id": "regression", "label": "Add regression case", "subtitle": "reproduce root cause", "type": "data", "x": 820, "y": 500, "width": 230, "height": 100, "ports": {"in": {"side": "right"}, "out": {"side": "left"}}},
+    {"id": "postmortem", "label": "Postmortem + control update", "type": "operations", "x": 380, "y": 500, "width": 270, "height": 100, "ports": {"in": {"side": "right"}, "out": {"side": "bottom"}}},
+    {"id": "monitor", "label": "Monitor the changed control", "type": "operations", "x": 380, "y": 710, "width": 270, "height": 70, "ports": {"in": {"side": "top"}, "loop": {"side": "left"}}}
+  ],
+  "edges": [
+    {"id": "i1", "from": {"node": "detect", "port": "out"}, "to": {"node": "classify", "port": "in"}},
+    {"id": "i2", "from": {"node": "classify", "port": "out"}, "to": {"node": "contain", "port": "in"}},
+    {"id": "i3", "from": {"node": "contain", "port": "out"}, "to": {"node": "investigate", "port": "in"}},
+    {"id": "i4", "from": {"node": "investigate", "port": "out"}, "to": {"node": "fix", "port": "in"}},
+    {"id": "i5", "from": {"node": "fix", "port": "out"}, "to": {"node": "verify", "port": "in"}},
+    {"id": "i6", "from": {"node": "verify", "port": "out"}, "to": {"node": "regression", "port": "in"}},
+    {"id": "i7", "from": {"node": "regression", "port": "out"}, "to": {"node": "postmortem", "port": "in"}},
+    {"id": "i8", "from": {"node": "postmortem", "port": "out"}, "to": {"node": "monitor", "port": "in"}},
+    {"id": "i9", "from": {"node": "monitor", "port": "loop"}, "to": {"node": "detect", "port": "out"}, "route": [[160, 745], [160, 390], [260, 390]], "label": "new signal", "label_at": [165, 550]}
+  ]
+}

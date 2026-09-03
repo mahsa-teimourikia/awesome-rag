@@ -22,7 +22,11 @@ TRACKS = ("beginner", "enterprise", "evaluation", "adaptive-rag")
 
 def notebook_paths() -> list[Path]:
     scenario_tracks = [path for track in TRACKS for path in sorted((ROOT / "notebooks" / track).glob("*.ipynb"))]
-    curriculum = [p for p in sorted((ROOT / "curriculum").glob("*/*/*.ipynb")) if "capstone" not in p.parts[-2]]
+    curriculum = [
+        path
+        for path in sorted((ROOT / "curriculum").glob("*/*/*.ipynb"))
+        if "capstone" not in path.parts[-2] or path.parts[-2] == "07-enterprise-rag-capstone"
+    ]
     use_cases = sorted((ROOT / "use-cases").glob("*/*.ipynb"))
     return scenario_tracks + curriculum + use_cases
 

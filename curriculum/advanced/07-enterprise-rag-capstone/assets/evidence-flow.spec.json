@@ -1,0 +1,30 @@
+{
+  "version": 1, "id": "evidence-flow", "title": "One evidence contract across heterogeneous sources",
+  "subtitle": "Normalization preserves modality, kind, authority, version, locator, tenancy, and derivation.",
+  "alt_text": "Six source-specific evidence types flow into a common Evidence contract, then quality validation, an evidence ledger, and claim-linked answers.",
+  "output": "evidence-flow.svg", "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 60},
+  "groups": [{"id": "inputs", "label": "Source adapters", "x": 70, "y": 140, "width": 700, "height": 620, "fill": "#FBFFFE"}, {"id": "contract", "label": "Shared evidence plane", "x": 850, "y": 140, "width": 680, "height": 620, "fill": "#FBFCFF"}],
+  "nodes": [
+    {"id": "text", "label": "Text chunk", "type": "data", "x": 110, "y": 210, "width": 180, "height": 78, "ports": {"out": {"side": "right"}}},
+    {"id": "row", "label": "Database row", "type": "data", "x": 110, "y": 345, "width": 180, "height": 78, "ports": {"out": {"side": "right"}}},
+    {"id": "edge", "label": "Graph relation", "type": "data", "x": 110, "y": 480, "width": 180, "height": 78, "ports": {"out": {"side": "right"}}},
+    {"id": "ocr", "label": "OCR region", "type": "data", "x": 520, "y": 210, "width": 180, "height": 78, "ports": {"out": {"side": "right"}}},
+    {"id": "visual", "label": "Visual observation", "type": "data", "x": 520, "y": 345, "width": 180, "height": 78, "ports": {"out": {"side": "right"}}},
+    {"id": "external", "label": "Approved external item", "type": "data", "x": 520, "y": 480, "width": 180, "height": 78, "ports": {"out": {"side": "right"}}},
+    {"id": "normalize", "label": "Evidence contract", "subtitle": "observed · computed · inferred", "type": "agent", "x": 900, "y": 270, "width": 240, "height": 130, "ports": {"in1": {"side": "left", "offset": 0.25}, "in2": {"side": "left", "offset": 0.5}, "in3": {"side": "left", "offset": 0.75}, "out": {"side": "right"}}},
+    {"id": "quality", "label": "Eligibility + quality", "type": "action", "x": 1240, "y": 270, "width": 220, "height": 130, "ports": {"in": {"side": "left"}, "down": {"side": "bottom"}}},
+    {"id": "ledger", "label": "Evidence ledger", "type": "data", "x": 1240, "y": 500, "width": 220, "height": 90, "ports": {"in": {"side": "top"}, "out": {"side": "left"}}},
+    {"id": "claims", "label": "Claims cite evidence IDs", "type": "service", "x": 900, "y": 500, "width": 240, "height": 90, "ports": {"in": {"side": "right"}}}
+  ],
+  "edges": [
+    {"id": "t", "from": {"node": "text", "port": "out"}, "to": {"node": "normalize", "port": "in1"}, "route": [[360, 249], [360, 302], [900, 302]]},
+    {"id": "r", "from": {"node": "row", "port": "out"}, "to": {"node": "normalize", "port": "in2"}, "route": [[360, 384], [360, 335], [900, 335]]},
+    {"id": "g", "from": {"node": "edge", "port": "out"}, "to": {"node": "normalize", "port": "in3"}, "route": [[360, 519], [360, 368], [900, 368]]},
+    {"id": "o", "from": {"node": "ocr", "port": "out"}, "to": {"node": "normalize", "port": "in1"}, "route": [[790, 249], [790, 302]]},
+    {"id": "v", "from": {"node": "visual", "port": "out"}, "to": {"node": "normalize", "port": "in2"}, "route": [[790, 384], [790, 335]]},
+    {"id": "x", "from": {"node": "external", "port": "out"}, "to": {"node": "normalize", "port": "in3"}, "route": [[790, 519], [790, 368]]},
+    {"id": "nq", "from": {"node": "normalize", "port": "out"}, "to": {"node": "quality", "port": "in"}},
+    {"id": "ql", "from": {"node": "quality", "port": "down"}, "to": {"node": "ledger", "port": "in"}},
+    {"id": "lc", "from": {"node": "ledger", "port": "out"}, "to": {"node": "claims", "port": "in"}}
+  ]
+}
