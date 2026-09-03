@@ -1,0 +1,58 @@
+name: Curriculum or documentation improvement
+description: Suggest a correction or focused improvement to a course, notebook, example, reference, or site page.
+title: "[Content]: "
+labels:
+  - documentation
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Content location
+      description: Link to the exact file, notebook section, or page.
+      placeholder: curriculum/advanced/03-agentic-rag/README.md — Corrective retrieval
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Improvement type
+      options:
+        - Technical correction
+        - Missing explanation or prerequisite
+        - Broken or outdated reference
+        - Notebook or exercise improvement
+        - Accessibility or diagram issue
+        - Navigation or discoverability
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current problem
+      description: Explain what is inaccurate, unclear, incomplete, or difficult to use.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed improvement
+      description: Describe the smallest coherent change that would solve the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: Link primary research, standards, specifications, or official documentation when the request changes technical claims.
+      placeholder: https://…
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and pull requests for this suggestion.
+          required: true
+        - label: I checked the current `main` branch, not an older deployment or branch.
+          required: true
+
