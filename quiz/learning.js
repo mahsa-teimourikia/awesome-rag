@@ -335,9 +335,9 @@ export const learningPath = [
         material:
           "../curriculum/advanced/06-production-operations/README.md",
         notebook:
-          "../curriculum/advanced/06-production-operations/05_production_operations.ipynb",
+          "../curriculum/advanced/06-production-operations/06_production_operations.ipynb",
         category: "16 - Production Operations",
-        minutes: 150,
+        minutes: 270,
         technologies: [
           "Observability",
           "Tracing",

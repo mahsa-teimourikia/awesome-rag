@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="operating-loop-title operating-loop-desc">
+<title id="operating-loop-title">Production RAG operating loop</title>
+<desc id="operating-loop-desc">A release operations loop connecting evaluation, deployment, observation, incident response, rollback, and regression testing.</desc>
 <rect width="1200" height="420" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
