@@ -172,6 +172,20 @@ export const learningPath = [
           "../curriculum/intermediate/04-evaluation/README.md",
         notebook:
           "../curriculum/intermediate/04-evaluation/01_building_eval_datasets.ipynb",
+        notebooks: [
+          "../curriculum/intermediate/04-evaluation/01_building_eval_datasets.ipynb",
+          "../curriculum/intermediate/04-evaluation/02_ragas_metrics.ipynb",
+          "../curriculum/intermediate/04-evaluation/03_safety_and_robustness.ipynb",
+          "../curriculum/intermediate/04-evaluation/04_continuous_evaluation.ipynb",
+        ],
+        notebookLabels: [
+          "Build evaluation datasets",
+          "Retrieval and generation metrics",
+          "Safety and robustness",
+          "Continuous evaluation",
+        ],
+        implementation:
+          "../curriculum/intermediate/04-evaluation/evaluation_contracts.py",
         category: "08 - RAG Evaluation",
         minutes: 240,
         technologies: [
@@ -356,6 +370,8 @@ export const learningPath = [
           "../curriculum/advanced/07-enterprise-rag-capstone/README.md",
         notebook:
           "../curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
+        implementation:
+          "../curriculum/advanced/07-enterprise-rag-capstone/lab.py",
         category: "17 - Enterprise RAG Platform Capstone",
         minutes: 600,
         technologies: [
@@ -399,6 +415,7 @@ const questionIdsByCategory = {
   "Capstone - Enterprise RAG": [
     "b5-q1",
     "b5-q2",
+    "b5-q3",
   ],
 
   "05 - Retrieval Strategies": [
@@ -483,6 +500,9 @@ const questionIdsByCategory = {
 export const allLessons = learningPath.flatMap((track) =>
   track.modules.map((module) => ({
     ...module,
+    notebooks: module.notebooks ?? [module.notebook],
+    notebookLabels:
+      module.notebookLabels ?? [module.title],
     level: track.level,
     tone: track.tone,
     trackId: track.id,
