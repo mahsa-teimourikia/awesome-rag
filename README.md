@@ -256,7 +256,13 @@ Useful guidance: [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Prefer primary sources, active open-source projects, and a short explanation of why each link belongs here.
+Contributions are welcome. Please read the [contribution guide](CONTRIBUTING.md) before opening a pull request. Prefer primary sources, active open-source projects, and a short explanation of why each link belongs here.
+
+Community standards and help:
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Support and issue-routing guide](SUPPORT.md)
+- [Security policy and private reporting](SECURITY.md)
 
 ## License
 

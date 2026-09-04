@@ -1,0 +1,77 @@
+name: Bug report
+description: Report a reproducible problem in code, notebooks, tests, the Learning Hub, or the quiz.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Awesome RAG. Do not include credentials, private data, or unredacted security findings.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Curriculum README
+        - Notebook
+        - Python lab or shared code
+        - Learning Hub
+        - Quiz
+        - Setup, tests, or CI
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: path
+    attributes:
+      label: File, course, or page
+      description: Give the repository path or public page URL when possible.
+      placeholder: curriculum/intermediate/04-evaluation/04_continuous_evaluation.ipynb
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem and the behavior you expected.
+      placeholder: I expected …, but instead …
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Include the smallest reliable sequence, command, or notebook cells that reproduce the problem.
+      placeholder: |
+        1. Install with …
+        2. Open …
+        3. Run …
+        4. Observe …
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Python and/or Node version, browser, and relevant package versions.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste a short redacted traceback, test failure, or screenshot. Remove secrets and personal data.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I removed credentials, private data, and sensitive security details.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true
