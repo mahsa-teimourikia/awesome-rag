@@ -258,6 +258,25 @@ export const questions = [
   },
 
   {
+    id: "b5-q3",
+    category: "Capstone - Enterprise RAG",
+    prompt: "Which practices make an enterprise RAG answer auditable?",
+    options: [
+      "Carry stable evidence IDs and source versions into the answer's claim records.",
+      "Validate that every cited evidence ID was actually available to the response.",
+      "Keep retrieval and generation outcomes separately observable.",
+      "Let the model invent readable source names when metadata is missing."
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "Auditability requires traceable evidence identity, versioned provenance, citation validation, and visibility into both retrieval and generation. A model-generated source name is not provenance.",
+    source: {
+      label: "Enterprise RAG Capstone",
+      url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+    },
+  },
+
+  {
     id: "i1-q1",
     category: "05 - Retrieval Strategies",
     prompt: "Which query types often benefit from lexical or sparse retrieval signals?",
