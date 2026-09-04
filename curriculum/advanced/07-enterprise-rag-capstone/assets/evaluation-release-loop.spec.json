@@ -1,29 +1,35 @@
 {
-  "version": 1, "id": "evaluation-release-loop", "title": "Evaluation and release loop",
+  "version": 2,
+  "id": "evaluation-release-loop",
+  "title": "Evaluation and release loop",
   "subtitle": "Hard safety invariants block a release regardless of average quality.",
   "alt_text": "A release loop from versioned evaluation cases through offline evaluation, a release gate, shadow and canary stages, promotion or rollback, and incident-derived regression tests.",
-  "output": "evaluation-release-loop.svg", "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 60},
+  "output": "evaluation-release-loop.svg",
+  "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 60, "grid": 10},
+  "style": {"font_family": "Inter, Arial, sans-serif", "title_color": "#16324F", "connector_color": "#52606D", "semantic_colors": {"service": {"fill": "#EAF1FF", "stroke": "#2F6BFF"}, "agent": {"fill": "#F0EEFF", "stroke": "#7667E8"}, "data": {"fill": "#E5F7F6", "stroke": "#16A3A5"}, "action": {"fill": "#FFF1DF", "stroke": "#F59E42"}, "operations": {"fill": "#FFFFFF", "stroke": "#8A98A8"}, "danger": {"fill": "#FFF0F0", "stroke": "#D64545"}}},
+  "layout": {"primary_flow": "left-to-right", "min_node_gap": 60, "min_layer_gap": 100},
   "nodes": [
-    {"id": "dataset", "label": "Versioned evaluation set", "type": "data", "x": 90, "y": 225, "width": 210, "height": 95, "ports": {"out": {"side": "right"}, "regression": {"side": "bottom"}}},
-    {"id": "offline", "label": "Offline scorecards", "type": "agent", "x": 390, "y": 225, "width": 210, "height": 95, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
-    {"id": "gate", "label": "PROMOTE · HOLD · BLOCK", "type": "action", "x": 690, "y": 215, "width": 230, "height": 115, "wrap": 14, "ports": {"in": {"side": "left"}, "out": {"side": "right"}, "block": {"side": "bottom"}}},
-    {"id": "shadow", "label": "Shadow", "type": "operations", "x": 1030, "y": 225, "width": 150, "height": 95, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
-    {"id": "canary", "label": "Canary", "type": "operations", "x": 1280, "y": 225, "width": 150, "height": 95, "ports": {"in": {"side": "left"}, "out": {"side": "bottom"}}},
-    {"id": "promote", "label": "Promote", "type": "service", "x": 1260, "y": 465, "width": 190, "height": 90, "ports": {"in": {"side": "top"}, "incident": {"side": "left"}}},
-    {"id": "rollback", "label": "Rollback / contain", "type": "danger", "x": 690, "y": 465, "width": 230, "height": 90, "ports": {"gate": {"side": "top"}, "incident": {"side": "right"}, "out": {"side": "bottom"}}},
-    {"id": "incident", "label": "Incident analysis", "type": "action", "x": 990, "y": 465, "width": 180, "height": 90, "ports": {"fromprod": {"side": "right"}, "out": {"side": "left"}, "regression": {"side": "bottom"}}},
-    {"id": "regression", "label": "New regression case", "type": "data", "x": 740, "y": 700, "width": 210, "height": 90, "ports": {"in": {"side": "top"}, "out": {"side": "left"}}}
+    {"id": "dataset", "label": "Versioned evaluation set", "type": "data", "x": 70, "y": 210, "width": 220, "height": 100, "ports": {"out": {"side": "right"}, "regression": {"side": "bottom"}}},
+    {"id": "offline", "label": "Offline scorecards", "type": "agent", "x": 360, "y": 210, "width": 220, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "gate", "label": "PROMOTE · HOLD · BLOCK", "type": "action", "x": 650, "y": 200, "width": 250, "height": 120, "wrap": 15, "ports": {"in": {"side": "left"}, "out": {"side": "right"}, "block": {"side": "bottom"}}},
+    {"id": "shadow", "label": "Shadow", "type": "operations", "x": 1010, "y": 210, "width": 170, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "canary", "label": "Canary", "type": "operations", "x": 1280, "y": 210, "width": 170, "height": 100, "ports": {"in": {"side": "left"}, "out": {"side": "bottom"}}},
+    {"id": "rollback", "label": "Rollback / contain", "type": "danger", "x": 650, "y": 480, "width": 250, "height": 100, "ports": {"gate": {"side": "top"}, "incident": {"side": "right"}}},
+    {"id": "incident", "label": "Incident analysis", "type": "action", "x": 980, "y": 480, "width": 210, "height": 100, "ports": {"fromprod": {"side": "right"}, "out": {"side": "left"}, "regression": {"side": "bottom"}}},
+    {"id": "promote", "label": "Promote", "type": "service", "x": 1280, "y": 480, "width": 170, "height": 100, "ports": {"in": {"side": "top"}, "incident": {"side": "left"}}},
+    {"id": "regression", "label": "New regression case", "type": "data", "x": 650, "y": 700, "width": 250, "height": 100, "ports": {"in": {"side": "top"}, "out": {"side": "left"}}}
   ],
   "edges": [
     {"id": "r1", "from": {"node": "dataset", "port": "out"}, "to": {"node": "offline", "port": "in"}},
     {"id": "r2", "from": {"node": "offline", "port": "out"}, "to": {"node": "gate", "port": "in"}},
-    {"id": "r3", "from": {"node": "gate", "port": "out"}, "to": {"node": "shadow", "port": "in"}, "label": "pass", "label_at": [975, 265]},
+    {"id": "r3", "from": {"node": "gate", "port": "out"}, "to": {"node": "shadow", "port": "in"}, "label": "pass", "label_at": [955, 260], "label_width": 88},
     {"id": "r4", "from": {"node": "shadow", "port": "out"}, "to": {"node": "canary", "port": "in"}},
     {"id": "r5", "from": {"node": "canary", "port": "out"}, "to": {"node": "promote", "port": "in"}},
-    {"id": "r6", "from": {"node": "gate", "port": "block"}, "to": {"node": "rollback", "port": "gate"}, "label": "hard blocker", "label_at": [805, 400]},
+    {"id": "r6", "from": {"node": "gate", "port": "block"}, "to": {"node": "rollback", "port": "gate"}, "label": "hard blocker", "label_at": [775, 405], "label_width": 112},
     {"id": "r7", "from": {"node": "promote", "port": "incident"}, "to": {"node": "incident", "port": "fromprod"}},
     {"id": "r8", "from": {"node": "incident", "port": "out"}, "to": {"node": "rollback", "port": "incident"}},
-    {"id": "r9", "from": {"node": "incident", "port": "regression"}, "to": {"node": "regression", "port": "in"}, "route": [[1080, 640], [845, 640]]},
-    {"id": "r10", "from": {"node": "regression", "port": "out"}, "to": {"node": "dataset", "port": "regression"}, "route": [[430, 745], [195, 745]]}
-  ]
+    {"id": "r9", "from": {"node": "incident", "port": "regression"}, "to": {"node": "regression", "port": "in"}, "route": [[1085, 640], [775, 640]]},
+    {"id": "r10", "from": {"node": "regression", "port": "out"}, "to": {"node": "dataset", "port": "regression"}, "route": [[540, 750], [540, 840], [180, 840]]}
+  ],
+  "validation": {"no_overlaps": true, "route_around_nodes": true, "min_text_padding": 16, "min_connector_clearance": 8, "verify_port_attachment": true, "verify_contrast": true}
 }

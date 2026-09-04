@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -9,7 +10,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 COURSE = ROOT / "curriculum" / "advanced" / "07-enterprise-rag-capstone"
 sys.path.insert(0, str(COURSE))
+sys.path.insert(0, str(COURSE / "assets"))
 import lab  # noqa: E402
+import render_diagrams  # noqa: E402
 
 
 def test_fixture_has_enterprise_scale_and_all_modalities():
@@ -124,5 +127,9 @@ def test_cache_keys_include_authorization_scope():
 def test_notebook_and_diagrams_exist():
     assert (COURSE / "07_enterprise_rag_capstone.ipynb").exists()
     for name in ("reference-architecture", "evidence-flow", "control-plane", "evaluation-release-loop", "incident-lifecycle"):
-        assert (COURSE / "assets" / f"{name}.svg").exists()
-        assert (COURSE / "assets" / f"{name}.spec.json").exists()
+        svg_path = COURSE / "assets" / f"{name}.svg"
+        spec_path = COURSE / "assets" / f"{name}.spec.json"
+        assert svg_path.exists()
+        assert spec_path.exists()
+        spec = json.loads(spec_path.read_text())
+        assert render_diagrams.render(spec) == svg_path.read_text()
