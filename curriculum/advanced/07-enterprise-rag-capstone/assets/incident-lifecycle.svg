@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">RAG incident lifecycle</title><desc id="desc">An incident lifecycle from detection and classification through containment, investigation, rollback or fix, verification, regression test, and postmortem.</desc>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#16324F" flood-opacity="0.10"/></filter></defs>
+<rect width="100%" height="100%" fill="#F7F9FC"/>
+<text x="60" y="70" font-family="Inter,Arial,sans-serif" font-size="34" font-weight="700" fill="#16324F">RAG incident lifecycle</text>
+<text x="60" y="103" font-family="Inter,Arial,sans-serif" font-size="17" fill="#52606D">Restore a safe state first; preserve evidence; convert the failure into a permanent test.</text>
+<rect x="90" y="230" width="170" height="100" rx="16" fill="#FFF0F0" stroke="#D64545" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="175.0" y="287.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Detect</text>
+<text x="175.0" y="313" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">signal + impact</text>
+<rect x="350" y="230" width="190" height="100" rx="16" fill="#FFF1DF" stroke="#F59E42" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="445.0" y="287.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Classify</text>
+<text x="445.0" y="313" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">quality · safety · ops</text>
+<rect x="640" y="230" width="200" height="100" rx="16" fill="#FFF0F0" stroke="#D64545" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="740.0" y="287.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Contain</text>
+<text x="740.0" y="313" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">disable route · rollback</text>
+<rect x="940" y="230" width="190" height="100" rx="16" fill="#F0EEFF" stroke="#7667E8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1035.0" y="287.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Investigate</text>
+<text x="1035.0" y="313" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">trace + versions</text>
+<rect x="1230" y="230" width="220" height="100" rx="16" fill="#FFF1DF" stroke="#F59E42" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1340.0" y="287.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Rollback or fix</text>
+<text x="1340.0" y="313" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">compatible safe state</text>
+<rect x="1230" y="500" width="220" height="100" rx="16" fill="#EAF1FF" stroke="#2F6BFF" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1340.0" y="557.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Verify recovery</text>
+<text x="1340.0" y="583" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">hard invariants first</text>
+<rect x="820" y="500" width="230" height="100" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="935.0" y="557.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Add regression case</text>
+<text x="935.0" y="583" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="13" fill="#52606D">reproduce root cause</text>
+<rect x="380" y="500" width="270" height="100" rx="16" fill="#FFFFFF" stroke="#8A98A8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="515.0" y="545.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Postmortem + control</text>
+<text x="515.0" y="569.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">update</text>
+<rect x="380" y="710" width="270" height="70" rx="16" fill="#FFFFFF" stroke="#8A98A8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="515.0" y="740.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">Monitor the changed</text>
+<text x="515.0" y="764.0" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" fill="#16324F">control</text>
+<path d="M 260 280.0 L 350 280.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="350,280.0 337.0,286.0 337.0,274.0" fill="#52606D"/>
+<path d="M 540 280.0 L 640 280.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="640,280.0 627.0,286.0 627.0,274.0" fill="#52606D"/>
+<path d="M 840 280.0 L 940 280.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="940,280.0 927.0,286.0 927.0,274.0" fill="#52606D"/>
+<path d="M 1130 280.0 L 1230 280.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="1230,280.0 1217.0,286.0 1217.0,274.0" fill="#52606D"/>
+<path d="M 1340.0 330 L 1340.0 500" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="1340.0,500 1334.0,487.0 1346.0,487.0" fill="#52606D"/>
+<path d="M 1230 550.0 L 1050 550.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="1050,550.0 1063.0,544.0 1063.0,556.0" fill="#52606D"/>
+<path d="M 820 550.0 L 650 550.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="650,550.0 663.0,544.0 663.0,556.0" fill="#52606D"/>
+<path d="M 515.0 600 L 515.0 710" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="515.0,710 509.0,697.0 521.0,697.0" fill="#52606D"/>
+<path d="M 380 745.0 L 160 745 L 160 390 L 260 390 L 260 280.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="260,280.0 266.0,293.0 254.0,293.0" fill="#52606D"/>
+<rect x="95" y="535" width="140" height="26" rx="8" fill="#F7F9FC"/><text x="165" y="554" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="14" fill="#52606D">new signal</text>
+</svg>

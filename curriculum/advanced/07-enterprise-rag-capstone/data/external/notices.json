@@ -1,0 +1,170 @@
+[
+  {
+    "evidence_id": "EXT-001",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "regulator-resilience-notice",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "regulator",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 1
+    },
+    "content": "The regulator published today that Regulation R-17 requires annual third-party resilience evidence.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-002",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "vendor-atlas-status",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 2
+    },
+    "content": "Vendor Atlas reports normal operation on 2026-09-02.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-003",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "public-advisory",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 3
+    },
+    "content": "A public advisory recommends rotating exposed access tokens.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-004",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "payments-bulletin",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 4
+    },
+    "content": "Payment networks announced a scheduled maintenance window.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-005",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "privacy-notice",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 5
+    },
+    "content": "The regulator clarified breach notification timelines.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-006",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "security-advisory",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 6
+    },
+    "content": "A dependency vulnerability affects versions before 4.2.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-007",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "cloud-status",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 7
+    },
+    "content": "The approved cloud status feed reports no regional incident.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  },
+  {
+    "evidence_id": "EXT-008",
+    "modality": "external",
+    "evidence_kind": "observed",
+    "source_id": "archive-notice",
+    "source_version": "2026-09-02",
+    "tenant_id": "public",
+    "classification": "public",
+    "authority": "approved-external",
+    "locator": {
+      "snapshot": "2026-09-02",
+      "item": 8
+    },
+    "content": "This frozen corpus represents approved external content, not live web results.",
+    "derived_from": [],
+    "confidence": 1.0,
+    "valid_from": "2026-09-02",
+    "valid_to": "2026-12-31",
+    "is_deleted": false,
+    "project_id": null
+  }
+]

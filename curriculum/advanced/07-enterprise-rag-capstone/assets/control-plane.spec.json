@@ -1,0 +1,28 @@
+{
+  "version": 1, "id": "control-plane", "title": "Adaptive, corrective, and agentic control are separate decisions",
+  "subtitle": "A route proposal never grants authority; every recovery is bounded and re-evaluated.",
+  "alt_text": "A control flow from query to trusted principal, requirements, route proposal, policy authorization, evidence execution, quality check, bounded recovery, and terminal response.",
+  "output": "control-plane.svg", "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 60},
+  "nodes": [
+    {"id": "query", "label": "Query", "type": "service", "x": 70, "y": 250, "width": 150, "height": 80, "ports": {"out": {"side": "right"}}},
+    {"id": "principal", "label": "Trusted principal", "type": "action", "x": 70, "y": 480, "width": 150, "height": 80, "ports": {"out": {"side": "right"}}},
+    {"id": "requirements", "label": "Requirement packet", "type": "agent", "x": 330, "y": 250, "width": 190, "height": 90, "ports": {"query": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "proposal", "label": "Route proposal", "type": "agent", "x": 620, "y": 250, "width": 180, "height": 90, "ports": {"in": {"side": "left"}, "out": {"side": "right"}}},
+    {"id": "policy", "label": "Policy decision", "subtitle": "identity · route · budget", "type": "action", "x": 900, "y": 245, "width": 220, "height": 105, "ports": {"route": {"side": "left", "offset": 0.35}, "principal": {"side": "left", "offset": 0.75}, "out": {"side": "right"}}},
+    {"id": "execute", "label": "Execute evidence route", "type": "data", "x": 1240, "y": 250, "width": 230, "height": 90, "ports": {"in": {"side": "left"}, "out": {"side": "bottom"}}},
+    {"id": "quality", "label": "Evidence sufficient?", "type": "agent", "x": 1240, "y": 470, "width": 230, "height": 90, "ports": {"in": {"side": "top"}, "yes": {"side": "bottom", "offset": 0.75}, "no": {"side": "left"}}},
+    {"id": "recovery", "label": "Bounded correction / investigation", "type": "agent", "x": 790, "y": 470, "width": 260, "height": 90, "ports": {"in": {"side": "right"}, "out": {"side": "top"}}},
+    {"id": "terminal", "label": "Answer · clarify · abstain · approval", "type": "service", "x": 1110, "y": 690, "width": 360, "height": 90, "ports": {"in": {"side": "top"}}}
+  ],
+  "edges": [
+    {"id": "q1", "from": {"node": "query", "port": "out"}, "to": {"node": "requirements", "port": "query"}},
+    {"id": "q2", "from": {"node": "requirements", "port": "out"}, "to": {"node": "proposal", "port": "in"}},
+    {"id": "q3", "from": {"node": "proposal", "port": "out"}, "to": {"node": "policy", "port": "route"}},
+    {"id": "q4", "from": {"node": "principal", "port": "out"}, "to": {"node": "policy", "port": "principal"}, "route": [[670, 520], [670, 324]]},
+    {"id": "q5", "from": {"node": "policy", "port": "out"}, "to": {"node": "execute", "port": "in"}},
+    {"id": "q6", "from": {"node": "execute", "port": "out"}, "to": {"node": "quality", "port": "in"}},
+    {"id": "q7", "from": {"node": "quality", "port": "no"}, "to": {"node": "recovery", "port": "in"}, "label": "weak / insufficient", "label_at": [1145, 500]},
+    {"id": "q8", "from": {"node": "recovery", "port": "out"}, "to": {"node": "policy", "port": "principal"}, "route": [[920, 405], [850, 405], [850, 324]], "label": "re-authorize", "label_at": [905, 418]},
+    {"id": "q9", "from": {"node": "quality", "port": "yes"}, "to": {"node": "terminal", "port": "in"}}
+  ]
+}

@@ -347,6 +347,26 @@ export const learningPath = [
           "Cost Monitoring",
         ],
       },
+      {
+        id: "a7",
+        title: "Enterprise RAG Platform Capstone",
+        description:
+          "Design and defend a heterogeneous enterprise evidence platform, compare architecture complexity, enforce hard safety invariants, gate a release, and recover from an incident.",
+        material:
+          "../curriculum/advanced/07-enterprise-rag-capstone/README.md",
+        notebook:
+          "../curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
+        category: "17 - Enterprise RAG Platform Capstone",
+        minutes: 600,
+        technologies: [
+          "System Design",
+          "Evidence Contracts",
+          "Adaptive & Corrective RAG",
+          "Graph & Multimodal Retrieval",
+          "Release Gates",
+          "Incident Response",
+        ],
+      },
     ],
   },
 ];
@@ -374,6 +394,11 @@ const questionIdsByCategory = {
     "b4-q1",
     "b4-q2",
     "b4-q3",
+  ],
+
+  "Capstone - Enterprise RAG": [
+    "b5-q1",
+    "b5-q2",
   ],
 
   "05 - Retrieval Strategies": [
@@ -446,6 +471,12 @@ const questionIdsByCategory = {
     "a6-q1",
     "a6-q2",
     "a6-q3",
+  ],
+
+  "17 - Enterprise RAG Platform Capstone": [
+    "a7-q1",
+    "a7-q2",
+    "a7-q3",
   ],
 };
 

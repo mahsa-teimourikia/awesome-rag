@@ -1,0 +1,24 @@
+[
+  {
+    "evidence_id": "BAD-001",
+    "source_id": "missing-tenant",
+    "source_version": "1",
+    "classification": "internal",
+    "content": "Must not be indexed."
+  },
+  {
+    "evidence_id": "BAD-002",
+    "source_id": "missing-classification",
+    "source_version": "1",
+    "tenant_id": "acme",
+    "content": "Must not default to public."
+  },
+  {
+    "evidence_id": "BAD-003",
+    "source_id": "unknown-classification",
+    "source_version": "1",
+    "tenant_id": "acme",
+    "classification": "partner-secret",
+    "content": "Unknown labels fail closed."
+  }
+]

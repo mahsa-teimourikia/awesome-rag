@@ -114,10 +114,19 @@ const content = {
       "Index vectors and metadata in a database",
       "Execute structured generation and validation",
     ],
+    bestPractices: [
+      "Keep ingestion, retrieval, generation, and validation separately inspectable",
+      "Evaluate retrieval before attributing missing evidence to generation",
+      "Validate structured model output at the application boundary",
+    ],
     references: [
       {
         label: "Enterprise RAG Capstone",
         url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+      },
+      {
+        label: "Guided Capstone Notebook",
+        url: "curriculum/beginner/05-capstone-enterprise-rag/05_enterprise_rag_capstone.ipynb",
       },
     ],
   },
@@ -439,6 +448,38 @@ const content = {
       {
         label: "Production Operations",
         url: "curriculum/advanced/06-production-operations/README.md",
+      },
+    ],
+  },
+
+  "17 - Enterprise RAG Platform Capstone": {
+    theory:
+      "The advanced capstone is an architecture-selection and operations challenge. Northstar's assistant normalizes text, structured, graph, OCR, visual, and approved external results into a common evidence contract, but it executes only the minimum justified route. Identity defines the authorized evidence universe before retrieval; route selection never grants authority. A case succeeds only when terminal behavior, evidence, claims, citations, authorization, and hard safety invariants all pass.",
+    workflow: [
+      "Resolve the authenticated principal and authorized evidence universe",
+      "Extract requirements and propose the minimum evidence route",
+      "Authorize and execute a source-specific adapter",
+      "Normalize results into typed observed, computed, or inferred evidence",
+      "Evaluate evidence and run only bounded, re-authorized recovery",
+      "Use read-only agentic investigation only when the next step depends on observations",
+      "Build an evidence ledger and validate claim-to-evidence mappings",
+      "Compare architectures, gate the release, and turn incidents into regression tests",
+    ],
+    bestPractices: [
+      "Do not use every advanced technique on every request",
+      "Treat cross-tenant exposure and forbidden execution as hard blockers, not average metrics",
+      "Keep observed, computed, and inferred evidence semantically distinct",
+      "Measure cost and latency per successful supported task",
+      "Record which complex components were deliberately not selected and why",
+    ],
+    references: [
+      {
+        label: "Enterprise RAG Platform Capstone",
+        url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
+      },
+      {
+        label: "Guided Capstone Notebook",
+        url: "curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
       },
     ],
   },
