@@ -27,7 +27,7 @@ body:
     attributes:
       label: File, course, or page
       description: Give the repository path or public page URL when possible.
-      placeholder: curriculum/intermediate/04-evaluation/04_evaluation.ipynb
+      placeholder: curriculum/intermediate/04-evaluation/04_continuous_evaluation.ipynb
     validations:
       required: true
   - type: textarea
@@ -75,4 +75,3 @@ body:
           required: true
         - label: This is not a security vulnerability requiring private disclosure.
           required: true
-

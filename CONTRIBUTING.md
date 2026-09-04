@@ -46,7 +46,20 @@ A course README should stand on its own as a technical chapter. A notebook shoul
 - distinguish deterministic controls from model behavior; and
 - cite primary research, standards, specifications, and official documentation.
 
-Markdown may use rendered Mermaid diagrams. Notebooks should embed a readable image version so diagrams render consistently on GitHub and in Jupyter.
+Markdown may use rendered Mermaid diagrams. When Mermaid rendering is unreliable in a notebook's target environment, provide a readable image or SVG equivalent.
+
+## AI-assisted contributions
+
+AI tools may assist with research, drafting, implementation, and review, but contributors remain responsible for the submitted artifact. Before opening a pull request:
+
+- verify technical claims against authoritative sources;
+- run all applicable tests and review their actual results;
+- inspect generated code and notebook output rather than accepting it blindly;
+- validate references, links, and repository paths;
+- ensure no secrets, credentials, private data, or unsafe examples were introduced; and
+- confirm that generated examples behave as documented.
+
+Disclosure of every tool or model used is not required. Contributor accountability and verifiable results are.
 
 ## Validate the change
 

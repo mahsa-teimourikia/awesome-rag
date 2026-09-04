@@ -9,7 +9,7 @@ body:
     attributes:
       label: Content location
       description: Link to the exact file, notebook section, or page.
-      placeholder: curriculum/advanced/03-agentic-rag/README.md — Corrective retrieval
+      placeholder: curriculum/advanced/03-agentic-rag/README.md — Dynamic tool exposure and authorization
     validations:
       required: true
   - type: dropdown
@@ -55,4 +55,3 @@ body:
           required: true
         - label: I checked the current `main` branch, not an older deployment or branch.
           required: true
-

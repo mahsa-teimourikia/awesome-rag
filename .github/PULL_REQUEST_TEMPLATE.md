@@ -16,7 +16,7 @@
 
 ## Validation
 
-<!-- List exact checks you ran and their results. Use N/A only with a short explanation. -->
+<!-- List exact checks you ran and their results. Use N/A only with a short explanation. For small documentation-only changes, mark non-applicable checks N/A and explain briefly. -->
 
 - [ ] `make test`
 - [ ] `make notebook-check` (when notebooks or their imports changed)
@@ -40,4 +40,3 @@ Closes #<!-- issue number, if applicable -->
 - [ ] README, notebook, code, asset, and navigation paths agree.
 - [ ] Diagrams and pages remain readable and accessible at relevant screen sizes.
 - [ ] I did not weaken authorization, safety, or release gates to make a test pass.
-
