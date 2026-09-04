@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "id": "enterprise-rag-reference-architecture",
+  "title": "Northstar Enterprise RAG reference architecture",
+  "subtitle": "Identity constrains evidence; adaptive and corrective control earn complexity per request.",
+  "alt_text": "A left-to-right enterprise RAG architecture from authenticated request through authorization, routing, evidence systems, quality control, an evidence ledger, validation, and observability.",
+  "output": "reference-architecture.svg",
+  "canvas": {"width": 1600, "height": 900, "background": "#F7F9FC", "margin": 60},
+  "groups": [
+    {"id": "control", "label": "Control plane", "x": 300, "y": 140, "width": 560, "height": 240, "fill": "#FBFCFF"},
+    {"id": "evidence", "label": "Evidence plane", "x": 300, "y": 470, "width": 740, "height": 300, "fill": "#FBFFFE"},
+    {"id": "assurance", "label": "Assurance plane", "x": 1120, "y": 140, "width": 410, "height": 630, "fill": "#FFFDFC"}
+  ],
+  "nodes": [
+    {"id": "request", "label": "Authenticated request", "type": "service", "x": 70, "y": 220, "width": 190, "height": 100, "ports": {"out": {"side": "right"}}},
+    {"id": "identity", "label": "Identity + authorization", "type": "action", "x": 340, "y": 210, "width": 210, "height": 110, "ports": {"in": {"side": "left"}, "out": {"side": "right"}, "evidence": {"side": "bottom"}}},
+    {"id": "router", "label": "Requirement analysis + route", "type": "agent", "x": 620, "y": 210, "width": 210, "height": 110, "ports": {"in": {"side": "left"}, "out": {"side": "bottom"}}},
+    {"id": "sources", "label": "Text · SQL · Graph · OCR · External", "type": "data", "x": 340, "y": 535, "width": 260, "height": 120, "ports": {"auth": {"side": "top", "offset": 0.35}, "route": {"side": "top", "offset": 0.75}, "out": {"side": "right"}}},
+    {"id": "quality", "label": "Evidence quality + correction", "type": "agent", "x": 700, "y": 535, "width": 260, "height": 120, "ports": {"in": {"side": "left"}, "out": {"side": "right"}, "recover": {"side": "bottom"}}},
+    {"id": "agent", "label": "Bounded investigation", "type": "agent", "x": 700, "y": 690, "width": 260, "height": 70, "ports": {"in": {"side": "top"}, "out": {"side": "right"}}},
+    {"id": "ledger", "label": "Evidence ledger", "type": "data", "x": 1125, "y": 240, "width": 180, "height": 90, "ports": {"in": {"side": "left"}, "down": {"side": "bottom"}}},
+    {"id": "answer", "label": "Answer / clarify / abstain", "type": "service", "x": 1320, "y": 390, "width": 180, "height": 105, "ports": {"in": {"side": "top"}, "out": {"side": "bottom"}}},
+    {"id": "validation", "label": "Claim + policy validation", "type": "action", "x": 1320, "y": 570, "width": 180, "height": 100, "ports": {"in": {"side": "top"}, "out": {"side": "bottom"}}},
+    {"id": "observability", "label": "Trace · evaluate · release", "type": "operations", "x": 1150, "y": 700, "width": 320, "height": 60, "ports": {"in": {"side": "top"}, "control": {"side": "left"}}}
+  ],
+  "edges": [
+    {"id": "e1", "from": {"node": "request", "port": "out"}, "to": {"node": "identity", "port": "in"}},
+    {"id": "e2", "from": {"node": "identity", "port": "out"}, "to": {"node": "router", "port": "in"}},
+    {"id": "e3", "from": {"node": "identity", "port": "evidence"}, "to": {"node": "sources", "port": "auth"}, "route": [[414, 420], [431, 420]], "label": "eligible universe", "label_at": [422, 430]},
+    {"id": "e4", "from": {"node": "router", "port": "out"}, "to": {"node": "sources", "port": "route"}, "route": [[725, 430], [535, 430]]},
+    {"id": "e5", "from": {"node": "sources", "port": "out"}, "to": {"node": "quality", "port": "in"}},
+    {"id": "e6", "from": {"node": "quality", "port": "recover"}, "to": {"node": "agent", "port": "in"}, "label": "only if justified", "label_at": [830, 677]},
+    {"id": "e7", "from": {"node": "quality", "port": "out"}, "to": {"node": "ledger", "port": "in"}, "route": [[1040, 595], [1040, 285]]},
+    {"id": "e8", "from": {"node": "agent", "port": "out"}, "to": {"node": "ledger", "port": "in"}, "route": [[1060, 725], [1060, 285]]},
+    {"id": "e9", "from": {"node": "ledger", "port": "down"}, "to": {"node": "answer", "port": "in"}, "route": [[1215, 360], [1410, 360]]},
+    {"id": "e10", "from": {"node": "answer", "port": "out"}, "to": {"node": "validation", "port": "in"}},
+    {"id": "e11", "from": {"node": "validation", "port": "out"}, "to": {"node": "observability", "port": "in"}}
+  ]
+}

@@ -82,6 +82,7 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Advanced | Structured and multimodal RAG | [curriculum/advanced/04-structured-multimodal](curriculum/advanced/04-structured-multimodal) |
 | Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
 | Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
+| Advanced | Enterprise RAG platform capstone | [curriculum/advanced/07-enterprise-rag-capstone](curriculum/advanced/07-enterprise-rag-capstone) |
 
 The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awesome-rag/) links these modules.
 

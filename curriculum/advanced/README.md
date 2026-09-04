@@ -1,6 +1,6 @@
 # Advanced RAG Curriculum
 
-**Track goal:** Design RAG systems that can recover from retrieval failure, traverse relationships, select evidence tools dynamically, combine structured and multimodal evidence, route queries adaptively, and operate safely in production.
+**Track goal:** Design RAG systems that can recover from retrieval failure, traverse relationships, select evidence tools dynamically, combine structured and multimodal evidence, route queries adaptively, operate safely in production, and defend an integrated enterprise platform architecture.
 
 ```text
 01 Corrective RAG
@@ -14,6 +14,8 @@
 05 Adaptive RAG
        ↓
 06 Production Operations
+       ↓
+07 Enterprise RAG Platform Capstone
 ```
 
 This track is not about making RAG "more autonomous" for its own sake.
@@ -47,7 +49,9 @@ By the end of the track, you should be able to:
 - route requests to different evidence strategies;
 - evaluate routing and agent trajectories;
 - define operational traces, release gates, canaries, and rollback criteria; and
-- design degraded modes that reduce capability without weakening safety.
+- design degraded modes that reduce capability without weakening safety;
+- normalize heterogeneous results into a common evidence contract; and
+- compare basic, controlled, and full architectures before making a release decision.
 
 ---
 
@@ -61,6 +65,7 @@ By the end of the track, you should be able to:
 | **04 — Structured & Multimodal RAG** | What if evidence is numeric, tabular, OCR, or visual? | Modality-specific evidence contracts | Determinism and provenance |
 | **05 — Adaptive RAG** | Which retrieval strategy should run for this request? | Pre-retrieval routing + policy | Cost, latency, misrouting |
 | **06 — Production Operations** | How do we release and operate the complete system? | Observability + release/rollback controls | Reliability and recoverability |
+| **07 — Enterprise RAG Platform Capstone** | Which advanced techniques belong on each request path? | Identity + evidence contracts + hard release gates | Integrated system risk and justified complexity |
 
 ---
 
@@ -229,7 +234,7 @@ route → retrieve → grade → recover / answer
 
 # 06 — Production Operations
 
-The final course treats RAG as an operated system.
+Course 06 treats RAG as an operated system and prepares the release/incident controls used by the final capstone.
 
 Observe:
 
@@ -269,6 +274,32 @@ Separate:
 Safe degradation reduces capability without weakening authorization, provenance, or verification requirements.
 
 **Exit criterion:** you can identify a bad release, reconstruct what ran, rollback safely, and convert the incident into a regression test.
+
+---
+
+# 07 — Enterprise RAG Platform Capstone
+
+The capstone is an 8–12 hour architecture workshop, not another technique tutorial. You design Northstar Enterprises' Policy, Risk & Operations Assistant across text, structured, graph, OCR, visual, external, and agentic evidence paths.
+
+```text
+identity + authorization
+        ↓
+adaptive route
+        ↓
+source-specific evidence adapter
+        ↓
+corrective quality control
+        ↓
+optional bounded investigation
+        ↓
+evidence ledger + claim validation
+        ↓
+evaluation + release + incident response
+```
+
+You receive more than 150 evidence entities/relations/records, 64 labelled cases across 16 evaluation slices, five architecture diagrams, an executable reference runtime, and an incident regression. The required deliverables include an architecture diagram, ADR, evaluation report, threat model, release decision, incident report, and production-readiness checklist.
+
+**Exit criterion:** you can justify where GraphRAG, structured computation, multimodal interpretation, corrective recovery, external retrieval, and agentic investigation do—and deliberately do not—belong, using measured outcome, safety, latency, and cost evidence.
 
 ---
 
