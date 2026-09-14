@@ -1,6 +1,6 @@
 # Advanced RAG Curriculum
 
-**Track goal:** Design RAG systems that can recover from retrieval failure, traverse relationships, select evidence tools dynamically, combine structured and multimodal evidence, route queries adaptively, operate safely in production, and defend an integrated enterprise platform architecture.
+**Track goal:** Design RAG systems that can recover from retrieval failure, traverse relationships, select evidence tools dynamically, combine structured and multimodal evidence, route queries adaptively, use hypothetical-document retrieval selectively, operate safely in production, and defend an integrated enterprise platform architecture.
 
 ```text
 01 Corrective RAG
@@ -16,6 +16,8 @@
 06 Production Operations
        ↓
 07 Enterprise RAG Platform Capstone
+       ↓
+08 HyDE Retrieval (advanced extension)
 ```
 
 This track is not about making RAG "more autonomous" for its own sake.
@@ -50,6 +52,8 @@ By the end of the track, you should be able to:
 - evaluate routing and agent trajectories;
 - define operational traces, release gates, canaries, and rollback criteria; and
 - design degraded modes that reduce capability without weakening safety;
+- evaluate hypothetical-document retrieval against simpler baselines;
+- keep generated search text outside the evidence and citation ledger;
 - normalize heterogeneous results into a common evidence contract; and
 - compare basic, controlled, and full architectures before making a release decision.
 
@@ -66,6 +70,7 @@ By the end of the track, you should be able to:
 | **05 — Adaptive RAG** | Which retrieval strategy should run for this request? | Pre-retrieval routing + policy | Cost, latency, misrouting |
 | **06 — Production Operations** | How do we release and operate the complete system? | Observability + release/rollback controls | Reliability and recoverability |
 | **07 — Enterprise RAG Platform Capstone** | Which advanced techniques belong on each request path? | Identity + evidence contracts + hard release gates | Integrated system risk and justified complexity |
+| **08 — HyDE Retrieval** | When should the retriever search with an imagined document? | Generated search representation + real-evidence boundary | Query drift, latency, and exact-match regressions |
 
 ---
 
@@ -303,6 +308,30 @@ You receive more than 150 evidence entities/relations/records, 64 labelled cases
 
 ---
 
+# 08 — HyDE Retrieval
+
+HyDE generates corpus-shaped text to improve retrieval when a short or informal query does not resemble the documents that contain its answer. The generated passage is a search representation—not evidence—and must never be cited or passed off as a source.
+
+```text
+authorized query
+      ↓
+generate hypothetical document
+      ↓
+embed as document-shaped search text
+      ↓
+retrieve real authorized documents
+      ↓
+fuse / rerank / evaluate
+      ↓
+answer only from real evidence
+```
+
+The course compares original-query, HyDE-only, fused, original-plus-HyDE, and conditional routes. It includes a deliberately misleading hypothesis so learners can observe query drift, preserve exact-identifier paths, and prove that authorization still limits the candidate universe before retrieval.
+
+**Exit criterion:** you can identify query slices where HyDE earns its generation cost, keep hypothetical text out of provenance, and fall back to lexical, hybrid, or original-query retrieval when identifiers, numbers, ambiguity, or drift make HyDE unsafe.
+
+---
+
 # Advanced architecture principles
 
 ## 1. Bounded autonomy
@@ -392,6 +421,7 @@ Design and evaluate a governed enterprise RAG system for a realistic domain.
 It should include only the advanced components justified by the task, but the design review must consider:
 
 - adaptive routing;
+- conditional HyDE retrieval;
 - corrective recovery;
 - graph retrieval;
 - structured/multimodal evidence;

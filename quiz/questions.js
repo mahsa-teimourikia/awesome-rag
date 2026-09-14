@@ -989,4 +989,58 @@ export const questions = [
       url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
     },
   },
+  {
+    id: "a8-q1",
+    category: "18 - HyDE Retrieval",
+    prompt: "What is the correct role of a HyDE-generated hypothetical document?",
+    options: [
+      "It is a search representation used to retrieve real corpus documents.",
+      "It is source evidence that may be cited directly.",
+      "It replaces retrieval-augmented generation.",
+      "It proves that the generated details are factually correct.",
+    ],
+    correct: [0],
+    explanation:
+      "HyDE uses a generated passage to create a document-shaped retrieval representation. Final evidence and citations must come from real authorized corpus documents.",
+    source: {
+      label: "HyDE Retrieval",
+      url: "curriculum/advanced/08-hyde-retrieval/README.md",
+    },
+  },
+  {
+    id: "a8-q2",
+    category: "18 - HyDE Retrieval",
+    prompt: "Which requests are usually weak candidates for universal HyDE?",
+    options: [
+      "An exact policy identifier such as HR-427.",
+      "A precise numerical lookup for Q3 2025.",
+      "An unknown proprietary entity such as ZX-47.",
+      "An informal problem description that differs sharply from formal documentation language.",
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "Exact identifiers, numerical lookups, and unknown proprietary entities can be damaged by generated interpretation. Informal-to-formal vocabulary mismatch is a stronger HyDE candidate.",
+    source: {
+      label: "HyDE Retrieval",
+      url: "curriculum/advanced/08-hyde-retrieval/README.md",
+    },
+  },
+  {
+    id: "a8-q3",
+    category: "18 - HyDE Retrieval",
+    prompt: "How should a team decide whether to deploy HyDE?",
+    options: [
+      "Compare it with original-query and hybrid baselines on labelled query slices.",
+      "Measure retrieval quality together with latency, cost, drift, and unauthorized-candidate rate.",
+      "Enable it only for routes where the measured benefit justifies the added risk and work.",
+      "Judge it only by whether one final answer sounds more fluent.",
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "HyDE is a retrieval intervention. Evaluate it with controlled baselines, per-slice retrieval metrics, operational costs, drift tests, and security invariants rather than one fluent answer.",
+    source: {
+      label: "HyDE Retrieval",
+      url: "curriculum/advanced/08-hyde-retrieval/README.md",
+    },
+  },
 ];

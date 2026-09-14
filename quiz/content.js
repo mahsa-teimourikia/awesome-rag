@@ -483,6 +483,37 @@ const content = {
       },
     ],
   },
+
+  "18 - HyDE Retrieval": {
+    theory:
+      "Hypothetical Document Embeddings (HyDE) address a query–document representation gap. An instruction model generates corpus-shaped search text, a document encoder embeds it, and the retriever returns nearby real documents. The hypothetical passage is an untrusted search key rather than evidence. HyDE should be compared with the original-query baseline and routed only to query slices where measured retrieval gains justify generation latency, cost, and drift risk.",
+    workflow: [
+      "Characterize the query while preserving trusted identity and authorization scope",
+      "Route exact identifiers and numerical lookups to exact, hybrid, or structured retrieval",
+      "Generate one or more bounded corpus-shaped hypotheses for semantic-gap queries",
+      "Embed hypotheses with a document-compatible encoder and retrieve real authorized documents",
+      "Fuse original and hypothesis rankings when the evaluation supports it",
+      "Rerank and build an evidence ledger containing only real corpus IDs",
+      "Measure retrieval quality, drift, latency, cost, and security by query slice",
+    ],
+    bestPractices: [
+      "Never cite or treat a hypothetical passage as source evidence",
+      "Keep the original-query path as a baseline and possible fusion leg",
+      "Apply authorization before every retrieval path",
+      "Test ambiguous entities, proprietary identifiers, exact lookups, and numerical questions",
+      "Use conditional routing and release gates instead of enabling HyDE universally",
+    ],
+    references: [
+      {
+        label: "HyDE Retrieval lesson",
+        url: "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/curriculum/advanced/08-hyde-retrieval/README.md",
+      },
+      {
+        label: "Original HyDE paper",
+        url: "https://aclanthology.org/2023.acl-long.99/",
+      },
+    ],
+  },
 };
 
 export const lessonContent = content;
