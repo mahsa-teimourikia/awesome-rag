@@ -105,6 +105,32 @@ const content = {
     ],
   },
 
+  "Capstone - Enterprise RAG": {
+    theory:
+      "Enterprise RAG is not simply calling a single chain. A robust system requires an ingestion pipeline that respects document structure, a real vector store, explicit orchestration, and quantitative evaluation.",
+    workflow: [
+      "Load complex, multi-format documents",
+      "Apply structure-aware chunking strategies",
+      "Index vectors and metadata in a database",
+      "Execute structured generation and validation",
+    ],
+    bestPractices: [
+      "Keep ingestion, retrieval, generation, and validation separately inspectable",
+      "Evaluate retrieval before attributing missing evidence to generation",
+      "Validate structured model output at the application boundary",
+    ],
+    references: [
+      {
+        label: "Enterprise RAG Capstone",
+        url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+      },
+      {
+        label: "Guided Capstone Notebook",
+        url: "curriculum/beginner/05-capstone-enterprise-rag/05_enterprise_rag_capstone.ipynb",
+      },
+    ],
+  },
+
   "05 - Retrieval Strategies": {
     theory:
       "Enterprise retrieval is usually a candidate-generation problem with complementary signals. Lexical and sparse methods are strong for exact terms, identifiers, and rare vocabulary; dense retrieval captures semantic similarity and paraphrases. Hybrid retrieval, rank fusion, query expansion, multi-representation search, and late interaction should be added only when evaluation shows the baseline misses important evidence.",
@@ -414,7 +440,7 @@ const content = {
     bestPractices: [
       "Separate readiness, freshness, offline quality, and online behavior",
       "Use stage-level spans to localize latency and quality regressions",
-      "Compute cost from real usage data rather than simulated character counts",
+      "Use provider-reported usage and include retrieval, reranking, verification, external calls, and retries in route cost",
       "Version the complete RAG release bundle for reproducibility and rollback",
       "Degrade optional capability without weakening authorization or evidence controls",
     ],
@@ -426,7 +452,39 @@ const content = {
     ],
   },
 
-  "17 - HyDE Retrieval": {
+  "17 - Enterprise RAG Platform Capstone": {
+    theory:
+      "The advanced capstone is an architecture-selection and operations challenge. Northstar's assistant normalizes text, structured, graph, OCR, visual, and approved external results into a common evidence contract, but it executes only the minimum justified route. Identity defines the authorized evidence universe before retrieval; route selection never grants authority. A case succeeds only when terminal behavior, evidence, claims, citations, authorization, and hard safety invariants all pass.",
+    workflow: [
+      "Resolve the authenticated principal and authorized evidence universe",
+      "Extract requirements and propose the minimum evidence route",
+      "Authorize and execute a source-specific adapter",
+      "Normalize results into typed observed, computed, or inferred evidence",
+      "Evaluate evidence and run only bounded, re-authorized recovery",
+      "Use read-only agentic investigation only when the next step depends on observations",
+      "Build an evidence ledger and validate claim-to-evidence mappings",
+      "Compare architectures, gate the release, and turn incidents into regression tests",
+    ],
+    bestPractices: [
+      "Do not use every advanced technique on every request",
+      "Treat cross-tenant exposure and forbidden execution as hard blockers, not average metrics",
+      "Keep observed, computed, and inferred evidence semantically distinct",
+      "Measure cost and latency per successful supported task",
+      "Record which complex components were deliberately not selected and why",
+    ],
+    references: [
+      {
+        label: "Enterprise RAG Platform Capstone",
+        url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
+      },
+      {
+        label: "Guided Capstone Notebook",
+        url: "curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
+      },
+    ],
+  },
+
+  "18 - HyDE Retrieval": {
     theory:
       "Hypothetical Document Embeddings (HyDE) address a query–document representation gap. An instruction model generates corpus-shaped search text, a document encoder embeds it, and the retriever returns nearby real documents. The hypothetical passage is an untrusted search key rather than evidence. HyDE should be compared with the original-query baseline and routed only to query slices where measured retrieval gains justify generation latency, cost, and drift risk.",
     workflow: [
@@ -448,7 +506,7 @@ const content = {
     references: [
       {
         label: "HyDE Retrieval lesson",
-        url: "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/curriculum/advanced/07-hyde-retrieval/README.md",
+        url: "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/curriculum/advanced/08-hyde-retrieval/README.md",
       },
       {
         label: "Original HyDE paper",

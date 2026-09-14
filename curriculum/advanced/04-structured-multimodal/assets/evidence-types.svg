@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
+<title id="title">Computed, observed, and inferred evidence types</title>
+<desc id="desc">Three separate evidence categories show that exact computation, extracted observation, and model inference require different confidence and citation semantics.</desc>
 <rect width="1200" height="390" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">

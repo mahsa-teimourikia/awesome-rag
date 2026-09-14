@@ -1,9 +1,12 @@
-# Advanced 07 — HyDE: Imagine a Document Before Searching
+# Advanced 08 — HyDE: Imagine a Document Before Searching
 
-**Level:** Advanced  
-**Estimated time:** 2–3 hours  
-**Notebook:** [`07_hyde_retrieval.ipynb`](07_hyde_retrieval.ipynb)  
-**Reusable implementation:** [`lab.py`](lab.py)  
+**Level:** Advanced
+
+**Estimated time:** 2–3 hours
+
+**Notebook:** [`08_hyde_retrieval.ipynb`](08_hyde_retrieval.ipynb)
+
+**Reusable implementation:** [`lab.py`](lab.py)
 **Prerequisites:** [Retrieval Strategies](../../intermediate/01-retrieval-strategies/README.md), [Query Planning & Reranking](../../intermediate/03-query-reranking/README.md), [RAG Evaluation](../../intermediate/04-evaluation/README.md), and [Adaptive RAG](../05-adaptive-rag/README.md)
 
 > HyDE is not an alternative to RAG. It is a query-side retrieval strategy inside a RAG system.
@@ -220,8 +223,9 @@ HyDE changes the semantic representation used for one retrieval leg. It does not
 query → one hypothesis → embed → retrieve
 ```
 
-**Strengths:** simple, one generation, easy to trace.  
-**Limitations:** one wrong interpretation can steer the entire search.  
+**Strengths:** simple, one generation, easy to trace.
+
+**Limitations:** one wrong interpretation can steer the entire search.
 **Best fit:** clear semantic-gap questions with tolerable added latency.
 
 ## Pattern B — Multi-hypothesis mean embedding
@@ -230,8 +234,9 @@ query → one hypothesis → embed → retrieve
 query → hypotheses → embed each → mean vector → retrieve
 ```
 
-**Strengths:** one vector-store request and reduced dependence on one sample.  
-**Limitations:** distinct meanings can be averaged into a weak centroid.  
+**Strengths:** one vector-store request and reduced dependence on one sample.
+
+**Limitations:** distinct meanings can be averaged into a weak centroid.
 **Best fit:** nearby paraphrastic hypotheses rather than mutually exclusive interpretations.
 
 ## Pattern C — Multi-hypothesis retrieval plus fusion
@@ -242,8 +247,9 @@ hypothesis B → retrieve B ├→ rank fusion → candidates
 hypothesis C → retrieve C ┘
 ```
 
-**Strengths:** preserves hypothesis-specific rankings and supports inspection.  
-**Limitations:** multiplies retrieval work and candidate volume.  
+**Strengths:** preserves hypothesis-specific rankings and supports inspection.
+
+**Limitations:** multiplies retrieval work and candidate volume.
 **Best fit:** ambiguity where separate plausible interpretations should survive until fusion or reranking.
 
 ## Pattern D — Original query plus HyDE

@@ -220,6 +220,63 @@ export const questions = [
   },
 
   {
+    id: "b5-q1",
+    category: "Capstone - Enterprise RAG",
+    prompt: "Why is it important to separate retrieval evaluation from generation evaluation?",
+    options: [
+      "Because a generation failure cannot fix a retrieval failure where evidence was never supplied.",
+      "Because it makes the system run faster.",
+      "Because LLMs cannot read retrieved evidence.",
+      "Because retrieval models cannot be quantitatively evaluated."
+    ],
+    correct: [0],
+    explanation:
+      "If the retrieval system fails to provide the relevant documents, the best generation model in the world cannot synthesize an accurate and grounded response.",
+    source: {
+      label: "Enterprise RAG Capstone",
+      url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+    },
+  },
+
+  {
+    id: "b5-q2",
+    category: "Capstone - Enterprise RAG",
+    prompt: "Which of the following are common failures in enterprise RAG systems if not handled explicitly?",
+    options: [
+      "Hiding the pipeline in an opaque chain.",
+      "Treating retrieval failures as generation failures.",
+      "Assuming all documents are conflict-free.",
+      "Returning structured responses directly from the LLM without validation."
+    ],
+    correct: [0, 1, 2, 3],
+    explanation:
+      "Enterprise RAG requires explicit orchestration, separating retrieval evaluation from generation, acknowledging document conflicts, and validating structured outputs.",
+    source: {
+      label: "Enterprise RAG Capstone",
+      url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+    },
+  },
+
+  {
+    id: "b5-q3",
+    category: "Capstone - Enterprise RAG",
+    prompt: "Which practices make an enterprise RAG answer auditable?",
+    options: [
+      "Carry stable evidence IDs and source versions into the answer's claim records.",
+      "Validate that every cited evidence ID was actually available to the response.",
+      "Keep retrieval and generation outcomes separately observable.",
+      "Let the model invent readable source names when metadata is missing."
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "Auditability requires traceable evidence identity, versioned provenance, citation validation, and visibility into both retrieval and generation. A model-generated source name is not provenance.",
+    source: {
+      label: "Enterprise RAG Capstone",
+      url: "curriculum/beginner/05-capstone-enterprise-rag/README.md",
+    },
+  },
+
+  {
     id: "i1-q1",
     category: "05 - Retrieval Strategies",
     prompt: "Which query types often benefit from lexical or sparse retrieval signals?",
@@ -878,10 +935,63 @@ export const questions = [
       url: "curriculum/advanced/06-production-operations/README.md",
     },
   },
-
   {
     id: "a7-q1",
-    category: "17 - HyDE Retrieval",
+    category: "17 - Enterprise RAG Platform Capstone",
+    prompt: "Which principles should guide architecture selection in the advanced capstone?",
+    options: [
+      "Use the minimum evidence mechanism that satisfies the request and measured requirements.",
+      "Run graph, multimodal, external, and agentic routes for every factual request.",
+      "Compare added capability with latency, cost, security, and operational burden.",
+      "Document where advanced techniques were deliberately not used.",
+    ],
+    correct: [0, 2, 3],
+    explanation:
+      "The capstone rewards justified complexity. Each component must address a measured failure mode and repay its operational burden; omitting an unnecessary technique is a valid architecture decision.",
+    source: {
+      label: "Enterprise RAG Platform Capstone",
+      url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
+    },
+  },
+  {
+    id: "a7-q2",
+    category: "17 - Enterprise RAG Platform Capstone",
+    prompt: "What must happen before relevance ranking in a multitenant enterprise RAG request?",
+    options: [
+      "Trusted identity attributes and policy must define the authorized evidence universe.",
+      "The router may infer tenant and clearance from the natural-language query.",
+      "Every source adapter must preserve the authorization scope.",
+      "Unauthorized evidence may be retrieved if it is filtered from the final answer.",
+    ],
+    correct: [0, 2],
+    explanation:
+      "Authorization is candidate eligibility, not output cleanup. The query cannot grant identity or scope, and forbidden evidence must not enter model-visible or application-visible intermediate state.",
+    source: {
+      label: "Enterprise RAG Platform Capstone",
+      url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
+    },
+  },
+  {
+    id: "a7-q3",
+    category: "17 - Enterprise RAG Platform Capstone",
+    prompt: "How should release evaluation treat one confirmed cross-tenant evidence exposure?",
+    options: [
+      "Block the release regardless of average task success.",
+      "Average it into retrieval recall and promote if the overall score is high.",
+      "Preserve the trace, contain the faulty route, and add a regression case.",
+      "Ask the language model to omit the evidence next time.",
+    ],
+    correct: [0, 2],
+    explanation:
+      "Cross-tenant exposure violates a hard invariant. It requires containment, root-cause analysis, repair, verification, and a permanent regression test—not prompt-level concealment.",
+    source: {
+      label: "Enterprise RAG Platform Capstone",
+      url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
+    },
+  },
+  {
+    id: "a8-q1",
+    category: "18 - HyDE Retrieval",
     prompt: "What is the correct role of a HyDE-generated hypothetical document?",
     options: [
       "It is a search representation used to retrieve real corpus documents.",
@@ -894,12 +1004,12 @@ export const questions = [
       "HyDE uses a generated passage to create a document-shaped retrieval representation. Final evidence and citations must come from real authorized corpus documents.",
     source: {
       label: "HyDE Retrieval",
-      url: "curriculum/advanced/07-hyde-retrieval/README.md",
+      url: "curriculum/advanced/08-hyde-retrieval/README.md",
     },
   },
   {
-    id: "a7-q2",
-    category: "17 - HyDE Retrieval",
+    id: "a8-q2",
+    category: "18 - HyDE Retrieval",
     prompt: "Which requests are usually weak candidates for universal HyDE?",
     options: [
       "An exact policy identifier such as HR-427.",
@@ -912,12 +1022,12 @@ export const questions = [
       "Exact identifiers, numerical lookups, and unknown proprietary entities can be damaged by generated interpretation. Informal-to-formal vocabulary mismatch is a stronger HyDE candidate.",
     source: {
       label: "HyDE Retrieval",
-      url: "curriculum/advanced/07-hyde-retrieval/README.md",
+      url: "curriculum/advanced/08-hyde-retrieval/README.md",
     },
   },
   {
-    id: "a7-q3",
-    category: "17 - HyDE Retrieval",
+    id: "a8-q3",
+    category: "18 - HyDE Retrieval",
     prompt: "How should a team decide whether to deploy HyDE?",
     options: [
       "Compare it with original-query and hybrid baselines on labelled query slices.",
@@ -930,7 +1040,7 @@ export const questions = [
       "HyDE is a retrieval intervention. Evaluate it with controlled baselines, per-slice retrieval metrics, operational costs, drift tests, and security invariants rather than one fluent answer.",
     source: {
       label: "HyDE Retrieval",
-      url: "curriculum/advanced/07-hyde-retrieval/README.md",
+      url: "curriculum/advanced/08-hyde-retrieval/README.md",
     },
   },
 ];

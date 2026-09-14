@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">Evaluation and release loop</title><desc id="desc">A release loop from versioned evaluation cases through offline evaluation, a release gate, shadow and canary stages, promotion or rollback, and incident-derived regression tests.</desc>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#16324F" flood-opacity="0.10"/></filter></defs>
+<rect width="100%" height="100%" fill="#F7F9FC"/>
+<text x="60" y="70" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#16324F">Evaluation and release loop</text>
+<text x="60" y="103" font-family="Inter, Arial, sans-serif" font-size="17" fill="#52606D">Hard safety invariants block a release regardless of average quality.</text>
+<path d="M 290 260.0 L 360 260.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="360,260.0 347.0,266.0 347.0,254.0" fill="#52606D"/>
+<path d="M 580 260.0 L 650 260.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="650,260.0 637.0,266.0 637.0,254.0" fill="#52606D"/>
+<path d="M 900 260.0 L 1010 260.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1010,260.0 997.0,266.0 997.0,254.0" fill="#52606D"/>
+<path d="M 1180 260.0 L 1280 260.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1280,260.0 1267.0,266.0 1267.0,254.0" fill="#52606D"/>
+<path d="M 1365.0 310 L 1365.0 480" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1365.0,480 1359.0,467.0 1371.0,467.0" fill="#52606D"/>
+<path d="M 775.0 320 L 775.0 480" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="775.0,480 769.0,467.0 781.0,467.0" fill="#52606D"/>
+<path d="M 1280 530.0 L 1190 530.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1190,530.0 1203.0,524.0 1203.0,536.0" fill="#52606D"/>
+<path d="M 980 530.0 L 900 530.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="900,530.0 913.0,524.0 913.0,536.0" fill="#52606D"/>
+<path d="M 1085.0 580 L 1085 640 L 775 640 L 775.0 700" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="775.0,700 769.0,687.0 781.0,687.0" fill="#52606D"/>
+<path d="M 650 750.0 L 540 750 L 540 840 L 180 840 L 180.0 310" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="180.0,310 186.0,323.0 174.0,323.0" fill="#52606D"/>
+<rect x="70" y="210" width="220" height="100" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="180.0" y="254.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Versioned</text>
+<text x="180.0" y="278.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">evaluation set</text>
+<rect x="360" y="210" width="220" height="100" rx="16" fill="#F0EEFF" stroke="#7667E8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="470.0" y="266.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Offline scorecards</text>
+<rect x="650" y="200" width="250" height="120" rx="16" fill="#FFF1DF" stroke="#F59E42" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="775.0" y="254.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">PROMOTE · HOLD</text>
+<text x="775.0" y="278.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">· BLOCK</text>
+<rect x="1010" y="210" width="170" height="100" rx="16" fill="#FFFFFF" stroke="#8A98A8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1095.0" y="266.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Shadow</text>
+<rect x="1280" y="210" width="170" height="100" rx="16" fill="#FFFFFF" stroke="#8A98A8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1365.0" y="266.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Canary</text>
+<rect x="650" y="480" width="250" height="100" rx="16" fill="#FFF0F0" stroke="#D64545" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="775.0" y="536.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Rollback / contain</text>
+<rect x="980" y="480" width="210" height="100" rx="16" fill="#FFF1DF" stroke="#F59E42" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1085.0" y="536.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Incident analysis</text>
+<rect x="1280" y="480" width="170" height="100" rx="16" fill="#EAF1FF" stroke="#2F6BFF" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1365.0" y="536.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Promote</text>
+<rect x="650" y="700" width="250" height="100" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="775.0" y="756.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">New regression case</text>
+<rect x="911.0" y="242" width="88" height="32" rx="8" fill="#F7F9FC"/><text x="955" y="264" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#52606D">pass</text>
+<rect x="719.0" y="387" width="112" height="32" rx="8" fill="#F7F9FC"/><text x="775" y="409" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#52606D">hard blocker</text>
+</svg>

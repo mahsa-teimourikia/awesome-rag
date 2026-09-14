@@ -1,0 +1,12 @@
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-huggingface
+langchain-chroma
+chromadb
+pydantic
+python-dotenv
+unstructured
+markdown
+sentence-transformers

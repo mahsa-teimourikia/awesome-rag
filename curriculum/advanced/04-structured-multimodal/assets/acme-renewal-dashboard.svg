@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Acme Q3 renewal-risk dashboard</title>
+  <desc id="desc">A synthetic dashboard with quarterly revenue bars, a rising renewal exposure line, a highlighted concentration warning, and a Q3 revenue label of 5 million dollars in region R4.</desc>
+  <rect width="1200" height="720" fill="#F8FAFC"/>
+  <rect x="54" y="46" width="1092" height="628" rx="26" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="92" y="104" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#0F172A">Acme renewal review · Q3 2026</text>
+  <text x="92" y="137" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#475569">Synthetic teaching asset · source version dashboard-2026.3</text>
+
+  <rect x="90" y="178" width="690" height="396" rx="18" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <text x="122" y="220" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1E293B">Revenue and renewal exposure</text>
+  <line x1="150" y1="500" x2="720" y2="500" stroke="#64748B" stroke-width="2"/>
+  <line x1="150" y1="260" x2="150" y2="500" stroke="#64748B" stroke-width="2"/>
+
+  <rect x="205" y="390" width="92" height="110" rx="8" fill="#93C5FD"/>
+  <rect x="390" y="340" width="92" height="160" rx="8" fill="#60A5FA"/>
+  <rect x="575" y="275" width="92" height="225" rx="8" fill="#2563EB"/>
+  <text x="251" y="530" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#334155">Q1</text>
+  <text x="436" y="530" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#334155">Q2</text>
+  <text x="621" y="530" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#334155">Q3</text>
+  <text x="251" y="377" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#1E3A8A">$3.2M</text>
+  <text x="436" y="327" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#1E3A8A">$4.1M</text>
+  <rect x="560" y="226" width="122" height="40" rx="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+  <text x="621" y="252" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1E3A8A">$5.0M</text>
+  <text x="686" y="246" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#475569">R4</text>
+
+  <polyline points="251,438 436,378 621,302" fill="none" stroke="#C2410C" stroke-width="5"/>
+  <circle cx="251" cy="438" r="7" fill="#C2410C"/>
+  <circle cx="436" cy="378" r="7" fill="#C2410C"/>
+  <circle cx="621" cy="302" r="7" fill="#C2410C"/>
+  <text x="164" y="279" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#64748B">higher</text>
+  <text x="164" y="486" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#64748B">lower</text>
+
+  <rect x="820" y="178" width="286" height="172" rx="18" fill="#FFF7ED" stroke="#EA580C" stroke-width="2"/>
+  <text x="852" y="220" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#9A3412">⚠ Concentration warning</text>
+  <text x="852" y="260" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#7C2D12">Q3 renewal exposure exceeds</text>
+  <text x="852" y="287" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#7C2D12">the $1.5M review threshold.</text>
+  <text x="852" y="324" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#9A3412">Region W1 · model-visible only after policy</text>
+
+  <rect x="820" y="382" width="286" height="192" rx="18" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+  <text x="852" y="426" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#166534">Evidence note</text>
+  <text x="852" y="465" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#166534">Revenue bars are visual.</text>
+  <text x="852" y="493" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#166534">The R4 label is OCR-readable.</text>
+  <text x="852" y="521" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#166534">Exposure totals come from rows.</text>
+  <text x="852" y="550" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#475569">Do not treat these as one evidence type.</text>
+
+  <text x="90" y="624" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#64748B">Asset ID: dashboard-acme-q3 · checksum fixture: sha256:acme-dashboard-v3 · regions are normalized to this 1200 × 720 canvas.</text>
+</svg>

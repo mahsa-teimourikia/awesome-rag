@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+<title id="title">Scanned Approval Policy</title><desc id="desc">Synthetic capstone evidence fixture: OCR should preserve page and paragraph provenance</desc>
+<rect width="960" height="540" fill="#F7F9FC"/><rect x="46" y="42" width="868" height="456" rx="22" fill="#FFFFFF" stroke="#D7DEE8" stroke-width="2"/>
+<rect x="46" y="42" width="868" height="86" rx="22" fill="#52606D"/><rect x="46" y="106" width="868" height="22" fill="#52606D"/>
+<text x="82" y="88" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">Scanned Approval Policy</text>
+<text x="82" y="164" font-family="Inter,Arial,sans-serif" font-size="18" fill="#52606D">OCR should preserve page and paragraph provenance</text><g transform="rotate(-1 480 300)"><rect x="105" y="205" width="730" height="170" fill="#FAFAF7" stroke="#C9C7BE"/><text x="135" y="250" font-family="Georgia,serif" font-size="18" fill="#3D3D3D">2. Approval responsibility</text><text x="135" y="292" font-family="Georgia,serif" font-size="19" fill="#252525">Approval requires the Risk Owner and Control Owner.</text><text x="135" y="334" font-family="Georgia,serif" font-size="16" fill="#666">Both approvals must reference the same action fingerprint.</text></g>
+<text x="82" y="468" font-family="Inter,Arial,sans-serif" font-size="14" fill="#718096">Synthetic training asset · Northstar Enterprises</text></svg>

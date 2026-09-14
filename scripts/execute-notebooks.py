@@ -22,7 +22,11 @@ TRACKS = ("beginner", "enterprise", "evaluation", "adaptive-rag")
 
 def notebook_paths() -> list[Path]:
     scenario_tracks = [path for track in TRACKS for path in sorted((ROOT / "notebooks" / track).glob("*.ipynb"))]
-    curriculum = sorted((ROOT / "curriculum").glob("*/*/*.ipynb"))
+    curriculum = [
+        path
+        for path in sorted((ROOT / "curriculum").glob("*/*/*.ipynb"))
+        if "capstone" not in path.parts[-2] or path.parts[-2] == "07-enterprise-rag-capstone"
+    ]
     use_cases = sorted((ROOT / "use-cases").glob("*/*.ipynb"))
     return scenario_tracks + curriculum + use_cases
 
@@ -33,7 +37,7 @@ def execute(path: Path, timeout: int) -> None:
         notebook,
         timeout=timeout,
         kernel_name="python3",
-        resources={"metadata": {"path": str(ROOT)}},
+        resources={"metadata": {"path": str(path.parent)}},
         allow_errors=False,
     )
     client.execute()

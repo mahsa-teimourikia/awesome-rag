@@ -1,0 +1,351 @@
+[
+    {
+        "id": "qa-001",
+        "question": "How much parental leave is available under the current active policy?",
+        "expected_answer": "16 weeks",
+        "expected_document_ids": [
+            "hr/parental_leave_policy_2026.md"
+        ],
+        "answerable": true,
+        "category": "version_sensitive",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-002",
+        "question": "What is the parental leave duration under the 2024 policy?",
+        "expected_answer": "12 weeks",
+        "expected_document_ids": [
+            "hr/parental_leave_policy_2024.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-003",
+        "question": "Who is Northstar's CEO?",
+        "expected_answer": null,
+        "expected_document_ids": [],
+        "answerable": false,
+        "category": "unanswerable",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-004",
+        "question": "If the payment gateway failure rate exceeds 2% over a 5-minute window and the Stripe provider is down, what feature flag should the incident commander use, and how often must enterprise customers be updated?",
+        "expected_answer": "Use feature flag `payments.processor.fallback=true` and update enterprise customers every 30 minutes.",
+        "expected_document_ids": [
+            "engineering/payments_incident_runbook.md",
+            "support/enterprise_sla.md"
+        ],
+        "answerable": true,
+        "category": "multi_source",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-005",
+        "question": "Are authenticator apps allowed for production access?",
+        "expected_answer": "No, authenticator apps are no longer permitted. MFA via physical security keys or biometric authentication must be used.",
+        "expected_document_ids": [
+            "security/access_control_policy.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-006",
+        "question": "I need to do a manual failover of the primary production database. Who needs to approve this?",
+        "expected_answer": "A Tier 2 Engineering Manager or VP. However, if the cluster is completely unresponsive for more than 5 minutes, an on-call Tier 1 engineer may initiate it without approval.",
+        "expected_document_ids": [
+            "engineering/database_failover_runbook.md"
+        ],
+        "answerable": true,
+        "category": "section_context",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-007",
+        "question": "How often do P1 customers get updates?",
+        "expected_answer": null,
+        "expected_document_ids": [
+            "support/enterprise_sla.md",
+            "support/standard_sla.md"
+        ],
+        "answerable": false,
+        "category": "conflicting_evidence",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-008",
+        "question": "If a customer closes an Enterprise account, how long do we keep their data?",
+        "expected_answer": "90 days post-closure, unless they request immediate deletion.",
+        "expected_document_ids": [
+            "legal/data_retention_policy.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-009",
+        "question": "Can I keep my old laptop when I get a new one?",
+        "expected_answer": "No, you must return it to IT within 14 days.",
+        "expected_document_ids": [
+            "it/hardware_provisioning.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-010",
+        "question": "I closed a deal at 120% of my quota. What is my commission rate?",
+        "expected_answer": "15% on the ACV for all deals closed above the 100% threshold.",
+        "expected_document_ids": [
+            "sales/commission_structure_2026.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-011",
+        "question": "Can I give a 15% discount to a startup?",
+        "expected_answer": "Startups automatically get a 50% discount on the first year, which does not require approval.",
+        "expected_document_ids": [
+            "sales/discounting_policy.md"
+        ],
+        "answerable": true,
+        "category": "multi_source",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-012",
+        "question": "How long do we keep Slack messages?",
+        "expected_answer": "90 days.",
+        "expected_document_ids": [
+            "legal/data_retention_policy.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-013",
+        "question": "A vendor had a data breach. Do they need to notify us?",
+        "expected_answer": "Yes, within 24 hours of discovery.",
+        "expected_document_ids": [
+            "legal/vendor_code_of_conduct.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-014",
+        "question": "When does Okta access get revoked for offboarded employees?",
+        "expected_answer": "At 5:00 PM local time on their final day.",
+        "expected_document_ids": [
+            "it/software_access_control.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-015",
+        "question": "I'm a Data Scientist. What laptop do I get?",
+        "expected_answer": "You can request an Apple MacBook Pro 16\" (M3 Max, 64GB RAM, 1TB SSD).",
+        "expected_document_ids": [
+            "it/hardware_provisioning.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-016",
+        "question": "How long do we keep tax documents?",
+        "expected_answer": "Exactly 7 years from the date of the transaction.",
+        "expected_document_ids": [
+            "legal/data_retention_policy.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-017",
+        "question": "What encryption standard must vendors use for data in transit?",
+        "expected_answer": "TLS 1.3.",
+        "expected_document_ids": [
+            "legal/vendor_code_of_conduct.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-018",
+        "question": "If I am at 160% of quota, what is my commission rate?",
+        "expected_answer": "20% on the ACV for all deals closed above the 150% threshold.",
+        "expected_document_ids": [
+            "sales/commission_structure_2026.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-019",
+        "question": "I want to offer a 25% discount to a massive enterprise account. Who approves this?",
+        "expected_answer": "The VP of Sales.",
+        "expected_document_ids": [
+            "sales/discounting_policy.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-020",
+        "question": "What happens if a customer churns after 3 months?",
+        "expected_answer": "100% of the commission paid for that deal will be clawed back.",
+        "expected_document_ids": [
+            "sales/commission_structure_2026.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-021",
+        "question": "My laptop was stolen out of my car! What do I do?",
+        "expected_answer": "Report it to IT via the urgent Slack channel (#it-urgent-help) within 1 hour.",
+        "expected_document_ids": [
+            "it/hardware_provisioning.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-022",
+        "question": "Can I purchase a SaaS tool that doesn't support SSO?",
+        "expected_answer": "No. All SaaS applications must be integrated with Okta SSO.",
+        "expected_document_ids": [
+            "it/software_access_control.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-023",
+        "question": "Does Adobe Creative Cloud come standard for everyone?",
+        "expected_answer": "No, it requires manager approval via a Jira IT Service Desk ticket.",
+        "expected_document_ids": [
+            "it/software_access_control.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-024",
+        "question": "What is the capital of France?",
+        "expected_answer": null,
+        "expected_document_ids": [],
+        "answerable": false,
+        "category": "unanswerable",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-025",
+        "question": "Who is the VP of Sales?",
+        "expected_answer": null,
+        "expected_document_ids": [],
+        "answerable": false,
+        "category": "unanswerable",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-026",
+        "question": "How do I request time off?",
+        "expected_answer": null,
+        "expected_document_ids": [],
+        "answerable": false,
+        "category": "unanswerable",
+        "difficulty": "easy"
+    },
+    {
+        "id": "qa-027",
+        "question": "If an Enterprise customer closes their account, but we are currently under an active audit, when do we delete their financial records?",
+        "expected_answer": "Financial records are placed on Legal Hold and cannot be deleted until the audit officially closes, overriding standard customer data deletion.",
+        "expected_document_ids": [
+            "legal/data_retention_policy.md"
+        ],
+        "answerable": true,
+        "category": "multi_source",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-028",
+        "question": "A startup customer signed a 3-year deal. What is the commission?",
+        "expected_answer": "The AE receives standard commission on Year 1 ACV (with a 50% discount applied to the ACV for the first year), plus a 5% bonus on Year 2 and 3 ACV.",
+        "expected_document_ids": [
+            "sales/discounting_policy.md",
+            "sales/commission_structure_2026.md"
+        ],
+        "answerable": true,
+        "category": "multi_source",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-029",
+        "question": "If a vendor loses an old Northstar laptop, what should they do?",
+        "expected_answer": null,
+        "expected_document_ids": [
+            "legal/vendor_code_of_conduct.md",
+            "it/hardware_provisioning.md"
+        ],
+        "answerable": false,
+        "category": "unanswerable",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-030",
+        "question": "What is the standard SLA?",
+        "expected_answer": null,
+        "expected_document_ids": [
+            "support/standard_sla.md",
+            "support/enterprise_sla.md"
+        ],
+        "answerable": false,
+        "category": "conflicting_evidence",
+        "difficulty": "hard"
+    },
+    {
+        "id": "qa-031",
+        "question": "What is the standard review cycle for internal policies?",
+        "expected_answer": "Annual",
+        "expected_document_ids": [
+            "it/software_access_control.md"
+        ],
+        "answerable": true,
+        "category": "multi_source",
+        "difficulty": "medium"
+    },
+    {
+        "id": "qa-032",
+        "question": "Who approved the current major compliance overhaul (v1.2)?",
+        "expected_answer": "Jane Doe (COO) and John Smith (CISO).",
+        "expected_document_ids": [
+            "hr/remote_work_policy.md"
+        ],
+        "answerable": true,
+        "category": "single_source",
+        "difficulty": "easy"
+    }
+]

@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410" role="img" aria-labelledby="title desc">
+<title id="title">Structured data safety boundary</title>
+<desc id="desc">Authorized rows flow through validated filtering, aggregation, and unit checks into an exact result with row citations; an LLM may explain the result but does not recompute it.</desc>
 <rect width="1200" height="410" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">

@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="410" viewBox="0 0 1200 410" role="img" aria-labelledby="title desc">
+<title id="title">Operation-aware evidence routing</title>
+<desc id="desc">Calculation routes to typed data or SQL, text lookup to text retrieval, OCR fields to OCR with regions, and visual meaning to a vision model.</desc>
 <rect width="1200" height="410" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">

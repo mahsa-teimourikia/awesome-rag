@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="operational-signals-title operational-signals-desc">
+<title id="operational-signals-title">Production RAG operational signals</title>
+<desc id="operational-signals-desc">A diagram distinguishing readiness, freshness, offline quality, and online behavior signals.</desc>
 <rect width="1200" height="390" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">

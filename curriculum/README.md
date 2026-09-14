@@ -63,6 +63,7 @@ The Beginner track develops the mental model and evidence discipline required fo
 | [02 — First Local RAG](beginner/02-first-local-rag/README.md) | Can I build and inspect the complete loop? | Build a transparent local RAG baseline and inspect intermediate artifacts |
 | [03 — Chunking Lab](beginner/03-chunking-lab/README.md) | How should documents become retrievable evidence? | Compare chunking and document-representation strategies experimentally |
 | [04 — Citations & Abstention](beginner/04-citations-abstention/README.md) | When is an answer actually supported? | Preserve provenance, validate citations, and abstain when evidence is insufficient |
+| [05 — Enterprise RAG Capstone](beginner/05-capstone-enterprise-rag/README.md) | How do these pieces fit into a real application? | Build an end-to-end Enterprise RAG system using a real vector store, embeddings, LLM, and dataset |
 
 ### Beginner progression
 
@@ -74,6 +75,8 @@ inspectable implementation
 document representation
       ↓
 evidence + citation discipline
+      ↓
+end-to-end enterprise capstone
 ```
 
 **Exit capability:** build a small RAG system whose answers can be traced back through retrieved evidence and whose failures can be classified rather than simply called “hallucinations.”
@@ -129,7 +132,8 @@ Advanced RAG introduces dynamic control only where the simpler retrieval archite
 | [04 — Structured & Multimodal RAG](advanced/04-structured-multimodal/README.md) | What if evidence is tabular, numeric, visual, or OCR-derived? | Modality-specific retrieval, deterministic computation, multimodal evidence contracts |
 | [05 — Adaptive RAG](advanced/05-adaptive-rag/README.md) | Which retrieval strategy should run for this request? | Routing, cascades, route evaluation, Adaptive + Corrective architectures |
 | [06 — Production Operations](advanced/06-production-operations/README.md) | How do we safely operate the complete system? | Tracing, quality monitoring, versioning, release gates, canaries, rollback, safe degradation |
-| [07 — HyDE Retrieval](advanced/07-hyde-retrieval/README.md) | When should RAG imagine a document before searching? | Hypothetical search representations, conditional routing, fusion, failure injection, slice evaluation |
+| [07 — Enterprise RAG Platform Capstone](advanced/07-enterprise-rag-capstone/README.md) | Which advanced techniques belong on each enterprise request path? | System design, common evidence contracts, heterogeneous routing, hard safety gates, architecture comparison, release, and incident response |
+| [08 — HyDE Retrieval](advanced/08-hyde-retrieval/README.md) | When should the retriever search with an imagined document? | Hypothetical-document search representations, fusion, conditional routing, provenance boundaries, and slice evaluation |
 
 ### Advanced progression
 
@@ -145,13 +149,15 @@ bounded tool autonomy
 multiple evidence modalities
         ↓
 adaptive routing
-        ↓
+       ↓
 production operations
-        ↓
-HyDE retrieval specialization
+       ↓
+enterprise platform capstone
+       ↓
+conditional HyDE retrieval
 ```
 
-**Exit capability:** decide which advanced RAG pattern should—or should not—be deployed, justify it against a simpler baseline, define its control boundary, and operate it with measurable quality and recoverability.
+**Exit capability:** decide which advanced RAG pattern should—or should not—be deployed, justify it against a simpler baseline, define its control boundary, integrate it into a heterogeneous evidence platform, and operate it with measurable quality and recoverability.
 
 ---
 

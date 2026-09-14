@@ -1,0 +1,124 @@
+diagram:
+  id: corrective-rag-bounded-control-loop
+  title: Corrective RAG bounded evidence-recovery controller
+  purpose: Show that every recovery action returns to evidence grading and that generation is reachable only after strong evidence.
+  canvas: {width: 1440, height: 820, margin: 48}
+  coordinate_system: {origin: top-left, unit: px}
+  style:
+    background: "#F8FAFC"
+    font_family: "Inter, Arial, sans-serif"
+    edge_color: "#526071"
+    edge_width: 3
+    corner_radius: 18
+  groups:
+    - id: trusted-boundary
+      label: Authorized evidence boundary
+      x: 52
+      y: 112
+      width: 1336
+      height: 612
+      fill: "#FFFFFF"
+      stroke: "#CBD5E1"
+  nodes:
+    - id: retrieve
+      label: Authorized retrieval
+      subtitle: dense baseline
+      x: 92
+      y: 250
+      width: 220
+      height: 104
+      fill: "#EAF2FF"
+      stroke: "#2563EB"
+      ports: {right: [312, 302]}
+    - id: grade
+      label: Evidence evaluator
+      subtitle: document + set grade
+      x: 380
+      y: 250
+      width: 240
+      height: 104
+      fill: "#E8FBF7"
+      stroke: "#0F8B7D"
+      ports: {left: [380, 302], right: [620, 302], bottom: [500, 354]}
+    - id: policy
+      label: Recovery policy
+      subtitle: routes + budgets
+      x: 688
+      y: 250
+      width: 230
+      height: 104
+      fill: "#FFF4E5"
+      stroke: "#C56518"
+      ports: {left: [688, 302], right: [918, 302], bottom: [803, 354]}
+    - id: generate
+      label: Generate + verify
+      subtitle: strong evidence only
+      x: 1090
+      y: 156
+      width: 244
+      height: 104
+      fill: "#EAF8EE"
+      stroke: "#258A4B"
+      ports: {left: [1090, 208]}
+    - id: recover
+      label: Execute one approved recovery
+      subtitle: lexical / rewrite / missing facet / approved external
+      x: 820
+      y: 444
+      width: 514
+      height: 116
+      fill: "#F4EEFF"
+      stroke: "#7652B4"
+      ports: {top: [1077, 444], bottom: [1077, 560]}
+    - id: abstain
+      label: Abstain / clarify
+      subtitle: conflict / unauthorized / exhausted
+      x: 1090
+      y: 614
+      width: 244
+      height: 82
+      fill: "#FFF0F1"
+      stroke: "#C2414B"
+      ports: {left: [1090, 655]}
+  edges:
+    - id: retrieve-to-grade
+      from: {node: retrieve, port: right}
+      to: {node: grade, port: left}
+      path: [[312, 302], [380, 302]]
+    - id: grade-to-policy
+      from: {node: grade, port: right}
+      to: {node: policy, port: left}
+      label: grade
+      path: [[620, 302], [688, 302]]
+    - id: policy-to-generate
+      from: {node: policy, port: right}
+      to: {node: generate, port: left}
+      label: strong
+      path: [[918, 302], [980, 302], [980, 208], [1090, 208]]
+    - id: policy-to-recover
+      from: {node: policy, port: bottom}
+      to: {node: recover, port: top}
+      label: recover
+      path: [[803, 354], [803, 402], [1077, 402], [1077, 444]]
+    - id: recover-to-grade
+      from: {node: recover, port: bottom}
+      to: {node: grade, port: bottom}
+      label: re-grade after every attempt
+      path: [[1077, 560], [1077, 588], [500, 588], [500, 354]]
+    - id: policy-to-abstain
+      from: {node: policy, port: bottom}
+      to: {node: abstain, port: left}
+      label: terminal
+      path: [[803, 354], [748, 354], [748, 655], [1090, 655]]
+  annotations:
+    - id: invariant
+      text: "Invariant: recovery may change retrieval strategy, never the principal's authority."
+      x: 92
+      y: 676
+      width: 610
+      height: 30
+  constraints:
+    - generation_has_single_incoming_edge_from_policy
+    - recovery_returns_to_grade
+    - no_edge_crosses_a_node
+    - every_terminal_path_is_explicit

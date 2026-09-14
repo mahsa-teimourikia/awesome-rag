@@ -1,0 +1,191 @@
+[
+    {
+        "id": "doc-001",
+        "content": "Hardware Spec AX-774-A: The legacy server rack requires 110V power and a single cooling unit. Compatible with legacy cooling controller.",
+        "metadata": {
+            "source": "hardware_specs.md"
+        }
+    },
+    {
+        "id": "doc-002",
+        "content": "Hardware Spec AX-774-B: The new server rack requires 220V power and dual redundant cooling units. AX-774-B must not be connected to the legacy cooling controller.",
+        "metadata": {
+            "source": "hardware_specs.md"
+        }
+    },
+    {
+        "id": "doc-003",
+        "content": "Hardware Spec AX-774-B2: The upgraded server rack requires 220V power. Cooling requirements are identical to AX-774-B.",
+        "metadata": {
+            "source": "hardware_specs.md"
+        }
+    },
+    {
+        "id": "doc-004",
+        "content": "Hardware Spec AX-774-C: The high-density server rack requires 240V power.",
+        "metadata": {
+            "source": "hardware_specs.md"
+        }
+    },
+    {
+        "id": "doc-005",
+        "content": "Service Record SRV-2207: Scheduled maintenance for cooling units in zone A. Expected downtime is 2 hours.",
+        "metadata": {
+            "source": "service_records.md"
+        }
+    },
+    {
+        "id": "doc-006",
+        "content": "Incident Report INC-10482: Outage in zone B caused by power spike. AX-774-B units safely powered down.",
+        "metadata": {
+            "source": "incidents.md"
+        }
+    },
+    {
+        "id": "doc-007",
+        "content": "Business Continuity Plan (BCP): In the event of a total site failure, operations will fail over to the secondary data center within 4 hours.",
+        "metadata": {
+            "source": "bcp.md"
+        }
+    },
+    {
+        "id": "doc-008",
+        "content": "The DR strategy requires all critical databases to be replicated synchronously. Disaster Recovery testing occurs quarterly.",
+        "metadata": {
+            "source": "dr_policy.md"
+        }
+    },
+    {
+        "id": "doc-009",
+        "content": "Recovery Time Objective: The RTO for tier 1 applications is 15 minutes.",
+        "metadata": {
+            "source": "rto_specs.md"
+        }
+    },
+    {
+        "id": "doc-010",
+        "content": "The RPO (Recovery Point Objective) for financial ledgers is strictly 0 seconds (zero data loss).",
+        "metadata": {
+            "source": "rpo_specs.md"
+        }
+    },
+    {
+        "id": "doc-011",
+        "content": "Service Level Agreement (SLA): Enterprise customers are guaranteed 99.99% uptime.",
+        "metadata": {
+            "source": "sla.md"
+        }
+    },
+    {
+        "id": "doc-012",
+        "content": "Vendor Agreement: DataStax is the contracted vendor for the Atlas similarity-search platform.",
+        "metadata": {
+            "source": "vendor_agreements.md"
+        }
+    },
+    {
+        "id": "doc-013",
+        "content": "Project Helios: The internal migration tool for moving legacy databases to the cloud.",
+        "metadata": {
+            "source": "projects.md"
+        }
+    },
+    {
+        "id": "doc-014",
+        "content": "Northstar Technologies: The parent company overseeing all internal operations and compliance.",
+        "metadata": {
+            "source": "corporate.md"
+        }
+    },
+    {
+        "id": "doc-015",
+        "content": "VectorGrid Architecture: The new distributed index for managing billion-scale embedding vectors.",
+        "metadata": {
+            "source": "architecture.md"
+        }
+    },
+    {
+        "id": "doc-016",
+        "content": "The geographic atlas in the library contains historical maps of the supplier region.",
+        "metadata": {
+            "source": "library.md"
+        }
+    },
+    {
+        "id": "doc-017",
+        "content": "Database Supplier Index: A directory of all relational database vendors.",
+        "metadata": {
+            "source": "vendor_directory.md"
+        }
+    },
+    {
+        "id": "doc-018",
+        "content": "Power requirements for the new office building include dual 110V outlets at every desk.",
+        "metadata": {
+            "source": "facilities.md"
+        }
+    },
+    {
+        "id": "doc-019",
+        "content": "HR Policy 2026: Parental leave is 16 weeks for all full-time employees.",
+        "metadata": {
+            "source": "hr_policy.md"
+        }
+    },
+    {
+        "id": "doc-020",
+        "content": "IT Provisioning: New hires receive a standard laptop. Approvals required for 32GB RAM upgrades.",
+        "metadata": {
+            "source": "it_policy.md"
+        }
+    },
+    {
+        "id": "doc-021",
+        "content": "Legal Code of Conduct: Vendors must adhere to the data retention policy (retain for 7 years).",
+        "metadata": {
+            "source": "legal_policy.md"
+        }
+    },
+    {
+        "id": "doc-022",
+        "content": "Sales Commission: Q1 2026 commission structure includes a 2x multiplier for enterprise deals.",
+        "metadata": {
+            "source": "sales_policy.md"
+        }
+    },
+    {
+        "id": "doc-023",
+        "content": "Finance Review: Q1 2026 showed a 15% reduction in cloud compute costs due to Project Helios.",
+        "metadata": {
+            "source": "finance_review.md"
+        }
+    },
+    {
+        "id": "doc-024",
+        "content": "Security Escalation: Any unauthorized access attempt must be reported to the SOC within 15 minutes.",
+        "metadata": {
+            "source": "security_policy.md"
+        }
+    },
+    {
+        "id": "doc-025",
+        "content": "The payments infrastructure rollback procedure involves executing the 'revert_tx.sh' script and notifying the finance team.",
+        "metadata": {
+            "source": "payments_runbook.md"
+        }
+    },
+    {
+        "id": "doc-026",
+        "content": "To quickly restart the payments infrastructure, use the 'restart_services.sh' script. This is not a rollback.",
+        "metadata": {
+            "source": "payments_runbook.md"
+        }
+    },
+    {
+        "id": "doc-027",
+        "content": "Database failover runbook: If the primary database fails, the standby replica will automatically promote itself within 30 seconds.",
+        "metadata": {
+            "source": "database_runbook.md"
+        }
+    }
+]

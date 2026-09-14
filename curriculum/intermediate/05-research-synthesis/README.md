@@ -1,365 +1,380 @@
 # Intermediate 05 — Research Synthesis: Map, Reduce, Refine, and Preserve Disagreement
 
-**Level:** Intermediate  
-**Estimated time:** 2–3 hours  
-**Notebook:** [`05_research_synthesis.ipynb`](05_research_synthesis.ipynb)  
+**Level:** Intermediate
+
+**Estimated time:** 3–4 hours
+
+**Notebook:** [`05_research_synthesis.ipynb`](05_research_synthesis.ipynb)
+
 **Prerequisite:** [RAG Evaluation](../04-evaluation/README.md)
 
----
+**Next:** [Local Qdrant](../06-qdrant-local/README.md)
 
-## Why this lesson exists
+> **Central rule:** Research synthesis is evidence integration, not “retrieve many documents and summarize.”
 
-Lookup RAG asks for one answer from a small evidence set.
+This lesson preserves the Atlas database-migration scenario, Map-Reduce, Refine, and the original Engineering-versus-QA disagreement. It expands them into an inspectable research workflow in which every material statement remains connected to stable evidence.
 
-Research synthesis asks a broader question across many sources, often with:
+## Learning outcomes
 
-- multiple claims;
-- duplicate evidence;
-- different source authority;
-- contradictory findings;
-- temporal differences;
-- incomplete coverage.
+After completing the chapter and notebook, you can:
 
-The actual notebook teaches two synthesis patterns:
+- turn a broad research question into a bounded evidence plan;
+- extract typed evidence while preserving application-assigned provenance;
+- distinguish citations, sources, and independent source families;
+- classify direct, temporal, scope, definition, and unresolved conflicts;
+- build a claim-evidence map before generating prose;
+- implement Map-Reduce and a deterministic structured-Refine state simulation;
+- identify gaps and perform a bounded gap-filling pass;
+- evaluate support, citation coverage, conflict coverage, temporal qualification, and source independence; and
+- explain how the teaching design should change for production research systems.
 
-- **Map-Reduce**;
-- **Refine**;
+## Scenario, success criteria, and boundaries
 
-and intentionally includes conflicting evidence.
+Atlas is a proposed database platform migration. Engineering, QA, Finance, Security, Operations, Compliance, Architecture, Support, and the vendor have produced reports with different scopes, dates, and incentives. The decision question is:
 
-![Synthesis patterns](assets/synthesis-patterns.svg)
+> What are the benefits, risks, and unresolved concerns of migrating to Atlas?
 
-The old README documented a much larger research workflow and referenced `research_synthesis.ipynb` and `lab.py`, neither of which matches the folder. This README aligns the runnable material with `05_research_synthesis.ipynb` while preserving the production design lessons.
+A successful synthesis must cover cost, performance, security, and operational readiness; expose material disagreements; cite stable evidence IDs; distinguish repeated claims from independent confirmation; qualify changing results by date and scope; and state missing evidence explicitly.
 
----
+This is not an autonomous web-research agent or a systematic-review automation course. The notebook uses a local synthetic corpus, one bounded gap-filling round, deterministic checks, and an optional live model. Human review remains necessary for consequential decisions.
 
-## Learning objectives
+![Map-Reduce and Refine synthesis patterns](assets/synthesis-patterns.svg)
 
-After this lesson you should be able to:
+## 1. Mental model: evidence first, prose last
 
-- explain when synthesis differs from lookup RAG;
-- implement the conceptual Map-Reduce pattern;
-- explain the Refine pattern;
-- compare parallel and sequential synthesis costs;
-- preserve source IDs through intermediate claims;
-- detect conflicting evidence rather than forcing consensus;
-- explain why claim-level provenance matters;
-- recognize citation laundering and duplicated source evidence; and
-- evaluate synthesis for support, conflict coverage, and evidence gaps.
-
----
-
-# 1. Map-Reduce
-
-Map:
-
-```text
-document 1 → relevant claims
-document 2 → relevant claims
-document 3 → relevant claims
-...
+```mermaid
+flowchart TD
+    Q[Research question] --> P[Evidence plan]
+    P --> V[Focused evidence views]
+    V --> M[Map into typed evidence records]
+    M --> D[Duplicate and source-family analysis]
+    D --> C[Conflict analysis]
+    C --> G[Gap analysis]
+    G -->|bounded retrieval| M
+    G --> CM[Claim-evidence map]
+    CM --> S[Cited synthesis]
+    S --> E[Evaluation and audit record]
 ```
 
-Reduce:
+The invariant is:
 
 ```text
-all mapped claims
+source → evidence record → claim-evidence map → cited sentence
+```
+
+Do not generate a conclusion first and reconstruct citations afterward. Provenance lost during mapping, compression, or refinement cannot reliably be restored by a polished final prompt.
+
+## 2. Evidence planning
+
+The question is broader than a single retrieval query. Decompose it into a small, inspectable plan:
+
+```python
+research_plan = {
+    "benefits": ["cost", "latency/performance", "operational efficiency"],
+    "risks": ["performance under load", "security", "migration operations"],
+    "decision_questions": [
+        "Is Atlas ready for production?",
+        "Which claims remain disputed?",
+    ],
+}
+```
+
+This is not an agentic planner. It is a coverage contract used to build focused evidence views and later detect omissions. Production plans should also record jurisdiction, time horizon, definitions, inclusion rules, and the point at which evidence collection stops.
+
+## 3. Evidence identity and typed records
+
+Filenames are presentation details, not stable provenance. Give each source and extracted item explicit identity:
+
+```python
+{
+    "source_id": "qa-load-test-2026",
+    "document_id": "qa-load-test",
+    "evidence_id": "qa-load-test-2026#latency",
+    "title": "Atlas Load Test",
+    "source_type": "internal_test",
+    "authority": "primary_internal_measurement",
+    "date": "2026-06-12",
+    "source_family": "qa-load-test",
+    "version": "2",
+}
+```
+
+The notebook maps selected items into a typed `EvidenceRecord` containing the claim, claim type, date, scope, authority, question relevance, and extraction status. The model may propose claim text, but the application attaches and validates `evidence_id`, `source_id`, `source_family`, and source metadata. A structured-output schema prevents malformed shapes; it does not prove the extracted claim is faithful.
+
+Deterministic validation checks that:
+
+- evidence and source IDs exist in the corpus;
+- the record still belongs to its originating source;
+- source family, date, and authority match trusted metadata;
+- irrelevant evidence is marked rather than forced into a claim; and
+- duplicate evidence IDs fail closed.
+
+## 4. Focused evidence views
+
+Even when many documents technically fit within a long context window, sending an entire corpus directly to the generator may be inefficient and does not solve evidence selection, provenance, duplication, source authority, conflict handling, or attention-allocation problems.
+
+```text
+long context ≠ evidence management
+```
+
+The lab creates bounded views for cost, performance, security, and operational readiness using transparent metadata and keyword rules. This is deliberately simpler than the retrieval techniques in [Intermediate 01](../01-retrieval-strategies/README.md): the point is to prevent every synthesis call from receiving every source, not to optimize a retriever.
+
+Focused views may still contain irrelevant material. The Map stage must be allowed to emit `supports_question = false`; otherwise a model is pressured to manufacture relevance.
+
+## 5. Map-Reduce inside the evidence workflow
+
+### Map
+
+```text
+selected source
       ↓
-synthesis
-```
-
-![Map-reduce](assets/map-reduce.svg)
-
-Advantages:
-
-- map calls can run in parallel;
-- irrelevant documents can be filtered during mapping;
-- per-source claims remain visible.
-
-Risks:
-
-- many model calls;
-- reduce step may lose provenance;
-- duplicates can appear as false consensus;
-- conflicts may be silently collapsed.
-
----
-
-# 2. Refine
-
-Refine is sequential:
-
-```text
-doc 1 → draft
-doc 2 + draft → updated draft
-doc 3 + draft → updated draft
-...
-```
-
-Advantages:
-
-- coherent running narrative;
-- each document can update prior conclusions.
-
-Risks:
-
-- sequential latency;
-- order sensitivity;
-- earlier evidence may be forgotten;
-- later documents can dominate.
-
-Refine is not automatically "better" because it is sequential.
-
----
-
-# 3. The notebook's conflict example
-
-Engineering says:
-
-```text
-P99 latency = 45ms
-```
-
-QA says:
-
-```text
-P99 latency spikes to 800ms under load
-```
-
-A good synthesis should not choose one without explanation.
-
-It should represent:
-
-```text
-Engineering reports 45ms under its conditions.
-QA observed 800ms under stress.
-The sources conflict because test conditions differ or require further review.
-```
-
-![Conflict handling](assets/conflict-handling.svg)
-
----
-
-# 4. Claim-evidence map before prose
-
-A stronger production pattern is:
-
-```text
-claim
-supporting sources
-contradicting sources
-scope
-date
-confidence / review status
-```
-
-Example:
-
-```text
-Claim: Atlas reduces AWS cost by 30%
-Supporting: finance_memo.md
-Contradicting: none
-Status: single-source finding
-```
-
-Do this before writing polished prose.
-
-That reduces the temptation to generate a conclusion first and backfill citations afterward.
-
----
-
-# 5. Source independence
-
-Ten citations do not mean ten independent confirmations.
-
-If nine secondary sources all cite one benchmark, the synthesis still has one underlying evidence source.
-
-Track:
-
-- primary source;
-- derivative sources;
-- publication/update date;
-- methodology;
-- scope.
-
-This prevents **citation laundering** and source-count voting.
-
----
-
-# 6. Temporal disagreement
-
-Two sources may disagree because they describe different time periods.
-
-Preserve dates.
-
-A safe synthesis can say:
-
-```text
-The 2024 test reported X, while the 2026 production report found Y.
-```
-
-Do not present the older result as current without qualification.
-
----
-
-# 7. Map-Reduce cost correction
-
-The notebook reflection gives a simplified latency example where 50 parallel map calls take one second total.
-
-That is a conceptual illustration, not a production guarantee.
-
-Actual latency depends on:
-
-- concurrency limits;
-- provider rate limits;
-- batch scheduling;
-- token lengths;
-- retries;
-- reduce input size.
-
-Parallelism reduces wall-clock latency only within infrastructure limits.
-
----
-
-# 8. Modern synthesis design
-
-For large corpora, avoid simply sending every source through an LLM.
-
-Use:
-
-```text
-question planning
+structured claim extraction
       ↓
-focused retrieval views
-      ↓
-deduplication
-      ↓
-claim extraction
-      ↓
-conflict / gap analysis
-      ↓
-synthesis
+validated EvidenceRecord
 ```
 
-Synthesis is an evidence-management workflow, not merely a long summarization prompt.
+![Map-Reduce synthesis flow](assets/map-reduce.svg)
 
----
+Map calls are naturally parallelizable and keep per-source extraction inspectable. They also multiply calls, can extract duplicates, and can propagate errors at scale. A real system needs concurrency limits, retry policy, schema validation, source-level error records, and traceable model/prompt versions.
 
-# 9. Evaluation
+### Reduce
 
-Measure:
+The reducer must not receive an unstructured pile of document summaries. It receives:
 
-- claim support;
-- citation completeness;
-- conflict coverage;
-- source diversity;
-- duplicate-source rate;
-- temporal qualification;
-- evidence-gap reporting;
-- cost and latency.
+```text
+research question
+claim-evidence map
+conflict records
+evidence gaps
+```
 
-A polished report that hides a material conflict is a failure even if every sentence sounds reasonable.
+The notebook supports a real configurable reducer when credentials are present and a committed frozen output otherwise. Both use evidence aliases assigned by the application. The model never invents filenames or source URLs.
 
----
+## 6. Refine as evidence-state refinement
 
-# 10. Exercises
+Narrative Refine repeatedly rewrites prose:
 
-1. Change the order of documents in a refine workflow; predict order effects.
-2. Add a second finance source that merely repeats the same original claim.
-3. Add a newer QA report and identify temporal vs logical conflict.
-4. Preserve source IDs in mapped claims.
-5. Create a reducer that must output `conflicts` separately from `findings`.
-6. Compare Map-Reduce and Refine on latency, cost, provenance, and conflict handling.
+```text
+previous prose + next source → rewritten prose
+```
 
----
+That design is difficult to audit and vulnerable to recency effects. This lesson instead maintains typed running state:
 
-# 11. Checkpoint
+```text
+previous evidence state + next EvidenceRecord → updated evidence state
+```
 
-1. Why is synthesis different from lookup RAG?
-2. What is the Map phase?
-3. What is the Reduce phase?
-4. Why can Refine be order-sensitive?
-5. What should happen when sources conflict?
-6. What is citation laundering?
-7. Why is source count not the same as evidence strength?
-8. What must be preserved before prose generation?
+Structured Refine can retain claims, conflicts, gaps, and evidence IDs explicitly. It still introduces sequential dependencies, which can increase wall-clock latency compared with parallelizable map stages. It can also be order-sensitive when state is compressed or capped. The notebook runs the same evidence in two orders and measures retained claims, conflicts, evidence IDs, and final coverage.
 
----
+The executable Refine path is deterministic state refinement so order and capacity effects remain reproducible. It is not a live-model benchmark: the optional live model path applies to Map extraction and Reduce output only. A schema-constrained model-based state updater is a production extension that needs its own faithfulness, latency, and cost evaluation.
 
-## What comes next
+Neither strategy is universally superior:
 
-### [Intermediate 06 — Local Qdrant](../06-qdrant-local/README.md)
+| Dimension | Map-Reduce | Structured Refine |
+|---|---|---|
+| Parallelism | Map stage can be parallel | Sequential dependency |
+| Global comparison | Strong in reduce step | Emerges incrementally |
+| Incremental updates | Usually remap/reduce affected scope | Natural state update |
+| Order sensitivity | Mostly reducer/input-order effects | Stronger under bounded state |
+| Provenance | Must survive mapping and reduction | Must survive every state update |
+| Failure isolation | Per-map failure can be isolated | One failed update can block later evidence |
 
-Move from framework-level retrieval to a vector database with explicit collection and payload semantics.
+## 7. Source independence and citation laundering
 
----
+Three citations are not three confirmations when all derive from one benchmark:
+
+```text
+primary benchmark ─┬─> executive memo
+                   └─> migration slide deck
+```
+
+Track at least:
+
+- `source_id`: the individual artifact;
+- `source_family`: the underlying evidence lineage;
+- `source_type`: test, audit, memo, vendor claim, and so on;
+- date, version, scope, and methodology where available.
+
+For each final claim, report citation count, unique source count, and independent source-family count. A high duplicate-source rate warns that repeated wording may be inflating apparent consensus.
+
+## 8. Authority is contextual, not a truth score
+
+The Atlas lab uses a teaching taxonomy:
+
+```text
+primary_internal_measurement
+independent_audit
+official_policy
+vendor_claim
+secondary_summary
+```
+
+This is not a universal numeric ranking. An independent audit may be authoritative for control effectiveness, an operations log for an incident, and an official policy for requirements. Lower-authority evidence should not be silently discarded; its role and limitations should be visible.
+
+The notebook makes this concrete by comparing the vendor's 40 ms synthetic performance claim with QA's July 120 ms measurement at a defined 4x customer load. Both remain relevant, but the vendor claim is not treated as equivalent independent measurement for the production workload. Authority changes interpretation and follow-up—not truth through a universal numeric weight.
+
+## 9. Conflict analysis before generation
+
+Different statements are not automatically contradictions.
+
+| Conflict type | Atlas example | Interpretation |
+|---|---|---|
+| Direct | Engineering says production-ready; QA says not ready | Competing conclusions under apparently shared decision scope |
+| Scope | 45 ms at normal load; 800 ms under stress | Both may be true under different conditions |
+| Temporal | 800 ms in May; 120 ms after July optimization | Later measurement may update, not erase, history |
+| Definition | 30% compute-only reduction; 12% total monthly reduction | Different cost boundaries |
+| Unresolved | Vendor SLA versus missing customer workload evidence | Available evidence cannot settle the question |
+
+![Conflict handling before synthesis](assets/conflict-handling.svg)
+
+The notebook builds typed `ConflictRecord` objects before prose generation. A conflict can be resolved, partially resolved, or unresolved. Source authority informs interpretation but never authorizes the system to discard an inconvenient result automatically.
+
+## 10. Claim-evidence map
+
+The central pre-generation artifact looks like this:
+
+```python
+{
+    "claim": "Atlas performance depends on workload and test date.",
+    "supporting_evidence": [
+        "eng-normal-load-2026#latency",
+        "qa-stress-may-2026#latency",
+        "qa-stress-july-2026#latency",
+    ],
+    "contradicting_evidence": [],
+    "source_families": ["engineering-benchmark", "qa-load-test"],
+    "status": "scope-and-time-qualified",
+}
+```
+
+The map separates evidence eligibility and interpretation from prose style. It makes unsupported connective reasoning, missing citations, unresolved conflict, and correlated evidence observable before the report sounds convincing.
+
+## 11. Gap analysis and bounded gap filling
+
+Compare the evidence map with the research plan:
+
+```text
+Cost                         → evidence found
+Performance                  → conflicting, time-qualified evidence
+Security                     → evidence found
+Rollback procedure           → initially missing
+Customer communication plan  → no evidence
+```
+
+The notebook performs one targeted local search for rollback evidence, then stops. If the corpus still contains no support, the report must say so. It must not fill the gap from model parametric knowledge.
+
+Bounded gap filling prevents a research loop from becoming an unobservable, unlimited agent. A production policy should define maximum rounds, cost/time budgets, acceptable source types, and escalation conditions.
+
+## 12. Evaluation: polished prose is not the objective
+
+The lab computes deterministic checks where labels exist:
+
+| Metric | Question |
+|---|---|
+| Claim-evidence link validity | Does every material claim point to known evidence IDs? |
+| Citation validity | Does every cited alias resolve to an evidence record? |
+| Claim-level citation completeness | Does each structured final claim carry at least one citation? |
+| Required-topic coverage | Does the map address the research plan? |
+| Detected-conflict coverage | Did the labelled teaching detector find expected conflicts before generation? |
+| Report-conflict disclosure | Did the structured synthesis output disclose those conflicts? |
+| Source-family diversity | How many independent evidence lineages support claims? |
+| Duplicate-source rate | How much citation volume repeats the same lineage? |
+| Temporal qualification | Are changing measurements represented with dates/versions? |
+| Gap reporting | Are unsupported questions explicitly disclosed? |
+
+Keep relevance and authority separate. Keep citation validity, correctness, and completeness separate. `claim_evidence_link_validity` proves only that a claim points to known evidence IDs; it does not prove semantic entailment. Semantic support requires gold support labels, a calibrated judge, or human review. Likewise, attaching a valid citation to a structured final claim does not by itself prove the evidence supports the wording.
+
+## 13. Cost, latency, and observability
+
+For `N` mapped documents, a basic Map-Reduce workflow uses roughly `N` map calls plus one reduce call. Refine uses approximately `N` sequential update calls. Real wall-clock latency depends on concurrency, rate limits, batching, retries, model latency, and document length.
+
+The notebook measures actual local teaching-runtime latency and records call counts and input characters. Its token values are explicitly estimates in offline mode. Live integrations should capture provider-reported usage, retry counts, queue time, model/version, prompt version, and per-stage latency instead of treating conceptual arithmetic as a benchmark.
+
+## 14. Failure modes and mitigations
+
+| Failure | Why it happens | Control |
+|---|---|---|
+| Forced relevance | Extractor must emit a claim for every source | Permit explicit irrelevant status |
+| Invented provenance | Model creates IDs or filenames | Assign and validate IDs application-side |
+| Citation laundering | Derivative reports look independent | Track source families and lineage |
+| False contradiction | Scope/date/definition omitted | Preserve qualifiers; classify conflict type |
+| Silent consensus | Reducer optimizes for smooth prose | Pass explicit conflict records; test coverage |
+| Recency loss in Refine | Later documents dominate bounded state | Typed state, deterministic retention, order tests |
+| Gap hallucination | Model wants a complete answer | Pass explicit gaps and require disclosure |
+| Long-context omission | Relevant evidence receives weak attention | Focused views, claim map, position/order tests |
+| Stale synthesis | New source version is not propagated | Version sources, maps, prompts, and outputs |
+
+## 15. Technology landscape
+
+| Approach | Strength | Limitation | Best fit |
+|---|---|---|---|
+| Plain Python + Pydantic | Maximum inspectability and deterministic contracts | You build orchestration and tracing | Teaching, prototypes, regulated pipelines |
+| LangChain structured output and runnables | Provider integrations and composable calls | Abstractions can hide evidence-state mistakes | Application teams already using LangChain |
+| Long-context direct synthesis | Simple for small, curated evidence packets | Does not solve evidence management or reliable attention | Bounded, reviewed packets |
+| Hierarchical retrieval/summarization | Scales large corpora and multi-resolution access | Compression can lose provenance | Large repositories with layered summaries |
+| Systematic-review tooling | Explicit screening and review workflow | Domain-specific and often human-intensive | High-stakes literature synthesis |
+
+The notebook teaches the provider-neutral primitive in Python first. Optional `ChatOpenAI.with_structured_output(...)` is one implementation example showing how a mainstream integration packages schema-constrained extraction and reduction without making paid APIs mandatory. Live mode requires an explicitly configured `SYNTHESIS_MODEL`; the course does not embed a model name that will age with provider catalogues.
+
+## 16. Production upgrade path
+
+Move from the local lab to production by adding:
+
+1. immutable source snapshots, content hashes, and lineage;
+2. document-level authorization before evidence becomes eligible;
+3. queue-backed map execution with bounded concurrency and idempotency;
+4. schema and semantic extraction validation with quarantine;
+5. source/version-aware cache keys and invalidation;
+6. durable claim/conflict/gap records rather than prompt-only state;
+7. stage-level traces, usage, latency, exclusion reasons, and reviewer actions;
+8. a versioned evaluation set with expected claims and conflicts;
+9. release gates for unsupported claims, missing conflicts, or invalid citations; and
+10. expert review for consequential recommendations.
+
+An audit trail should retain the question and plan versions, selected/excluded source IDs, extraction model and prompt versions, evidence records, conflict decisions, gap-search rounds, claim map, synthesis version, evaluation results, and reviewer actions—without unnecessarily logging sensitive source content.
+
+## 17. State of the art and open problems
+
+**Established practice:** structured evidence records, stable provenance, bounded retrieval, deduplication, explicit conflict handling, and human review for consequential synthesis.
+
+**Emerging practice:** schema-constrained extraction, hierarchical indexing/summarization, automated citation evaluation, and evaluation datasets that score attribution separately from fluency.
+
+**Research frontier:** reliable multi-source reasoning over long contexts, calibration of conflicting evidence, source-lineage recovery, faithful compression, and evaluation of whether citations truly entail each generated claim. Longer context windows improve capacity, but research such as *Lost in the Middle* shows that usable attention and evidence placement remain empirical concerns.
+
+## 18. Exercises
+
+1. Add a derivative vendor slide and show why citation count changes while source-family count does not.
+2. Add a newer QA report. Classify whether it resolves or merely narrows the earlier conflict.
+3. Corrupt one frozen evidence record’s source ID and confirm validation fails.
+4. Change Refine ordering and state capacity; explain every lost record.
+5. Add a second gap-filling round and define a defensible stopping policy.
+6. Add one material claim without evidence and make the evaluation gate fail.
+7. Design an authorization boundary for confidential Finance and Security evidence.
+8. Decide when a direct long-context packet is preferable to retrieval plus synthesis.
+
+## 19. Checkpoint
+
+1. Why is research synthesis different from lookup RAG?
+2. Why must provenance survive intermediate summaries?
+3. When do three citations represent only one independent confirmation?
+4. How do scope, time, and definition differences change conflict interpretation?
+5. Why is evidence-state Refine easier to audit than narrative Refine?
+6. Why must conflict detection and final-report conflict disclosure be measured separately?
+7. Why must unresolved gaps appear in the final report?
+8. Which metrics are deterministic in this lab, and which require semantic or expert review?
 
 ## References
 
-- Lewis et al. — [RAG](https://arxiv.org/abs/2005.11401)
-- Gao et al. — [RAG Survey](https://arxiv.org/abs/2312.10997)
+- Lewis et al. — [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401)
+- Gao et al. — [Retrieval-Augmented Generation for Large Language Models: A Survey](https://arxiv.org/abs/2312.10997)
+- Liu et al. — [Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172)
+- Gao et al. — [Enabling Large Language Models to Generate Text with Citations (ALCE)](https://arxiv.org/abs/2305.14627)
+- Sarthi et al. — [RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval](https://arxiv.org/abs/2401.18059)
+- Page et al. — [PRISMA 2020 Statement](https://www.bmj.com/content/372/bmj.n71)
 - NIST — [AI RMF Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
-
----
+- OpenAI — [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+- LangChain — [ChatOpenAI structured output integration](https://docs.langchain.com/oss/python/integrations/chat/openai#structured-output)
 
 ## Key takeaway
 
-**A synthesis should expose the structure of the evidence—including disagreement—before it produces polished prose.**
-
-
----
-
-# Deep Dive — Evidence-Based Research Synthesis
-
-Research synthesis is **evidence integration**, not “retrieve many documents and summarize.”
-
-## Evidence planning
-Decompose the question into claims, comparisons, quantitative facts, exceptions, timeline needs, and counterevidence. This becomes a bounded research plan.
-
-## Evidence records
-Normalize findings into records containing evidence ID, fact/claim, source ID/span, date/version, authority, retrieval route, and verification status. An evidence table exposes gaps before generation.
-
-## Source authority
-Relevance does not establish authority. Define domain-specific source tiers and prefer primary/authoritative sources for material factual claims where available.
-
-## Diversity and correlated sources
-Multiple pages may repeat one original report. Track source families and provenance so syndicated copies do not create false confidence.
-
-## Freshness
-Freshness requirements are claim-dependent. Preserve publication/effective date and source version.
-
-## Deduplication
-Deduplicate at chunk, document, source, and source-family levels to prevent repeated evidence from dominating synthesis.
-
-## Contradiction handling
-Do not silently average conflicting claims. Identify the conflict, compare dates/scope/definitions, assess authority, resolve only when justified, and preserve uncertainty otherwise.
-
-## Claim-evidence mapping
-Before final synthesis, identify material claims and require:
-```text
-claim → evidence IDs
-```
-This reduces unsupported connective reasoning.
-
-## Citation-preserving synthesis
-Preserve mappings through intermediate summaries and compression. Do not generate prose first and reconstruct citations afterward.
-
-## Long context vs retrieval
-Long context can help with a bounded evidence set but does not eliminate authorization, provenance, freshness, authority, attention, or cost concerns. A strong pattern is retrieval → bounded evidence → long-context synthesis.
-
-## Iterative gap filling
-Identify required claims without support and perform targeted retrieval. Bound iterations. If evidence remains unavailable, report uncertainty.
-
-## Evaluation
-Measure evidence coverage, citation correctness, source diversity, contradiction handling, unsupported claims, completeness, latency, and cost. Citation count alone is not a quality metric.
-
-## Audit trail
-For consequential research retain plan version, source IDs/versions, evidence records, conflict decisions, exclusion reasons, synthesis version, and reviewer actions.
-
-## Reference workflow
-```text
-question → evidence plan → retrieval → evidence table → authority/duplicate/conflict checks → gap filling → claim-evidence map → cited synthesis
-```
-
-### Further study
-Lewis et al. on RAG; RAG survey literature; attribution/citation research; IR diversity literature; NIST AI RMF.
+**A trustworthy synthesis exposes the structure of the evidence—including duplication, disagreement, and absence—before it produces polished prose.**

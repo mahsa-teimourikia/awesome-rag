@@ -78,6 +78,24 @@ export const learningPath = [
           "Evidence Validation",
         ],
       },
+      {
+        id: "b5",
+        title: "Enterprise RAG Capstone",
+        description:
+          "Build an end-to-end Enterprise RAG system using a real vector store, embeddings, LLM, and evaluation dataset.",
+        material:
+          "../curriculum/beginner/05-capstone-enterprise-rag/README.md",
+        notebook:
+          "../curriculum/beginner/05-capstone-enterprise-rag/05_enterprise_rag_capstone.ipynb",
+        category: "Capstone - Enterprise RAG",
+        minutes: 180,
+        technologies: [
+          "Vector Databases",
+          "Embeddings",
+          "LLM Generation",
+          "Evaluation Metrics",
+        ],
+      },
     ],
   },
 
@@ -154,6 +172,20 @@ export const learningPath = [
           "../curriculum/intermediate/04-evaluation/README.md",
         notebook:
           "../curriculum/intermediate/04-evaluation/01_building_eval_datasets.ipynb",
+        notebooks: [
+          "../curriculum/intermediate/04-evaluation/01_building_eval_datasets.ipynb",
+          "../curriculum/intermediate/04-evaluation/02_ragas_metrics.ipynb",
+          "../curriculum/intermediate/04-evaluation/03_safety_and_robustness.ipynb",
+          "../curriculum/intermediate/04-evaluation/04_continuous_evaluation.ipynb",
+        ],
+        notebookLabels: [
+          "Build evaluation datasets",
+          "Retrieval and generation metrics",
+          "Safety and robustness",
+          "Continuous evaluation",
+        ],
+        implementation:
+          "../curriculum/intermediate/04-evaluation/evaluation_contracts.py",
         category: "08 - RAG Evaluation",
         minutes: 240,
         technologies: [
@@ -298,9 +330,9 @@ export const learningPath = [
         material:
           "../curriculum/advanced/05-adaptive-rag/README.md",
         notebook:
-          "../curriculum/advanced/05-adaptive-rag/06_adaptive_rag.ipynb",
+          "../curriculum/advanced/05-adaptive-rag/05_adaptive_rag.ipynb",
         category: "15 - Adaptive RAG",
-        minutes: 150,
+        minutes: 300,
         technologies: [
           "Adaptive RAG",
           "Routing",
@@ -317,9 +349,9 @@ export const learningPath = [
         material:
           "../curriculum/advanced/06-production-operations/README.md",
         notebook:
-          "../curriculum/advanced/06-production-operations/05_production_operations.ipynb",
+          "../curriculum/advanced/06-production-operations/06_production_operations.ipynb",
         category: "16 - Production Operations",
-        minutes: 150,
+        minutes: 270,
         technologies: [
           "Observability",
           "Tracing",
@@ -331,16 +363,38 @@ export const learningPath = [
       },
       {
         id: "a7",
+        title: "Enterprise RAG Platform Capstone",
+        description:
+          "Design and defend a heterogeneous enterprise evidence platform, compare architecture complexity, enforce hard safety invariants, gate a release, and recover from an incident.",
+        material:
+          "../curriculum/advanced/07-enterprise-rag-capstone/README.md",
+        notebook:
+          "../curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
+        implementation:
+          "../curriculum/advanced/07-enterprise-rag-capstone/lab.py",
+        category: "17 - Enterprise RAG Platform Capstone",
+        minutes: 600,
+        technologies: [
+          "System Design",
+          "Evidence Contracts",
+          "Adaptive & Corrective RAG",
+          "Graph & Multimodal Retrieval",
+          "Release Gates",
+          "Incident Response",
+        ],
+      },
+      {
+        id: "a8",
         title: "HyDE Retrieval",
         description:
           "Generate document-shaped search representations, retrieve only real authorized evidence, and route HyDE to the query slices where evaluation shows it helps.",
         material:
-          "../curriculum/advanced/07-hyde-retrieval/README.md",
+          "../curriculum/advanced/08-hyde-retrieval/README.md",
         notebook:
-          "../curriculum/advanced/07-hyde-retrieval/07_hyde_retrieval.ipynb",
+          "../curriculum/advanced/08-hyde-retrieval/08_hyde_retrieval.ipynb",
         implementation:
-          "../curriculum/advanced/07-hyde-retrieval/lab.py",
-        category: "17 - HyDE Retrieval",
+          "../curriculum/advanced/08-hyde-retrieval/lab.py",
+        category: "18 - HyDE Retrieval",
         minutes: 180,
         technologies: [
           "HyDE",
@@ -377,6 +431,12 @@ const questionIdsByCategory = {
     "b4-q1",
     "b4-q2",
     "b4-q3",
+  ],
+
+  "Capstone - Enterprise RAG": [
+    "b5-q1",
+    "b5-q2",
+    "b5-q3",
   ],
 
   "05 - Retrieval Strategies": [
@@ -451,16 +511,25 @@ const questionIdsByCategory = {
     "a6-q3",
   ],
 
-  "17 - HyDE Retrieval": [
+  "17 - Enterprise RAG Platform Capstone": [
     "a7-q1",
     "a7-q2",
     "a7-q3",
+  ],
+
+  "18 - HyDE Retrieval": [
+    "a8-q1",
+    "a8-q2",
+    "a8-q3",
   ],
 };
 
 export const allLessons = learningPath.flatMap((track) =>
   track.modules.map((module) => ({
     ...module,
+    notebooks: module.notebooks ?? [module.notebook],
+    notebookLabels:
+      module.notebookLabels ?? [module.title],
     level: track.level,
     tone: track.tone,
     trackId: track.id,

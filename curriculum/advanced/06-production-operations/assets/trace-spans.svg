@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="trace-spans-title trace-spans-desc">
+<title id="trace-spans-title">Stage-level RAG trace spans</title>
+<desc id="trace-spans-desc">A parent request trace containing authorization, routing, retrieval, reranking, context, generation, and verification spans.</desc>
 <rect width="1200" height="400" fill="white"/>
 <defs>
   <marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">

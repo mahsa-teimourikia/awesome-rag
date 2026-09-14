@@ -69,6 +69,7 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Beginner | First local RAG | [curriculum/beginner/02-first-local-rag](curriculum/beginner/02-first-local-rag) |
 | Beginner | Chunking decisions | [curriculum/beginner/03-chunking-lab](curriculum/beginner/03-chunking-lab) |
 | Beginner | Citations and abstention | [curriculum/beginner/04-citations-abstention](curriculum/beginner/04-citations-abstention) |
+| Beginner | Enterprise RAG capstone | [curriculum/beginner/05-capstone-enterprise-rag](curriculum/beginner/05-capstone-enterprise-rag) |
 | Intermediate | Retrieval strategies | [curriculum/intermediate/01-retrieval-strategies](curriculum/intermediate/01-retrieval-strategies) |
 | Intermediate | Metadata and permissions | [curriculum/intermediate/02-metadata-permissions](curriculum/intermediate/02-metadata-permissions) |
 | Intermediate | Query planning and reranking | [curriculum/intermediate/03-query-reranking](curriculum/intermediate/03-query-reranking) |
@@ -81,7 +82,8 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Advanced | Structured and multimodal RAG | [curriculum/advanced/04-structured-multimodal](curriculum/advanced/04-structured-multimodal) |
 | Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
 | Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
-| Advanced | HyDE retrieval | [curriculum/advanced/07-hyde-retrieval](curriculum/advanced/07-hyde-retrieval) |
+| Advanced | Enterprise RAG platform capstone | [curriculum/advanced/07-enterprise-rag-capstone](curriculum/advanced/07-enterprise-rag-capstone) |
+| Advanced | HyDE retrieval | [curriculum/advanced/08-hyde-retrieval](curriculum/advanced/08-hyde-retrieval) |
 
 The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awesome-rag/) links these modules.
 
@@ -103,7 +105,7 @@ These guides complement the hub with deeper design references and production che
 - [Retrieval patterns](curriculum/intermediate/01-retrieval-strategies) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
 - [Evaluation guide](curriculum/intermediate/04-evaluation) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
 - [Adaptive RAG guide](curriculum/advanced/05-adaptive-rag) — move from fixed retrieval to safe, measurable policy selection.
-- [HyDE retrieval guide](curriculum/advanced/07-hyde-retrieval) — turn hypothetical documents into bounded search representations, not evidence.
+- [HyDE retrieval guide](curriculum/advanced/08-hyde-retrieval) — turn hypothetical documents into bounded search representations, not evidence.
 
 
 ## A practical RAG architecture
@@ -257,7 +259,13 @@ Useful guidance: [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Prefer primary sources, active open-source projects, and a short explanation of why each link belongs here.
+Contributions are welcome. Please read the [contribution guide](CONTRIBUTING.md) before opening a pull request. Prefer primary sources, active open-source projects, and a short explanation of why each link belongs here.
+
+Community standards and help:
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Support and issue-routing guide](SUPPORT.md)
+- [Security policy and private reporting](SECURITY.md)
 
 ## License
 

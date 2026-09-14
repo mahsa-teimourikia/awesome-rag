@@ -1,0 +1,55 @@
+[
+  {
+    "user_id": "u-101",
+    "tenant_id": "acme",
+    "roles": [
+      "analyst"
+    ],
+    "clearance": "internal",
+    "projects": [
+      "checkout",
+      "atlas",
+      "hr",
+      "compliance"
+    ],
+    "allow_external": true
+  },
+  {
+    "user_id": "u-205",
+    "tenant_id": "globex",
+    "roles": [
+      "incident_commander"
+    ],
+    "clearance": "restricted",
+    "projects": [
+      "payments",
+      "atlas"
+    ],
+    "allow_external": true
+  },
+  {
+    "user_id": "u-309",
+    "tenant_id": "novatech",
+    "roles": [
+      "support"
+    ],
+    "clearance": "internal",
+    "projects": [
+      "checkout"
+    ],
+    "allow_external": false
+  },
+  {
+    "user_id": "u-401",
+    "tenant_id": "acme",
+    "roles": [
+      "finance"
+    ],
+    "clearance": "restricted",
+    "projects": [
+      "pricing",
+      "atlas"
+    ],
+    "allow_external": false
+  }
+]

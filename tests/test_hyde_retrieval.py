@@ -4,7 +4,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = ROOT / "curriculum" / "advanced" / "07-hyde-retrieval" / "lab.py"
+MODULE_PATH = ROOT / "curriculum" / "advanced" / "08-hyde-retrieval" / "lab.py"
 SPEC = spec_from_file_location("hyde_lab", MODULE_PATH)
 assert SPEC and SPEC.loader
 hyde_lab = module_from_spec(SPEC)

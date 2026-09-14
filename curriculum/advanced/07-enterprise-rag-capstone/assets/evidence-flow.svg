@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">One evidence contract across heterogeneous sources</title><desc id="desc">Six source-specific evidence types flow through adapters into a common Evidence contract, then quality validation, an evidence ledger, and claim-linked answers.</desc>
+<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#16324F" flood-opacity="0.10"/></filter></defs>
+<rect width="100%" height="100%" fill="#F7F9FC"/>
+<text x="60" y="70" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#16324F">One evidence contract across heterogeneous sources</text>
+<text x="60" y="103" font-family="Inter, Arial, sans-serif" font-size="17" fill="#52606D">Normalization preserves modality, kind, authority, version, locator, tenancy, and derivation.</text>
+<rect x="70" y="140" width="540" height="680" rx="20" fill="#FBFFFE" stroke="#D7DEE8" stroke-width="2" stroke-dasharray="7 7"/><text x="90" y="172" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#52606D">SOURCE EVIDENCE</text>
+<rect x="650" y="140" width="880" height="680" rx="20" fill="#FBFCFF" stroke="#D7DEE8" stroke-width="2" stroke-dasharray="7 7"/><text x="670" y="172" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#52606D">SHARED EVIDENCE PLANE</text>
+<path d="M 370 230.0 L 700 230.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="700,230.0 687.0,236.0 687.0,224.0" fill="#52606D"/>
+<path d="M 370 330.0 L 700 330.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="700,330.0 687.0,336.0 687.0,324.0" fill="#52606D"/>
+<path d="M 370 430.0 L 700 430.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="700,430.0 687.0,436.0 687.0,424.0" fill="#52606D"/>
+<path d="M 370 530.0 L 700 530.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="700,530.0 687.0,536.0 687.0,524.0" fill="#52606D"/>
+<path d="M 370 630.0 L 700 630.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="700,630.0 687.0,636.0 687.0,624.0" fill="#52606D"/>
+<path d="M 370 730.0 L 700 730.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="700,730.0 687.0,736.0 687.0,724.0" fill="#52606D"/>
+<path d="M 930 480.0 L 970 480 L 970 315 L 1010 315.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1010,315.0 997.0,321.0 997.0,309.0" fill="#52606D"/>
+<path d="M 1130.0 380 L 1130.0 500" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1130.0,500 1124.0,487.0 1136.0,487.0" fill="#52606D"/>
+<path d="M 1250 550.0 L 1310 550.0" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1310,550.0 1297.0,556.0 1297.0,544.0" fill="#52606D"/>
+<path d="M 1405.0 500 L 1405.0 380" fill="none" stroke="#52606D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="1405.0,380 1411.0,393.0 1399.0,393.0" fill="#52606D"/>
+<rect x="110" y="195" width="260" height="70" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="240.0" y="236.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Text chunk</text>
+<rect x="110" y="295" width="260" height="70" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="240.0" y="336.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Database row</text>
+<rect x="110" y="395" width="260" height="70" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="240.0" y="436.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Graph relation</text>
+<rect x="110" y="495" width="260" height="70" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="240.0" y="536.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">OCR region</text>
+<rect x="110" y="595" width="260" height="70" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="240.0" y="636.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Visual observation</text>
+<rect x="110" y="695" width="260" height="70" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="240.0" y="736.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Approved external item</text>
+<rect x="700" y="195" width="230" height="570" rx="16" fill="#F0EEFF" stroke="#7667E8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="815.0" y="453.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Source-specific</text>
+<text x="815.0" y="477.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">adapters</text>
+<text x="815.0" y="505.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#52606D">Normalize without losing</text>
+<text x="815.0" y="522.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#52606D">provenance</text>
+<rect x="1010" y="250" width="240" height="130" rx="16" fill="#F0EEFF" stroke="#7667E8" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1130.0" y="300.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Evidence contract</text>
+<text x="1130.0" y="328.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#52606D">observed · computed ·</text>
+<text x="1130.0" y="345.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" fill="#52606D">inferred</text>
+<rect x="1010" y="500" width="240" height="100" rx="16" fill="#FFF1DF" stroke="#F59E42" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1130.0" y="544.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Eligibility +</text>
+<text x="1130.0" y="568.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">quality</text>
+<rect x="1310" y="500" width="190" height="100" rx="16" fill="#E5F7F6" stroke="#16A3A5" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1405.0" y="556.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Evidence ledger</text>
+<rect x="1310" y="250" width="190" height="130" rx="16" fill="#EAF1FF" stroke="#2F6BFF" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="1405.0" y="309.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">Claims cite</text>
+<text x="1405.0" y="333.0" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#16324F">evidence IDs</text>
+</svg>
