@@ -133,6 +133,7 @@ Advanced RAG introduces dynamic control only where the simpler retrieval archite
 | [05 — Adaptive RAG](advanced/05-adaptive-rag/README.md) | Which retrieval strategy should run for this request? | Routing, cascades, route evaluation, Adaptive + Corrective architectures |
 | [06 — Production Operations](advanced/06-production-operations/README.md) | How do we safely operate the complete system? | Tracing, quality monitoring, versioning, release gates, canaries, rollback, safe degradation |
 | [07 — Enterprise RAG Platform Capstone](advanced/07-enterprise-rag-capstone/README.md) | Which advanced techniques belong on each enterprise request path? | System design, common evidence contracts, heterogeneous routing, hard safety gates, architecture comparison, release, and incident response |
+| [08 — HyDE Retrieval](advanced/08-hyde-retrieval/README.md) | When should the retriever search with an imagined document? | Hypothetical-document search representations, fusion, conditional routing, provenance boundaries, and slice evaluation |
 
 ### Advanced progression
 
@@ -152,6 +153,8 @@ adaptive routing
 production operations
        ↓
 enterprise platform capstone
+       ↓
+conditional HyDE retrieval
 ```
 
 **Exit capability:** decide which advanced RAG pattern should—or should not—be deployed, justify it against a simpler baseline, define its control boundary, integrate it into a heterogeneous evidence platform, and operate it with measurable quality and recoverability.
