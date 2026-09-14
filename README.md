@@ -81,6 +81,7 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Advanced | Structured and multimodal RAG | [curriculum/advanced/04-structured-multimodal](curriculum/advanced/04-structured-multimodal) |
 | Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
 | Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
+| Advanced | HyDE retrieval | [curriculum/advanced/07-hyde-retrieval](curriculum/advanced/07-hyde-retrieval) |
 
 The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awesome-rag/) links these modules.
 
@@ -102,6 +103,7 @@ These guides complement the hub with deeper design references and production che
 - [Retrieval patterns](curriculum/intermediate/01-retrieval-strategies) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
 - [Evaluation guide](curriculum/intermediate/04-evaluation) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
 - [Adaptive RAG guide](curriculum/advanced/05-adaptive-rag) — move from fixed retrieval to safe, measurable policy selection.
+- [HyDE retrieval guide](curriculum/advanced/07-hyde-retrieval) — turn hypothetical documents into bounded search representations, not evidence.
 
 
 ## A practical RAG architecture
@@ -111,7 +113,7 @@ These guides complement the hub with deeper design references and production che
 | Ingestion | Extract text, metadata, and permissions | Broken PDF/layout extraction | Preserve source, page, section, and timestamps |
 | Chunking | Create retrievable units | Chunks split an answer across boundaries | Chunk by document structure; test several sizes |
 | Indexing | Make units searchable | Semantic matches miss exact terms | Use hybrid lexical + dense retrieval |
-| Retrieval | Find candidate evidence | Vague queries retrieve noise | Rewrite/decompose queries; apply metadata filters |
+| Retrieval | Find candidate evidence | Literal query and document language do not align | Evaluate rewriting or conditional HyDE; preserve metadata filters and exact-match paths |
 | Reranking | Order candidates by relevance | Top-k contains weak evidence | Add a cross-encoder or late-interaction reranker |
 | Generation | Answer only from supplied context | Hallucinated or unsupported claims | Require citations and an abstention path |
 | Evaluation | Measure change over time | Only testing happy-path demos | Keep a labeled, representative golden set |
@@ -121,7 +123,7 @@ These guides complement the hub with deeper design references and production che
 | Use case | Starting pattern | Why |
 | --- | --- | --- |
 | Internal documentation assistant | Hybrid retrieval + metadata filters + citations | Documentation includes exact identifiers, versions, and prose |
-| Customer support | Query rewriting + reranking + escalation/abstention | Questions are noisy and the cost of a wrong answer is high |
+| Customer support | Query rewriting or conditional HyDE + reranking + escalation/abstention | Questions are noisy, often differ from documentation language, and the cost of a wrong answer is high |
 | Legal, policy, or compliance research | Section-aware chunks + source links + strict access control | Provenance and permissions matter as much as fluency |
 | Analytics over tables | Text-to-SQL/tool use + schema retrieval | Answers should come from structured data, not only embedded text |
 | Codebase assistant | Symbol-aware chunking + lexical search + file/line citations | Identifiers and dependency structure are essential |
@@ -152,6 +154,7 @@ in the Learning Hub and practical guides.
 ### Improve quality
 
 - [Advanced RAG Techniques: an Illustrated Overview](https://arxiv.org/abs/2309.07864) — taxonomy of pre-retrieval, retrieval, post-retrieval, and generation improvements.
+- [Precise Zero-Shot Dense Retrieval without Relevance Labels](https://aclanthology.org/2023.acl-long.99/) — introduces HyDE as a hypothetical-document search representation for zero-shot dense retrieval.
 - [RAG from scratch](https://github.com/langchain-ai/rag-from-scratch) — Jupyter notebooks covering routing, query construction, indexing, and evaluation patterns.
 - [RAG Techniques](https://github.com/NirDiamant/RAG_Techniques) — hands-on notebooks for common advanced patterns; use as an experimentation companion, not a substitute for evaluation.
 

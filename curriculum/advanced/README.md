@@ -1,6 +1,6 @@
 # Advanced RAG Curriculum
 
-**Track goal:** Design RAG systems that can recover from retrieval failure, traverse relationships, select evidence tools dynamically, combine structured and multimodal evidence, route queries adaptively, and operate safely in production.
+**Track goal:** Design RAG systems that can recover from retrieval failure, traverse relationships, select evidence tools dynamically, combine structured and multimodal evidence, route queries adaptively, evaluate hypothetical search representations, and operate safely in production.
 
 ```text
 01 Corrective RAG
@@ -14,6 +14,8 @@
 05 Adaptive RAG
        ↓
 06 Production Operations
+       ↓
+07 HyDE Retrieval
 ```
 
 This track is not about making RAG "more autonomous" for its own sake.
@@ -45,6 +47,8 @@ By the end of the track, you should be able to:
 - separate tool selection from authorization;
 - combine deterministic structured computation, OCR, text, and visual evidence;
 - route requests to different evidence strategies;
+- use hypothetical documents as search representations without treating them as evidence;
+- evaluate HyDE by query slice and route exact or numerical lookups to safer retrieval paths;
 - evaluate routing and agent trajectories;
 - define operational traces, release gates, canaries, and rollback criteria; and
 - design degraded modes that reduce capability without weakening safety.
@@ -61,6 +65,7 @@ By the end of the track, you should be able to:
 | **04 — Structured & Multimodal RAG** | What if evidence is numeric, tabular, OCR, or visual? | Modality-specific evidence contracts | Determinism and provenance |
 | **05 — Adaptive RAG** | Which retrieval strategy should run for this request? | Pre-retrieval routing + policy | Cost, latency, misrouting |
 | **06 — Production Operations** | How do we release and operate the complete system? | Observability + release/rollback controls | Reliability and recoverability |
+| **07 — HyDE Retrieval** | When should RAG imagine a document before searching? | Search representation + evidence separation | Drift, latency, exact-query regressions |
 
 ---
 
@@ -229,7 +234,7 @@ route → retrieve → grade → recover / answer
 
 # 06 — Production Operations
 
-The final course treats RAG as an operated system.
+The Production Operations course treats RAG as an operated system.
 
 Observe:
 
@@ -269,6 +274,40 @@ Separate:
 Safe degradation reduces capability without weakening authorization, provenance, or verification requirements.
 
 **Exit criterion:** you can identify a bad release, reconstruct what ran, rollback safely, and convert the incident into a regression test.
+
+---
+
+# 07 — HyDE Retrieval
+
+HyDE addresses a specific query–document representation gap:
+
+```text
+informal query
+   ↓
+corpus-shaped hypothetical passage
+   ↓
+document embedding
+   ↓
+REAL authorized documents
+   ↓
+rerank / evidence check / generate
+```
+
+The hypothetical passage is a search artifact, never evidence. Compare original-query, HyDE, original-plus-HyDE, and conditional routes on the same labelled set.
+
+Use HyDE selectively for semantic-gap questions. Preserve exact, sparse, hybrid, or structured paths for identifiers, policy numbers, dates, and numerical lookups.
+
+Study:
+
+- single and multiple hypotheses;
+- mean-vector aggregation versus rank fusion;
+- query/corpus-aware prompting;
+- ambiguous and proprietary-entity failure injection;
+- per-query-type Recall@k and MRR;
+- authorization before every retrieval leg; and
+- production latency, cost, privacy, versioning, canaries, and rollback.
+
+**Exit criterion:** HyDE improves the intended retrieval slice without contaminating evidence, weakening authorization, or regressing exact-query quality beyond the release gate.
 
 ---
 

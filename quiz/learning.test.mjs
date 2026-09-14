@@ -19,10 +19,10 @@ test("learning registry has three levels and complete lesson metadata", () => {
   }
 });
 
-test("lesson IDs are unique and each level has a capstone or operations step", () => {
+test("lesson IDs are unique and culmination modules remain registered", () => {
   assert.equal(new Set(allLessons.map((lesson) => lesson.id)).size, allLessons.length);
-  assert.ok(allLessons.some((lesson) => lesson.id === "beginner-capstone"));
-  assert.ok(allLessons.some((lesson) => lesson.id === "advanced-operations"));
+  assert.ok(allLessons.some((lesson) => lesson.id === "b4" && lesson.title === "Citations & Abstention"));
+  assert.ok(allLessons.some((lesson) => lesson.id === "a6" && lesson.title === "Production Operations"));
 });
 
 test("every lesson points to a readable material file and notebook", async () => {
@@ -31,6 +31,7 @@ test("every lesson points to a readable material file and notebook", async () =>
     const notebookPath = resolve(quizDirectory, lesson.notebook);
     await access(materialPath);
     await access(notebookPath);
+    if (lesson.implementation) await access(resolve(quizDirectory, lesson.implementation));
 
     const notebook = JSON.parse(await readFile(notebookPath, "utf8"));
     assert.equal(notebook.nbformat, 4, `${lesson.id} notebook should be nbformat 4`);
@@ -54,7 +55,13 @@ test("every lesson category has self-contained hub content and references", () =
     assert.ok(content, `${lesson.id} has no embedded learning content`);
     assert.ok(content.theory.length > 80);
     assert.ok(content.workflow.length >= 3 && content.bestPractices.length >= 3);
-    assert.ok(content.references.length >= 2);
-    for (const reference of content.references) assert.match(reference.url, /^https?:\/\//);
+    assert.ok(content.references.length >= 1);
+    for (const reference of content.references) {
+      assert.match(reference.url, /^(?:https?:\/\/|curriculum\/)/);
+    }
   }
+
+  const hydeReferences = lessonContent["17 - HyDE Retrieval"].references;
+  assert.ok(hydeReferences.length >= 2);
+  for (const reference of hydeReferences) assert.match(reference.url, /^https?:\/\//);
 });

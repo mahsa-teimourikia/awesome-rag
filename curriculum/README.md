@@ -129,6 +129,7 @@ Advanced RAG introduces dynamic control only where the simpler retrieval archite
 | [04 — Structured & Multimodal RAG](advanced/04-structured-multimodal/README.md) | What if evidence is tabular, numeric, visual, or OCR-derived? | Modality-specific retrieval, deterministic computation, multimodal evidence contracts |
 | [05 — Adaptive RAG](advanced/05-adaptive-rag/README.md) | Which retrieval strategy should run for this request? | Routing, cascades, route evaluation, Adaptive + Corrective architectures |
 | [06 — Production Operations](advanced/06-production-operations/README.md) | How do we safely operate the complete system? | Tracing, quality monitoring, versioning, release gates, canaries, rollback, safe degradation |
+| [07 — HyDE Retrieval](advanced/07-hyde-retrieval/README.md) | When should RAG imagine a document before searching? | Hypothetical search representations, conditional routing, fusion, failure injection, slice evaluation |
 
 ### Advanced progression
 
@@ -146,6 +147,8 @@ multiple evidence modalities
 adaptive routing
         ↓
 production operations
+        ↓
+HyDE retrieval specialization
 ```
 
 **Exit capability:** decide which advanced RAG pattern should—or should not—be deployed, justify it against a simpler baseline, define its control boundary, and operate it with measurable quality and recoverability.

@@ -212,7 +212,7 @@ export const learningPath = [
     level: "Advanced",
     tone: "advanced",
     outcome:
-      "Design bounded adaptive, corrective, graph-based, agentic, multimodal, and production RAG systems with explicit control and evaluation boundaries.",
+      "Design bounded adaptive, corrective, graph-based, agentic, multimodal, hypothetical-document, and production RAG systems with explicit control and evaluation boundaries.",
     modules: [
       {
         id: "a1",
@@ -329,6 +329,27 @@ export const learningPath = [
           "Cost Monitoring",
         ],
       },
+      {
+        id: "a7",
+        title: "HyDE Retrieval",
+        description:
+          "Generate document-shaped search representations, retrieve only real authorized evidence, and route HyDE to the query slices where evaluation shows it helps.",
+        material:
+          "../curriculum/advanced/07-hyde-retrieval/README.md",
+        notebook:
+          "../curriculum/advanced/07-hyde-retrieval/07_hyde_retrieval.ipynb",
+        implementation:
+          "../curriculum/advanced/07-hyde-retrieval/lab.py",
+        category: "17 - HyDE Retrieval",
+        minutes: 180,
+        technologies: [
+          "HyDE",
+          "Query Transformation",
+          "RRF",
+          "Retrieval Routing",
+          "Slice Evaluation",
+        ],
+      },
     ],
   },
 ];
@@ -428,6 +449,12 @@ const questionIdsByCategory = {
     "a6-q1",
     "a6-q2",
     "a6-q3",
+  ],
+
+  "17 - HyDE Retrieval": [
+    "a7-q1",
+    "a7-q2",
+    "a7-q3",
   ],
 };
 

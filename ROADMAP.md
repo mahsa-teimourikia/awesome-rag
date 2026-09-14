@@ -16,7 +16,7 @@ This repository is evolving from a curated reading list into a progressive, runn
 2. **Beginner track:** local ingestion, chunking, embeddings, vector search, citations, and abstention.
 3. **Intermediate track:** BM25, hybrid retrieval, filters, query rewriting, reranking, and evaluation.
 4. **Use-case projects:** documentation, support, legal research, codebases, research synthesis, and tables.
-5. **Advanced track:** corrective RAG, GraphRAG, agentic routing, multimodal data, and freshness.
+5. **Advanced track:** corrective RAG, GraphRAG, agentic routing, multimodal data, adaptive retrieval, HyDE query representation, and freshness.
 6. **Production track:** API serving, observability, access control, cost/latency, security, and CI regression tests.
 
 Every stage should add runnable code, a small fixture dataset, an evaluation check, a Mermaid diagram where it clarifies the design, and a quiz checkpoint.

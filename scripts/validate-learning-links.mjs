@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const page = await readFile(resolve(root, "app/page.tsx"), "utf8");
-const paths = [...page.matchAll(/(?:notebook|example):"([^"]+)"/g)].map((match) => match[1]);
+const paths = [...page.matchAll(/(?:notebook|example|implementation):"([^"]+)"/g)].map((match) => match[1]);
 const guideBlock = page.match(/const guidePaths[^=]*=\{([\s\S]*?)\n\};/);
 if (guideBlock) paths.push(...[...guideBlock[1].matchAll(/:"([^"]+)"/g)].map((match) => match[1]));
 
