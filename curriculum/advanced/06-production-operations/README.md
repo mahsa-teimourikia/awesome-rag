@@ -749,6 +749,6 @@ The canary failure becomes a structured incident record and then a long-query re
 
 **Production RAG is an operated system, not a prompt. Observe every important stage, release versioned artifacts deliberately, and degrade capability without degrading safety.**
 
-## Continue to the advanced capstone
+## Continue to advanced retrieval transformation
 
-Apply these operational controls across text, structured, graph, multimodal, external, and bounded-agent evidence paths in **[Course 07 — Enterprise RAG Platform Capstone](../07-enterprise-rag-capstone/README.md)**.
+Apply these operational controls to generated search representations in **[Course 07 — HyDE Retrieval](../07-hyde-retrieval/README.md)**, then carry the full control set into the capstone.

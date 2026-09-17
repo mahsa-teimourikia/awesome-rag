@@ -25,7 +25,7 @@ def notebook_paths() -> list[Path]:
     curriculum = [
         path
         for path in sorted((ROOT / "curriculum").glob("*/*/*.ipynb"))
-        if "capstone" not in path.parts[-2] or path.parts[-2] == "07-enterprise-rag-capstone"
+        if "capstone" not in path.parts[-2] or path.parts[-2] == "08-enterprise-rag-capstone"
     ]
     use_cases = sorted((ROOT / "use-cases").glob("*/*.ipynb"))
     return scenario_tracks + curriculum + use_cases

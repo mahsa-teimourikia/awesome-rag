@@ -363,16 +363,39 @@ export const learningPath = [
       },
       {
         id: "a7",
+        title: "HyDE Retrieval",
+        description:
+          "Compare transparent and dense HyDE, measure routing and drift across 36 cases, and retrieve only real authorized evidence.",
+        material:
+          "../curriculum/advanced/07-hyde-retrieval/README.md",
+        notebook:
+          "../curriculum/advanced/07-hyde-retrieval/07_hyde_retrieval.ipynb",
+        implementation:
+          "../curriculum/advanced/07-hyde-retrieval/lab.py",
+        category: "17 - HyDE Retrieval",
+        minutes: 240,
+        technologies: [
+          "HyDE",
+          "SentenceTransformers",
+          "Query Transformation",
+          "RRF",
+          "Reranking",
+          "Retrieval Routing",
+          "Slice Evaluation",
+        ],
+      },
+      {
+        id: "a8",
         title: "Enterprise RAG Platform Capstone",
         description:
           "Design and defend a heterogeneous enterprise evidence platform, compare architecture complexity, enforce hard safety invariants, gate a release, and recover from an incident.",
         material:
-          "../curriculum/advanced/07-enterprise-rag-capstone/README.md",
+          "../curriculum/advanced/08-enterprise-rag-capstone/README.md",
         notebook:
-          "../curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
+          "../curriculum/advanced/08-enterprise-rag-capstone/08_enterprise_rag_capstone.ipynb",
         implementation:
-          "../curriculum/advanced/07-enterprise-rag-capstone/lab.py",
-        category: "17 - Enterprise RAG Platform Capstone",
+          "../curriculum/advanced/08-enterprise-rag-capstone/lab.py",
+        category: "18 - Enterprise RAG Platform Capstone",
         minutes: 600,
         technologies: [
           "System Design",
@@ -381,27 +404,6 @@ export const learningPath = [
           "Graph & Multimodal Retrieval",
           "Release Gates",
           "Incident Response",
-        ],
-      },
-      {
-        id: "a8",
-        title: "HyDE Retrieval",
-        description:
-          "Generate document-shaped search representations, retrieve only real authorized evidence, and route HyDE to the query slices where evaluation shows it helps.",
-        material:
-          "../curriculum/advanced/08-hyde-retrieval/README.md",
-        notebook:
-          "../curriculum/advanced/08-hyde-retrieval/08_hyde_retrieval.ipynb",
-        implementation:
-          "../curriculum/advanced/08-hyde-retrieval/lab.py",
-        category: "18 - HyDE Retrieval",
-        minutes: 180,
-        technologies: [
-          "HyDE",
-          "Query Transformation",
-          "RRF",
-          "Retrieval Routing",
-          "Slice Evaluation",
         ],
       },
     ],
@@ -511,13 +513,13 @@ const questionIdsByCategory = {
     "a6-q3",
   ],
 
-  "17 - Enterprise RAG Platform Capstone": [
+  "17 - HyDE Retrieval": [
     "a7-q1",
     "a7-q2",
     "a7-q3",
   ],
 
-  "18 - HyDE Retrieval": [
+  "18 - Enterprise RAG Platform Capstone": [
     "a8-q1",
     "a8-q2",
     "a8-q3",

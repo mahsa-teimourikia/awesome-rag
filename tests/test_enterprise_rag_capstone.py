@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-COURSE = ROOT / "curriculum" / "advanced" / "07-enterprise-rag-capstone"
+COURSE = ROOT / "curriculum" / "advanced" / "08-enterprise-rag-capstone"
 sys.path.insert(0, str(COURSE))
 sys.path.insert(0, str(COURSE / "assets"))
 import lab  # noqa: E402
@@ -125,7 +125,7 @@ def test_cache_keys_include_authorization_scope():
 
 
 def test_notebook_and_diagrams_exist():
-    assert (COURSE / "07_enterprise_rag_capstone.ipynb").exists()
+    assert (COURSE / "08_enterprise_rag_capstone.ipynb").exists()
     for name in ("reference-architecture", "evidence-flow", "control-plane", "evaluation-release-loop", "incident-lifecycle"):
         svg_path = COURSE / "assets" / f"{name}.svg"
         spec_path = COURSE / "assets" / f"{name}.spec.json"

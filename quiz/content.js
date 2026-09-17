@@ -452,7 +452,41 @@ const content = {
     ],
   },
 
-  "17 - Enterprise RAG Platform Capstone": {
+  "17 - HyDE Retrieval": {
+    theory:
+      "Hypothetical Document Embeddings (HyDE) address a query–document representation gap. The course separates a transparent TF-IDF mechanism layer, a local SentenceTransformers dense layer, and an optional local generator experiment. The hypothetical passage remains an untrusted search key rather than evidence. Gold-aware fixtures prove invariants but do not establish model quality; deployment evidence comes from labelled slice, router, drift, security, and operational evaluation.",
+    workflow: [
+      "Define the authorized universe from tenant, classification, and lifecycle state",
+      "Use the transparent fixture to inspect the representation change without claiming model quality",
+      "Repeat the experiment with local query/document embeddings",
+      "Route exact identifiers and numerical lookups to exact, hybrid, or structured retrieval",
+      "Generate bounded corpus-shaped hypotheses for justified semantic-gap routes",
+      "Embed hypotheses with a document-compatible encoder and retrieve real authorized documents",
+      "Fuse original and hypothesis rankings, then rerank real candidates into an evidence ledger",
+      "Measure retrieval, routing, diversity, drift, work, no-answer behavior, and security by slice",
+    ],
+    bestPractices: [
+      "Never cite or treat a hypothetical passage as source evidence",
+      "Keep mechanism fixtures separate from generator-quality experiments",
+      "Keep the original-query path as a baseline and possible fusion leg",
+      "Apply authorization before every retrieval path",
+      "Test ambiguous entities, proprietary identifiers, exact lookups, and numerical questions",
+      "Evaluate route accuracy and high-risk HyDE false positives separately from retrieval metrics",
+      "Use conditional routing and release gates instead of enabling HyDE universally",
+    ],
+    references: [
+      {
+        label: "HyDE Retrieval lesson",
+        url: "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/curriculum/advanced/07-hyde-retrieval/README.md",
+      },
+      {
+        label: "Original HyDE paper",
+        url: "https://aclanthology.org/2023.acl-long.99/",
+      },
+    ],
+  },
+
+  "18 - Enterprise RAG Platform Capstone": {
     theory:
       "The advanced capstone is an architecture-selection and operations challenge. Northstar's assistant normalizes text, structured, graph, OCR, visual, and approved external results into a common evidence contract, but it executes only the minimum justified route. Identity defines the authorized evidence universe before retrieval; route selection never grants authority. A case succeeds only when terminal behavior, evidence, claims, citations, authorization, and hard safety invariants all pass.",
     workflow: [
@@ -475,42 +509,11 @@ const content = {
     references: [
       {
         label: "Enterprise RAG Platform Capstone",
-        url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
+        url: "curriculum/advanced/08-enterprise-rag-capstone/README.md",
       },
       {
         label: "Guided Capstone Notebook",
-        url: "curriculum/advanced/07-enterprise-rag-capstone/07_enterprise_rag_capstone.ipynb",
-      },
-    ],
-  },
-
-  "18 - HyDE Retrieval": {
-    theory:
-      "Hypothetical Document Embeddings (HyDE) address a query–document representation gap. An instruction model generates corpus-shaped search text, a document encoder embeds it, and the retriever returns nearby real documents. The hypothetical passage is an untrusted search key rather than evidence. HyDE should be compared with the original-query baseline and routed only to query slices where measured retrieval gains justify generation latency, cost, and drift risk.",
-    workflow: [
-      "Characterize the query while preserving trusted identity and authorization scope",
-      "Route exact identifiers and numerical lookups to exact, hybrid, or structured retrieval",
-      "Generate one or more bounded corpus-shaped hypotheses for semantic-gap queries",
-      "Embed hypotheses with a document-compatible encoder and retrieve real authorized documents",
-      "Fuse original and hypothesis rankings when the evaluation supports it",
-      "Rerank and build an evidence ledger containing only real corpus IDs",
-      "Measure retrieval quality, drift, latency, cost, and security by query slice",
-    ],
-    bestPractices: [
-      "Never cite or treat a hypothetical passage as source evidence",
-      "Keep the original-query path as a baseline and possible fusion leg",
-      "Apply authorization before every retrieval path",
-      "Test ambiguous entities, proprietary identifiers, exact lookups, and numerical questions",
-      "Use conditional routing and release gates instead of enabling HyDE universally",
-    ],
-    references: [
-      {
-        label: "HyDE Retrieval lesson",
-        url: "https://github.com/mahsa-teimourikia/awesome-rag/blob/main/curriculum/advanced/08-hyde-retrieval/README.md",
-      },
-      {
-        label: "Original HyDE paper",
-        url: "https://aclanthology.org/2023.acl-long.99/",
+        url: "curriculum/advanced/08-enterprise-rag-capstone/08_enterprise_rag_capstone.ipynb",
       },
     ],
   },
