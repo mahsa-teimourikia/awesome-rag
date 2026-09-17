@@ -1,10 +1,10 @@
-# Advanced 08 — HyDE: Imagine a Document Before Searching
+# Advanced 07 — HyDE: Imagine a Document Before Searching
 
 **Level:** Advanced
 
 **Estimated time:** 2–3 hours
 
-**Notebook:** [`08_hyde_retrieval.ipynb`](08_hyde_retrieval.ipynb)
+**Notebook:** [`07_hyde_retrieval.ipynb`](07_hyde_retrieval.ipynb)
 
 **Reusable implementation:** [`lab.py`](lab.py)
 **Prerequisites:** [Retrieval Strategies](../../intermediate/01-retrieval-strategies/README.md), [Query Planning & Reranking](../../intermediate/03-query-reranking/README.md), [RAG Evaluation](../../intermediate/04-evaluation/README.md), and [Adaptive RAG](../05-adaptive-rag/README.md)
@@ -46,11 +46,12 @@ Internal documentation:
 
 The lab succeeds when you can:
 
-1. recover the expected real document for semantic-gap queries more often than the original-query baseline;
-2. preserve exact identifiers by routing them away from universal HyDE;
-3. prove that hypothetical text never enters the evidence ledger;
-4. report Recall@k, reciprocal rank, and hypothesis-generation count by query type; and
-5. explain when the extra generation step has not earned its latency and cost.
+1. explain the representation change with transparent TF-IDF and observe it again with local dense embeddings;
+2. separate a gold-aware mechanism fixture from a local-generator retrieval experiment;
+3. preserve exact identifiers by routing them away from universal HyDE;
+4. prove that tenant, classification, and lifecycle authorization run before every retrieval leg;
+5. report retrieval, router, diversity, drift, no-answer, and work metrics across 36 cases and 12 slices; and
+6. explain when the extra generation and retrieval work has not earned its latency and cost.
 
 ### Non-goals
 
@@ -58,13 +59,13 @@ This lesson does not claim that:
 
 - HyDE is universally better than dense, sparse, or hybrid retrieval;
 - generated hypotheses are trustworthy facts;
-- a transparent local vector proxy behaves identically to a production dense encoder;
+- one local dense model represents every production corpus equally well;
 - prompt wording can replace a labelled evaluation set; or
 - query transformation can fix missing, stale, or unauthorized source material.
 
 ### Risk boundaries
 
-- Authorization filters must run before every retrieval leg.
+- Tenant, classification, and lifecycle authorization filters must run before every retrieval leg.
 - Hypothetical documents are untrusted search artifacts, never citation sources.
 - Generation is bounded by count, length, time, and cost.
 - Exact identifiers, numbers, legal clauses, and proprietary entities receive explicit tests.
@@ -438,15 +439,34 @@ The mitigation is not “write a more confident HyDE prompt.” It is to route e
 
 The reusable [`lab.py`](lab.py) module provides:
 
-- `TfidfIndex`: a transparent exact vector proxy;
-- `generate_hypotheses`: deterministic, bounded corpus-shaped fixtures;
+- `TfidfIndex`: a transparent exact vector layer;
+- `DenseIndex` and `SentenceTransformerEncoder`: a real local semantic embedding layer with distinct query/document encoding roles;
+- `generate_mechanism_hypotheses`: gold-aware fixtures that prove mechanics but are excluded from model-quality claims;
+- `generate_generic_hypotheses`: a corpus-agnostic deterministic control;
+- `LocalText2TextHypothesisGenerator`: an optional credential-free local generator experiment;
 - `retrieve`: original, HyDE, original+HyDE, and conditional strategies;
 - `reciprocal_rank_fusion`: multi-hypothesis result fusion;
+- `deterministic_rerank`: a small inspectable reranker over real candidates;
 - `RetrievalTrace`: separate search artifacts from real evidence IDs;
-- `authorized_documents`: authorization before every retrieval path; and
-- `evaluate` / `summarize`: Recall@k, reciprocal rank, and hypothesis counts.
+- `authorized_documents`: tenant, classification, and lifecycle authorization before every retrieval path;
+- `evaluate_router` / `summarize_router`: route accuracy and high-risk false-route metrics;
+- `analyze_hypothesis_diversity`: unique count, lexical similarity, embedding similarity, and result overlap; and
+- `evaluate` / `summarize_by_slice` / `drift_metrics`: retrieval, no-answer, work, security, wrong-domain, and baseline-regression metrics.
 
-The credential-free lab intentionally does **not** pretend its TF-IDF vectors are production semantic embeddings. It isolates the representation change so every token and failure can be inspected. Replace only the generator and encoder adapters when moving to a provider or local dense model; keep the evaluation, authorization, provenance, and routing contracts.
+The notebook teaches three explicit layers:
+
+```text
+Layer 1 — transparent TF-IDF
+Understand exactly what changed.
+
+Layer 2 — local SentenceTransformers embeddings
+Observe query/document representation in a semantic space.
+
+Layer 3 — optional local text-to-text generator
+Observe hypothesis variability without an API key.
+```
+
+The first layer is a mechanism microscope, not a dense-quality benchmark. The second is a real dense experiment. The third evaluates generator behavior separately so a hand-authored hypothesis cannot silently stand in for model evidence.
 
 Minimal production-shaped pseudocode:
 
@@ -488,6 +508,12 @@ The hypothesis is absent from `answer(..., evidence=evidence)`.
 
 Do not evaluate HyDE by reading one fluent final answer. Evaluate candidate generation first.
 
+## Keep proof populations separate
+
+The six `MECHANISM_CASES` use hand-authored, gold-aware hypotheses. They prove architecture, routing, provenance, authorization, fusion, reranking, and the ZX-47 drift failure. They do **not** prove that an unseen generator will improve retrieval.
+
+The 36-case `EVALUATION_CASES` dataset covers 12 slices. Run it with the corpus-agnostic control or the optional local generator and report the generator/model identity. Model comparisons must never mix these rows with mechanism-fixture rows.
+
 ## Required ablation
 
 Run all four strategies on the same labelled cases:
@@ -522,6 +548,8 @@ RR(q) = \frac{1}{r_q}, \qquad MRR = \frac{1}{|Q|}\sum_{q \in Q} RR(q)
 
 Also consider Precision@k and nDCG when relevance is graded or candidate order matters.
 
+When the labelled relevant set is empty, Recall@k and reciprocal rank are undefined. The lab returns `None`, excludes those rows from retrieval-recall aggregation, and reports no-answer behavior separately. Returning `1.0` would reward a system even when it retrieved unsupported material.
+
 ## End-to-end and operational metrics
 
 - answer correctness;
@@ -530,10 +558,20 @@ Also consider Precision@k and nDCG when relevance is graded or candidate order m
 - answerability and abstention;
 - pre-retrieval generation latency;
 - total retrieval latency;
-- generated tokens and cost per request;
-- route distribution and misroute rate;
-- hypothesis drift rate; and
+- generator-call proxy, retrieval legs, fusion operations, and reranked candidates;
+- route accuracy, HyDE false-positive rate, HyDE false-negative rate, and high-risk-query-to-HyDE rate;
+- hypothesis drift rate;
+- baseline-regression and wrong-domain retrieval rates; and
 - unauthorized candidate rate, which must remain zero.
+
+The lab's generator-call count is an operational proxy, not currency or latency. It also reports the downstream work that the original version hid:
+
+| Strategy | Generator-call proxy | Retrieval legs | Fusion |
+|---|---:|---:|---:|
+| Original | 0 | 1 | 0 |
+| 1× HyDE | 1 | 1 | 0 |
+| 3× HyDE | 3 | 3 | 1 |
+| Original + 3× HyDE | 3 | 4 | 1 |
 
 ## Slice the results
 
@@ -541,11 +579,17 @@ Aggregate scores can hide exactly where HyDE hurts. Report by query type:
 
 ```text
 semantic gap
+paraphrase
+well-formed domain query
 exact identifier
+policy identifier
 numerical lookup
+date lookup
 ambiguous entity
-multi-hop
-conversational follow-up
+proprietary acronym
+multi-part
+no answer
+adversarial query
 ```
 
 The useful question is not “Is HyDE good?” It is:
@@ -622,12 +666,12 @@ A separate [2026 financial text-and-table retrieval preprint](https://arxiv.org/
 
 | Lab component | Production upgrade | Control to preserve |
 |---|---|---|
-| Deterministic hypothesis fixture | approved hosted or local instruction model | bounded prompt, output schema, timeout, token/cost limits |
-| TF-IDF vector proxy | evaluated document embedding model | compatible query/document modes and versioned embeddings |
+| Mechanism fixture + optional local generator | approved hosted or local instruction model | never mix fixture results with model-quality evidence; preserve output, timeout, token, and cost bounds |
+| TF-IDF + local SentenceTransformers layers | evaluated domain embedding model | compatible query/document modes, model revision, and versioned embeddings |
 | In-memory exact search | vector store with metadata filters and ANN | authorization-first filters and ANN recall tests |
 | Rule router | validated rules, classifier, or policy/model hybrid | `original`, `hyde`, and `clarify` outcomes with confidence thresholds |
-| Python RRF | store-side or service-side fusion | stable candidate IDs and recorded source rankings |
-| Fixture labels | representative, versioned relevance dataset | per-slice regression gates and changed-failure review |
+| Python RRF + deterministic reranker | store-side/service-side fusion and evaluated reranker | stable candidate IDs, recorded source rankings, and candidate-pool metrics |
+| 36 labelled cases | representative, versioned production-like dataset | per-slice regression gates, no-answer policy, and changed-failure review |
 | Printed trace | privacy-reviewed telemetry | prompt/model/index versions, route, candidate IDs, latency, cost, terminal reason |
 
 ## Release gate example
@@ -637,6 +681,8 @@ Do not enable HyDE globally because its average Recall@10 increased. Require:
 ```text
 semantic-gap Recall@10 improves by the agreed margin
 AND exact-identifier Recall@10 does not regress
+AND high-risk-query-to-HyDE rate stays below the agreed threshold
+AND baseline-regression and wrong-domain rates stay within budget
 AND unauthorized-candidate rate remains 0
 AND p95 latency and cost remain within route budgets
 AND citation evidence contains only real authorized corpus IDs
@@ -728,3 +774,4 @@ HyDE is most valuable as one bounded retrieval instrument in an adaptive, hybrid
 
 - Revisit [Adaptive RAG](../05-adaptive-rag/README.md) to incorporate HyDE as a measured route.
 - Revisit [Production Operations](../06-production-operations/README.md) to version the generator, encoder, router, corpus, and evaluation bundle.
+- Finish with the [Enterprise RAG Platform Capstone](../08-enterprise-rag-capstone/README.md), where retrieval transformations must justify their place in the complete architecture.

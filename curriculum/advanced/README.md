@@ -15,9 +15,9 @@
        ↓
 06 Production Operations
        ↓
-07 Enterprise RAG Platform Capstone
+07 HyDE Retrieval
        ↓
-08 HyDE Retrieval (advanced extension)
+08 Enterprise RAG Platform Capstone
 ```
 
 This track is not about making RAG "more autonomous" for its own sake.
@@ -50,7 +50,7 @@ By the end of the track, you should be able to:
 - combine deterministic structured computation, OCR, text, and visual evidence;
 - route requests to different evidence strategies;
 - evaluate routing and agent trajectories;
-- define operational traces, release gates, canaries, and rollback criteria; and
+- define operational traces, release gates, canaries, and rollback criteria;
 - design degraded modes that reduce capability without weakening safety;
 - evaluate hypothetical-document retrieval against simpler baselines;
 - keep generated search text outside the evidence and citation ledger;
@@ -69,8 +69,8 @@ By the end of the track, you should be able to:
 | **04 — Structured & Multimodal RAG** | What if evidence is numeric, tabular, OCR, or visual? | Modality-specific evidence contracts | Determinism and provenance |
 | **05 — Adaptive RAG** | Which retrieval strategy should run for this request? | Pre-retrieval routing + policy | Cost, latency, misrouting |
 | **06 — Production Operations** | How do we release and operate the complete system? | Observability + release/rollback controls | Reliability and recoverability |
-| **07 — Enterprise RAG Platform Capstone** | Which advanced techniques belong on each request path? | Identity + evidence contracts + hard release gates | Integrated system risk and justified complexity |
-| **08 — HyDE Retrieval** | When should the retriever search with an imagined document? | Generated search representation + real-evidence boundary | Query drift, latency, and exact-match regressions |
+| **07 — HyDE Retrieval** | When should the retriever search with an imagined document? | Generated search representation + real-evidence boundary | Query drift, latency, and exact-match regressions |
+| **08 — Enterprise RAG Platform Capstone** | Which advanced techniques belong on each request path? | Identity + evidence contracts + hard release gates | Integrated system risk and justified complexity |
 
 ---
 
@@ -282,7 +282,31 @@ Safe degradation reduces capability without weakening authorization, provenance,
 
 ---
 
-# 07 — Enterprise RAG Platform Capstone
+# 07 — HyDE Retrieval
+
+HyDE generates corpus-shaped text to improve retrieval when a short or informal query does not resemble the documents that contain its answer. The generated passage is a search representation—not evidence—and must never be cited or passed off as a source.
+
+```text
+authorized query
+      ↓
+generate hypothetical document
+      ↓
+embed as document-shaped search text
+      ↓
+retrieve real authorized documents
+      ↓
+fuse / rerank / evaluate
+      ↓
+answer only from real evidence
+```
+
+The course compares transparent TF-IDF with local dense embeddings, separates gold-aware mechanism fixtures from model experiments, and evaluates original-query, HyDE-only, fused, and conditional routes across 36 cases and 12 query slices.
+
+**Exit criterion:** you can identify query slices where HyDE earns its generation and retrieval work, keep hypothetical text out of provenance, and fall back to lexical, hybrid, or original-query retrieval when identifiers, numbers, ambiguity, or drift make HyDE unsafe.
+
+---
+
+# 08 — Enterprise RAG Platform Capstone
 
 The capstone is an 8–12 hour architecture workshop, not another technique tutorial. You design Northstar Enterprises' Policy, Risk & Operations Assistant across text, structured, graph, OCR, visual, external, and agentic evidence paths.
 
@@ -305,30 +329,6 @@ evaluation + release + incident response
 You receive more than 150 evidence entities/relations/records, 64 labelled cases across 16 evaluation slices, five architecture diagrams, an executable reference runtime, and an incident regression. The required deliverables include an architecture diagram, ADR, evaluation report, threat model, release decision, incident report, and production-readiness checklist.
 
 **Exit criterion:** you can justify where GraphRAG, structured computation, multimodal interpretation, corrective recovery, external retrieval, and agentic investigation do—and deliberately do not—belong, using measured outcome, safety, latency, and cost evidence.
-
----
-
-# 08 — HyDE Retrieval
-
-HyDE generates corpus-shaped text to improve retrieval when a short or informal query does not resemble the documents that contain its answer. The generated passage is a search representation—not evidence—and must never be cited or passed off as a source.
-
-```text
-authorized query
-      ↓
-generate hypothetical document
-      ↓
-embed as document-shaped search text
-      ↓
-retrieve real authorized documents
-      ↓
-fuse / rerank / evaluate
-      ↓
-answer only from real evidence
-```
-
-The course compares original-query, HyDE-only, fused, original-plus-HyDE, and conditional routes. It includes a deliberately misleading hypothesis so learners can observe query drift, preserve exact-identifier paths, and prove that authorization still limits the candidate universe before retrieval.
-
-**Exit criterion:** you can identify query slices where HyDE earns its generation cost, keep hypothetical text out of provenance, and fall back to lexical, hybrid, or original-query retrieval when identifiers, numbers, ambiguity, or drift make HyDE unsafe.
 
 ---
 

@@ -132,8 +132,8 @@ Advanced RAG introduces dynamic control only where the simpler retrieval archite
 | [04 — Structured & Multimodal RAG](advanced/04-structured-multimodal/README.md) | What if evidence is tabular, numeric, visual, or OCR-derived? | Modality-specific retrieval, deterministic computation, multimodal evidence contracts |
 | [05 — Adaptive RAG](advanced/05-adaptive-rag/README.md) | Which retrieval strategy should run for this request? | Routing, cascades, route evaluation, Adaptive + Corrective architectures |
 | [06 — Production Operations](advanced/06-production-operations/README.md) | How do we safely operate the complete system? | Tracing, quality monitoring, versioning, release gates, canaries, rollback, safe degradation |
-| [07 — Enterprise RAG Platform Capstone](advanced/07-enterprise-rag-capstone/README.md) | Which advanced techniques belong on each enterprise request path? | System design, common evidence contracts, heterogeneous routing, hard safety gates, architecture comparison, release, and incident response |
-| [08 — HyDE Retrieval](advanced/08-hyde-retrieval/README.md) | When should the retriever search with an imagined document? | Hypothetical-document search representations, fusion, conditional routing, provenance boundaries, and slice evaluation |
+| [07 — HyDE Retrieval](advanced/07-hyde-retrieval/README.md) | When should the retriever search with an imagined document? | Hypothetical-document search representations, fusion, conditional routing, provenance boundaries, and slice evaluation |
+| [08 — Enterprise RAG Platform Capstone](advanced/08-enterprise-rag-capstone/README.md) | Which advanced techniques belong on each enterprise request path? | System design, common evidence contracts, heterogeneous routing, hard safety gates, architecture comparison, release, and incident response |
 
 ### Advanced progression
 
@@ -152,9 +152,9 @@ adaptive routing
        ↓
 production operations
        ↓
-enterprise platform capstone
-       ↓
 conditional HyDE retrieval
+       ↓
+enterprise platform capstone
 ```
 
 **Exit capability:** decide which advanced RAG pattern should—or should not—be deployed, justify it against a simpler baseline, define its control boundary, integrate it into a heterogeneous evidence platform, and operate it with measurable quality and recoverability.

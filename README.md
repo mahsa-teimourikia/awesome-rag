@@ -82,8 +82,8 @@ Follow the levels in order. Each lesson directory explains the outcome and theor
 | Advanced | Structured and multimodal RAG | [curriculum/advanced/04-structured-multimodal](curriculum/advanced/04-structured-multimodal) |
 | Advanced | Adaptive RAG | [curriculum/advanced/05-adaptive-rag](curriculum/advanced/05-adaptive-rag) |
 | Advanced | Production operations | [curriculum/advanced/06-production-operations](curriculum/advanced/06-production-operations) |
-| Advanced | Enterprise RAG platform capstone | [curriculum/advanced/07-enterprise-rag-capstone](curriculum/advanced/07-enterprise-rag-capstone) |
-| Advanced | HyDE retrieval | [curriculum/advanced/08-hyde-retrieval](curriculum/advanced/08-hyde-retrieval) |
+| Advanced | HyDE retrieval | [curriculum/advanced/07-hyde-retrieval](curriculum/advanced/07-hyde-retrieval) |
+| Advanced | Enterprise RAG platform capstone | [curriculum/advanced/08-enterprise-rag-capstone](curriculum/advanced/08-enterprise-rag-capstone) |
 
 The [RAG Learning Hub](https://mahsa-teimourikia.github.io/awesome-rag/) links these modules.
 
@@ -105,7 +105,7 @@ These guides complement the hub with deeper design references and production che
 - [Retrieval patterns](curriculum/intermediate/01-retrieval-strategies) — hybrid retrieval, reranking, query transformation, GraphRAG, and use-case trade-offs.
 - [Evaluation guide](curriculum/intermediate/04-evaluation) — retrieval metrics, answer-quality checks, golden sets, and regression gates.
 - [Adaptive RAG guide](curriculum/advanced/05-adaptive-rag) — move from fixed retrieval to safe, measurable policy selection.
-- [HyDE retrieval guide](curriculum/advanced/08-hyde-retrieval) — turn hypothetical documents into bounded search representations, not evidence.
+- [HyDE retrieval guide](curriculum/advanced/07-hyde-retrieval) — turn hypothetical documents into bounded search representations, not evidence.
 
 
 ## A practical RAG architecture

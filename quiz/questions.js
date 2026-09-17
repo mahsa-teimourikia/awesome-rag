@@ -937,61 +937,7 @@ export const questions = [
   },
   {
     id: "a7-q1",
-    category: "17 - Enterprise RAG Platform Capstone",
-    prompt: "Which principles should guide architecture selection in the advanced capstone?",
-    options: [
-      "Use the minimum evidence mechanism that satisfies the request and measured requirements.",
-      "Run graph, multimodal, external, and agentic routes for every factual request.",
-      "Compare added capability with latency, cost, security, and operational burden.",
-      "Document where advanced techniques were deliberately not used.",
-    ],
-    correct: [0, 2, 3],
-    explanation:
-      "The capstone rewards justified complexity. Each component must address a measured failure mode and repay its operational burden; omitting an unnecessary technique is a valid architecture decision.",
-    source: {
-      label: "Enterprise RAG Platform Capstone",
-      url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
-    },
-  },
-  {
-    id: "a7-q2",
-    category: "17 - Enterprise RAG Platform Capstone",
-    prompt: "What must happen before relevance ranking in a multitenant enterprise RAG request?",
-    options: [
-      "Trusted identity attributes and policy must define the authorized evidence universe.",
-      "The router may infer tenant and clearance from the natural-language query.",
-      "Every source adapter must preserve the authorization scope.",
-      "Unauthorized evidence may be retrieved if it is filtered from the final answer.",
-    ],
-    correct: [0, 2],
-    explanation:
-      "Authorization is candidate eligibility, not output cleanup. The query cannot grant identity or scope, and forbidden evidence must not enter model-visible or application-visible intermediate state.",
-    source: {
-      label: "Enterprise RAG Platform Capstone",
-      url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
-    },
-  },
-  {
-    id: "a7-q3",
-    category: "17 - Enterprise RAG Platform Capstone",
-    prompt: "How should release evaluation treat one confirmed cross-tenant evidence exposure?",
-    options: [
-      "Block the release regardless of average task success.",
-      "Average it into retrieval recall and promote if the overall score is high.",
-      "Preserve the trace, contain the faulty route, and add a regression case.",
-      "Ask the language model to omit the evidence next time.",
-    ],
-    correct: [0, 2],
-    explanation:
-      "Cross-tenant exposure violates a hard invariant. It requires containment, root-cause analysis, repair, verification, and a permanent regression test—not prompt-level concealment.",
-    source: {
-      label: "Enterprise RAG Platform Capstone",
-      url: "curriculum/advanced/07-enterprise-rag-capstone/README.md",
-    },
-  },
-  {
-    id: "a8-q1",
-    category: "18 - HyDE Retrieval",
+    category: "17 - HyDE Retrieval",
     prompt: "What is the correct role of a HyDE-generated hypothetical document?",
     options: [
       "It is a search representation used to retrieve real corpus documents.",
@@ -1004,43 +950,97 @@ export const questions = [
       "HyDE uses a generated passage to create a document-shaped retrieval representation. Final evidence and citations must come from real authorized corpus documents.",
     source: {
       label: "HyDE Retrieval",
-      url: "curriculum/advanced/08-hyde-retrieval/README.md",
+      url: "curriculum/advanced/07-hyde-retrieval/README.md",
+    },
+  },
+  {
+    id: "a7-q2",
+    category: "17 - HyDE Retrieval",
+    prompt: "Which statements describe a valid HyDE evaluation?",
+    options: [
+      "Gold-aware deterministic hypotheses prove mechanics but do not establish generator quality.",
+      "Recall@k is undefined for a no-answer case with no relevant document and should be excluded from recall aggregation.",
+      "Router accuracy and high-risk false-positive rates should be evaluated separately from retrieval quality.",
+      "One fluent answer is enough to prove that universal HyDE should be deployed.",
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "Mechanism fixtures, answerable retrieval, no-answer behavior, routing, and operational work have different populations and must be evaluated separately.",
+    source: {
+      label: "HyDE Retrieval",
+      url: "curriculum/advanced/07-hyde-retrieval/README.md",
+    },
+  },
+  {
+    id: "a7-q3",
+    category: "17 - HyDE Retrieval",
+    prompt: "Which controls belong in a production-ready conditional HyDE path?",
+    options: [
+      "Authorize tenant, classification, and document status before every retrieval leg.",
+      "Measure drift, baseline regressions, generator-call proxy, retrieval legs, fusion, and reranking work.",
+      "Preserve an exact or hybrid path for identifiers, dates, numbers, and proprietary acronyms.",
+      "Allow generated hypotheses to enter the citation ledger when they sound plausible.",
+    ],
+    correct: [0, 1, 2],
+    explanation:
+      "Conditional HyDE is safe only when authorization remains application-owned, expensive work is observable, high-risk query classes retain exact paths, and citations come only from real evidence.",
+    source: {
+      label: "HyDE Retrieval",
+      url: "curriculum/advanced/07-hyde-retrieval/README.md",
+    },
+  },
+  {
+    id: "a8-q1",
+    category: "18 - Enterprise RAG Platform Capstone",
+    prompt: "Which principles should guide architecture selection in the advanced capstone?",
+    options: [
+      "Use the minimum evidence mechanism that satisfies the request and measured requirements.",
+      "Run graph, multimodal, external, and agentic routes for every factual request.",
+      "Compare added capability with latency, cost, security, and operational burden.",
+      "Document where advanced techniques were deliberately not used.",
+    ],
+    correct: [0, 2, 3],
+    explanation:
+      "The capstone rewards justified complexity. Each component must address a measured failure mode and repay its operational burden; omitting an unnecessary technique is a valid architecture decision.",
+    source: {
+      label: "Enterprise RAG Platform Capstone",
+      url: "curriculum/advanced/08-enterprise-rag-capstone/README.md",
     },
   },
   {
     id: "a8-q2",
-    category: "18 - HyDE Retrieval",
-    prompt: "Which requests are usually weak candidates for universal HyDE?",
+    category: "18 - Enterprise RAG Platform Capstone",
+    prompt: "What must happen before relevance ranking in a multitenant enterprise RAG request?",
     options: [
-      "An exact policy identifier such as HR-427.",
-      "A precise numerical lookup for Q3 2025.",
-      "An unknown proprietary entity such as ZX-47.",
-      "An informal problem description that differs sharply from formal documentation language.",
+      "Trusted identity attributes and policy must define the authorized evidence universe.",
+      "The router may infer tenant and clearance from the natural-language query.",
+      "Every source adapter must preserve the authorization scope.",
+      "Unauthorized evidence may be retrieved if it is filtered from the final answer.",
     ],
-    correct: [0, 1, 2],
+    correct: [0, 2],
     explanation:
-      "Exact identifiers, numerical lookups, and unknown proprietary entities can be damaged by generated interpretation. Informal-to-formal vocabulary mismatch is a stronger HyDE candidate.",
+      "Authorization is candidate eligibility, not output cleanup. The query cannot grant identity or scope, and forbidden evidence must not enter model-visible or application-visible intermediate state.",
     source: {
-      label: "HyDE Retrieval",
-      url: "curriculum/advanced/08-hyde-retrieval/README.md",
+      label: "Enterprise RAG Platform Capstone",
+      url: "curriculum/advanced/08-enterprise-rag-capstone/README.md",
     },
   },
   {
     id: "a8-q3",
-    category: "18 - HyDE Retrieval",
-    prompt: "How should a team decide whether to deploy HyDE?",
+    category: "18 - Enterprise RAG Platform Capstone",
+    prompt: "How should release evaluation treat one confirmed cross-tenant evidence exposure?",
     options: [
-      "Compare it with original-query and hybrid baselines on labelled query slices.",
-      "Measure retrieval quality together with latency, cost, drift, and unauthorized-candidate rate.",
-      "Enable it only for routes where the measured benefit justifies the added risk and work.",
-      "Judge it only by whether one final answer sounds more fluent.",
+      "Block the release regardless of average task success.",
+      "Average it into retrieval recall and promote if the overall score is high.",
+      "Preserve the trace, contain the faulty route, and add a regression case.",
+      "Ask the language model to omit the evidence next time.",
     ],
-    correct: [0, 1, 2],
+    correct: [0, 2],
     explanation:
-      "HyDE is a retrieval intervention. Evaluate it with controlled baselines, per-slice retrieval metrics, operational costs, drift tests, and security invariants rather than one fluent answer.",
+      "Cross-tenant exposure violates a hard invariant. It requires containment, root-cause analysis, repair, verification, and a permanent regression test—not prompt-level concealment.",
     source: {
-      label: "HyDE Retrieval",
-      url: "curriculum/advanced/08-hyde-retrieval/README.md",
+      label: "Enterprise RAG Platform Capstone",
+      url: "curriculum/advanced/08-enterprise-rag-capstone/README.md",
     },
   },
 ];

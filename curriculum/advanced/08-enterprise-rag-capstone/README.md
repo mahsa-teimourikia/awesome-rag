@@ -2,11 +2,15 @@
 
 > **Northstar Enterprises: design the system, justify the complexity, break it, measure it, and decide whether it is safe to release.**
 
-**Estimated effort:** 8–12 hours  
-**Primary lab:** [`07_enterprise_rag_capstone.ipynb`](07_enterprise_rag_capstone.ipynb)  
-**Reusable reference runtime:** [`lab.py`](lab.py)  
-**Mode:** credential-free, deterministic, laptop-friendly  
-**Prerequisite:** complete Advanced Courses [01–06](../README.md)
+**Estimated effort:** 8–12 hours
+
+**Primary lab:** [`08_enterprise_rag_capstone.ipynb`](08_enterprise_rag_capstone.ipynb)
+
+**Reusable reference runtime:** [`lab.py`](lab.py)
+
+**Mode:** credential-free, deterministic, laptop-friendly
+
+**Prerequisite:** complete Advanced Courses [01–07](../README.md)
 
 This capstone is deliberately different from the preceding technique courses. You are not asked to add every advanced RAG pattern. You are given requirements, heterogeneous evidence, principals, adversarial fixtures, evaluation cases, operational constraints, and a production incident. Your job is to decide which mechanisms belong on each request path—and which do not.
 
