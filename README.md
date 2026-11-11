@@ -248,6 +248,9 @@ Useful guidance: [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm
 - [RAGBench](https://github.com/RAGAI-RAGBench/RAGBench) — benchmark for diagnosing RAG systems under diverse conditions.
 - [GraphRAG paper](https://arxiv.org/abs/2404.16130) — explores graph-based retrieval for global sensemaking over private corpora.
 - [Corrective Retrieval Augmented Generation](https://arxiv.org/abs/2401.15884) — proposes retrieval-quality assessment and corrective actions.
+- [ExpandR: Teaching Dense Retrievers Beyond Queries with LLM Guidance](https://aclanthology.org/2025.emnlp-main.963/) — jointly optimizes LLM-based query expansion and a dense retriever.
+- [ParamMute: Suppressing Knowledge-Critical FFNs for Faithful Retrieval-Augmented Generation](https://arxiv.org/abs/2502.15543) — suppresses unfaithfulness-associated FFNs and adapts the model toward retrieved context; introduces the CoFaithfulQA benchmark.
+- [SPARK: Adaptive Parametric Knowledge Participation for Faithful Retrieval-Augmented Generation](https://arxiv.org/abs/2606.27786) — learns an adaptive FFN participation policy for context–memory conflicts while keeping the backbone frozen.
 
 ## Related awesome lists
 
